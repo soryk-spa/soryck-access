@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  organizedEvents Event[]    @relation("EventOrganizer")
+  tickets         Ticket[]
+  orders          Order[]
+
+  @@map("users")
+}
+
+// Categorías de eventos
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  events Event[]
+
+  @@map("categories")
+}
+
+// Eventos
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  location    String
+  startDate   DateTime
+  endDate     DateTime?
+  price       Float    @default(0)
+  currency    String   @default("USD")
+  capacity    Int
+  isPublished Boolean  @default(false)
+  isFree      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  organizerId String
+  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  tickets     Ticket[]
+  orders      Order[]
+
+  @@map("events")
+}
+
+// Tickets individuales
+model Ticket {
+  id         String      @id @default(cuid())
+  qrCode     String      @unique
+  isUsed     Boolean     @default(false)
+  usedAt     DateTime?
+  status     TicketStatus @default(ACTIVE)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  // Relaciones
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("tickets")
+}
+
+// Órdenes de compra
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  totalAmount     Float
+  currency        String      @default("USD")
+  quantity        Int
+  status          OrderStatus @default(PENDING)
+  paymentIntentId String?     @unique
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relaciones
+  userId  String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId String
+  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets Ticket[]
+
+  @@map("orders")
+}
+
+// Enums
+enum TicketStatus {
+  ACTIVE
+  CANCELLED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
