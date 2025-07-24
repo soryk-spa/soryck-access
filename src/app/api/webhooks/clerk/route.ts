@@ -2,7 +2,7 @@ import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
-import { UserRole } from '@/generated/prisma/client'
+import { UserRole } from '@prisma/client'
 
 export async function POST(req: Request) {
   const headerPayload = await headers();
