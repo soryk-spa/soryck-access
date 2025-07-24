@@ -2,12 +2,13 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ShieldX, ArrowLeft, Mail } from 'lucide-react'
 
-export default function UnauthorizedPage({
+export default async function UnauthorizedPage({
   searchParams,
 }: {
-  searchParams: { required?: string }
+  searchParams: Promise<{ required?: string }>
 }) {
-  const requiredRole = searchParams.required
+  const params = await searchParams
+  const requiredRole = params.required
 
   const getRoleMessage = () => {
     switch (requiredRole) {
