@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,10 +18,7 @@ import Link from 'next/link'
 
 export default async function DashboardPage() {
   const user = await requireAuth()
-
-  // Obtener estadísticas según el rol del usuario
   const [userStats, recentTickets, userEvents, roleRequests] = await Promise.all([
-    // Estadísticas generales del usuario
     Promise.all([
       prisma.ticket.count({
         where: { userId: user.id }
@@ -46,7 +42,6 @@ export default async function DashboardPage() {
         : Promise.resolve(0)
     ]),
 
-    // Tickets recientes del usuario
     prisma.ticket.findMany({
       where: { userId: user.id },
       take: 5,
@@ -62,7 +57,6 @@ export default async function DashboardPage() {
       }
     }),
 
-    // Eventos del usuario si es organizador
     canOrganizeEvents(user.role) 
       ? prisma.event.findMany({
           where: { organizerId: user.id },
@@ -79,7 +73,6 @@ export default async function DashboardPage() {
         })
       : Promise.resolve([]),
 
-    // Solicitudes de rol del usuario
     prisma.roleRequest.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
@@ -91,7 +84,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -108,7 +100,6 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Estadísticas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -176,7 +167,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Acciones rápidas */}
         <Card>
           <CardHeader>
             <CardTitle>Acciones Rápidas</CardTitle>
@@ -216,12 +206,10 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Solicitud de rol para clientes */}
         {user.role === 'CLIENT' && (
           <RoleRequestForm />
         )}
 
-        {/* Tickets recientes */}
         {user.role !== 'CLIENT' || recentTickets.length > 0 ? (
           <Card>
             <CardHeader>
@@ -256,7 +244,6 @@ export default async function DashboardPage() {
           </Card>
         ) : null}
 
-        {/* Eventos del organizador */}
         {canOrganizeEvents(user.role) && (
           <Card>
             <CardHeader>
@@ -293,7 +280,6 @@ export default async function DashboardPage() {
           </Card>
         )}
 
-        {/* Solicitudes de rol */}
         {roleRequests.length > 0 && (
           <Card>
             <CardHeader>

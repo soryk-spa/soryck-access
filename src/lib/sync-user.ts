@@ -1,4 +1,3 @@
-// src/lib/sync-user.ts
 import { clerkClient } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
