@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -21,6 +20,7 @@ model User {
   firstName String?
   lastName  String?
   imageUrl  String?
+  role      UserRole @default(CLIENT)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,6 +28,7 @@ model User {
   organizedEvents Event[]    @relation("EventOrganizer")
   tickets         Ticket[]
   orders          Order[]
+  roleRequests    RoleRequest[]
 
   @@map("users")
 }
@@ -117,7 +118,36 @@ model Order {
   @@map("orders")
 }
 
+// Solicitudes de cambio de rol
+model RoleRequest {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentRole   UserRole
+  requestedRole UserRole
+  message       String
+  status        RoleRequestStatus @default(PENDING)
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("role_requests")
+}
+
 // Enums
+enum UserRole {
+  CLIENT
+  ORGANIZER
+  ADMIN
+}
+
+enum RoleRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum TicketStatus {
   ACTIVE
   CANCELLED

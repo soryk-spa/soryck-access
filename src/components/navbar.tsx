@@ -3,9 +3,12 @@ import { UserButton, SignInButton, SignUpButton } from '@clerk/nextjs'
 import { auth } from '@clerk/nextjs/server'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { getCurrentUser } from '@/lib/auth'
+import { canOrganizeEvents, canAccessAdmin, ROLE_LABELS, ROLE_COLORS, UserRole } from '@/lib/roles'
 
 export default async function Navbar() {
   const { userId } = await auth()
+  const user = await getCurrentUser()
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,8 +25,7 @@ export default async function Navbar() {
               </span>
             </Link>
           </div>
-
-          {/* Navigation Links */}
+          
           <div className="hidden md:flex items-center space-x-6">
             <Link 
               href="/events" 
@@ -39,18 +41,32 @@ export default async function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <Link 
-                  href="/events/create" 
-                  className="text-foreground hover:text-primary transition-colors"
-                >
-                  Crear Evento
-                </Link>
+                {user && canOrganizeEvents(user.role) && (
+                  <Link 
+                    href="/events/create" 
+                    className="text-foreground hover:text-primary transition-colors"
+                  >
+                    Crear Evento
+                  </Link>
+                )}
+                {user && canAccessAdmin(user.role) && (
+                  <Link 
+                    href="/admin" 
+                    className="text-foreground hover:text-primary transition-colors"
+                  >
+                    Admin
+                  </Link>
+                )}
               </>
             )}
           </div>
-
-          {/* Auth and Theme Toggle */}
           <div className="flex items-center space-x-4">
+            {user && (
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${ROLE_COLORS[user.role as UserRole]}`}>
+                {ROLE_LABELS[user.role as UserRole]}
+              </div>
+            )}
+            
             <ThemeToggle />
             
             {userId ? (
