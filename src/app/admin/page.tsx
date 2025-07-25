@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { RoleManagement } from '@/components/role-management'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Calendar, Ticket, DollarSign } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 // Tipo para los eventos con datos relacionados
 type EventWithDetails = {
@@ -91,13 +93,11 @@ export default async function AdminPage() {
     })
   ])
 
-  const roleStats = usersByRole.reduce(
-    (acc: Record<string, number>, item: { role: string; _count: { role: number } }) => {
-      acc[item.role] = item._count.role
-      return acc
-    },
-    {} as Record<string, number>
-  )
+  const roleStats = usersByRole.reduce((acc, item) => {
+    acc[item.role] = item._count.role
+    return acc
+  }, {} as Record<string, number>)
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -178,6 +178,49 @@ export default async function AdminPage() {
           users={users} 
           currentUserRole={currentUser.role}
         />
+      </div>
+
+      {/* Acciones rápidas */}
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Gestión de Contenido</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button asChild className="w-full">
+              <Link href="/admin/categories">
+                <Calendar className="w-4 h-4 mr-2" />
+                Gestionar Categorías
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/admin/events">
+                <Calendar className="w-4 h-4 mr-2" />
+                Gestionar Eventos
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Herramientas de Sistema</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/admin/sync-users">
+                <Users className="w-4 h-4 mr-2" />
+                Sincronizar Usuarios
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/admin/settings">
+                <DollarSign className="w-4 h-4 mr-2" />
+                Configuración
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Eventos recientes */}
