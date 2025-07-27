@@ -54,7 +54,6 @@ export default function Footer() {
     <footer className="bg-background border-t border-border">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Company Info */}
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -68,8 +67,6 @@ export default function Footer() {
               La plataforma más confiable para crear, gestionar y vender tickets de eventos. 
               Solo cobramos cuando tú vendes.
             </p>
-            
-            {/* Contact Info */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
@@ -88,8 +85,6 @@ export default function Footer() {
                 <span>Valdivia, Los Ríos, Chile</span>
               </div>
             </div>
-
-            {/* Social Links */}
             <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <a
@@ -104,8 +99,6 @@ export default function Footer() {
               ))}
             </div>
           </div>
-
-          {/* Product Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Producto</h4>
             <ul className="space-y-3">
@@ -121,8 +114,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Company Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Empresa</h4>
             <ul className="space-y-3">
@@ -138,8 +129,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Support Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Soporte</h4>
             <ul className="space-y-3">
@@ -155,8 +144,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Legal Links */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-3">
@@ -173,8 +160,6 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-
-        {/* Status Badge */}
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">

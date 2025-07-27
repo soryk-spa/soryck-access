@@ -4,7 +4,6 @@ import { UserRole } from '@prisma/client'
 
 export async function syncUserFromClerk(clerkId: string) {
   try {
-    // Obtener el usuario de Clerk
     const client = await clerkClient()
     const clerkUser = await client.users.getUser(clerkId)
     
@@ -12,7 +11,6 @@ export async function syncUserFromClerk(clerkId: string) {
       throw new Error('Usuario no encontrado en Clerk')
     }
 
-    // Verificar si ya existe en nuestra BD
     const existingUser = await prisma.user.findUnique({
       where: { clerkId }
     })
@@ -21,10 +19,8 @@ export async function syncUserFromClerk(clerkId: string) {
       return existingUser
     }
 
-    // Determinar el rol del usuario
     let userRole: UserRole = UserRole.CLIENT
     
-    // Verificar si hay metadata personalizada para el rol
     if (clerkUser.publicMetadata && typeof clerkUser.publicMetadata === 'object' && 'role' in clerkUser.publicMetadata) {
       const metadataRole = clerkUser.publicMetadata.role as string
       if (Object.values(UserRole).includes(metadataRole as UserRole)) {
@@ -32,13 +28,11 @@ export async function syncUserFromClerk(clerkId: string) {
       }
     }
 
-    // Verificar si es el primer usuario (será admin)
     const userCount = await prisma.user.count()
     if (userCount === 0) {
       userRole = UserRole.ADMIN
     }
 
-    // Verificar si el email está en las listas de roles predefinidas
     const organizerEmails = process.env.ORGANIZER_EMAILS?.split(',') || []
     const adminEmails = process.env.ADMIN_EMAILS?.split(',') || []
     
@@ -50,7 +44,6 @@ export async function syncUserFromClerk(clerkId: string) {
       userRole = UserRole.ORGANIZER
     }
 
-    // Crear el usuario en nuestra BD
     const newUser = await prisma.user.create({
       data: {
         clerkId,

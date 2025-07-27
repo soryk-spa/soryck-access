@@ -40,7 +40,6 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
   const [formData, setFormData] = useState({
     name: ''
   })

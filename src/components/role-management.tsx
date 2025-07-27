@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { 
   Select, 
@@ -36,9 +35,7 @@ export function RoleManagement({ users, currentUserRole }: RoleManagementProps) 
       toast.error('Solo los administradores pueden cambiar roles')
       return
     }
-
-    setLoadingUserId(userId)
-    
+    setLoadingUserId(userId) 
     try {
       const response = await fetch('/api/admin/users/role', {
         method: 'PATCH',
@@ -50,13 +47,10 @@ export function RoleManagement({ users, currentUserRole }: RoleManagementProps) 
           role: newRole
         })
       })
-
       if (!response.ok) {
         throw new Error('Error al actualizar el rol')
       }
-
       toast.success('Rol actualizado exitosamente')
-      // Recargar la página para mostrar los cambios
       window.location.reload()
     } catch (error) {
       console.error('Error updating role:', error)

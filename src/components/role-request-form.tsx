@@ -1,5 +1,4 @@
 'use client'
-
 import { useState } from 'react'
 import { UserRole } from '@prisma/client'
 import { useRoles } from '@/hooks/use-roles'
@@ -74,7 +73,6 @@ export function RoleRequestForm() {
       </Card>
     )
   }
-
   return (
     <Card>
       <CardHeader>
@@ -91,14 +89,12 @@ export function RoleRequestForm() {
               {ROLE_LABELS[user.role]}
             </Badge>
           </div>
-
           <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg">
             <span className="text-sm font-medium">Rol solicitado:</span>
             <Badge className={ROLE_COLORS[UserRole.ORGANIZER]}>
               {ROLE_LABELS[UserRole.ORGANIZER]}
             </Badge>
           </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="message">
@@ -113,7 +109,6 @@ export function RoleRequestForm() {
                 required
               />
             </div>
-
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
               <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                 Como organizador podrás:
@@ -125,7 +120,6 @@ export function RoleRequestForm() {
                 <li>• Gestionar participantes</li>
               </ul>
             </div>
-
             <Button 
               type="submit" 
               disabled={loading || !message.trim()}

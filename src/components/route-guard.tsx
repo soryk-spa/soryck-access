@@ -1,5 +1,4 @@
 'use client'
-
 import { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@prisma/client'
