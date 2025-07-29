@@ -57,7 +57,7 @@ model Event {
   startDate   DateTime
   endDate     DateTime?
   price       Float    @default(0)
-  currency    String   @default("USD")
+  currency    String   @default("CLP")
   capacity    Int
   isPublished Boolean  @default(false)
   isFree      Boolean  @default(false)
@@ -101,7 +101,7 @@ model Order {
   id              String      @id @default(cuid())
   orderNumber     String      @unique
   totalAmount     Float
-  currency        String      @default("USD")
+  currency        String      @default("CLP")
   quantity        Int
   status          OrderStatus @default(PENDING)
   paymentIntentId String?     @unique
