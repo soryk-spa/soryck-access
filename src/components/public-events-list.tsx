@@ -82,7 +82,6 @@ export default function PublicEventsList({
   initialFilters 
 }: PublicEventsListProps) {
   const router = useRouter()
-  // Removemos searchParams ya que no lo usamos
   
   const [events, setEvents] = useState<Event[]>(initialEvents)
   const [pagination, setPagination] = useState<Pagination>(initialPagination)
@@ -116,13 +115,30 @@ export default function PublicEventsList({
     
     try {
       const queryString = buildQueryString(newFilters, page)
-      const response = await fetch(`/api/events/public?${queryString}`)
+      const url = `/api/events/public${queryString ? `?${queryString}` : ''}`
+      
+      console.log('Fetching events from:', url) // Debug log
+      
+      const response = await fetch(url)
       
       if (!response.ok) {
-        throw new Error('Error al cargar eventos')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        })
+        throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`)
       }
       
       const data = await response.json()
+      
+      // Validar que la respuesta tenga la estructura esperada
+      if (!data.events || !Array.isArray(data.events)) {
+        console.error('Invalid API response structure:', data)
+        throw new Error('Respuesta de la API inválida')
+      }
+      
       setEvents(data.events)
       setPagination(data.pagination)
       
@@ -132,7 +148,8 @@ export default function PublicEventsList({
       
     } catch (err) {
       console.error('Error fetching events:', err)
-      setError('Error al cargar los eventos. Por favor intenta de nuevo.')
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar eventos'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -207,6 +224,13 @@ export default function PublicEventsList({
               <AlertCircle className="h-4 w-4" />
               <span>{error}</span>
             </div>
+            <Button 
+              variant="outline" 
+              onClick={() => fetchEvents(filters, pagination.currentPage)}
+              className="mt-4"
+            >
+              Intentar de nuevo
+            </Button>
           </CardContent>
         </Card>
       )}

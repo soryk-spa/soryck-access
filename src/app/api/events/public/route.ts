@@ -1,6 +1,6 @@
-// src/app/api/events/public/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
 
-    // Construir filtros con tipado correcto
-    const whereClause: any = {
+    // Construir filtros con tipado correcto de Prisma
+    const whereClause: Prisma.EventWhereInput = {
       isPublished: true,
       startDate: {
         gte: new Date() // Solo eventos futuros
@@ -62,55 +62,57 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Filtro por precio
+    // Filtro por evento gratuito/pagado
     if (isFree === 'true') {
       whereClause.isFree = true
     } else if (isFree === 'false') {
       whereClause.isFree = false
     }
 
-    // Manejar filtros de precio de forma más simple
-    if (minPrice || maxPrice) {
-      whereClause.price = {}
-      if (minPrice) {
-        whereClause.price.gte = parseFloat(minPrice)
-      }
-      if (maxPrice) {
-        whereClause.price.lte = parseFloat(maxPrice)
-      }
+    // Filtros de precio - construir el objeto de filtro de precio de forma segura
+    const priceFilter: Prisma.FloatFilter = {}
+    if (minPrice) {
+      priceFilter.gte = parseFloat(minPrice)
     }
-
-    // Manejar filtros de fecha de forma más simple
-    if (dateFrom || dateTo) {
-      whereClause.startDate = {
-        ...whereClause.startDate
-      }
-      if (dateFrom) {
-        whereClause.startDate.gte = new Date(dateFrom)
-      }
-      if (dateTo) {
-        whereClause.startDate.lte = new Date(dateTo)
-      }
+    if (maxPrice) {
+      priceFilter.lte = parseFloat(maxPrice)
     }
-
-    // Configurar ordenamiento
-    let orderBy: any = { startDate: 'asc' }
     
-    switch (sortBy) {
-      case 'price':
-        orderBy = { price: sortOrder }
-        break
-      case 'title':
-        orderBy = { title: sortOrder }
-        break
-      case 'capacity':
-        orderBy = { capacity: sortOrder }
-        break
-      case 'createdAt':
-        orderBy = { createdAt: sortOrder }
-        break
-      default:
-        orderBy = { startDate: sortOrder }
+    // Solo aplicar filtro de precio si hay al menos un valor
+    if (minPrice || maxPrice) {
+      whereClause.price = priceFilter
+    }
+
+    // Filtros de fecha - construir el objeto de filtro de fecha de forma segura
+    const dateFilter: Prisma.DateTimeFilter = {
+      gte: new Date() // Mantener el filtro de eventos futuros
+    }
+    
+    if (dateFrom) {
+      dateFilter.gte = new Date(dateFrom)
+    }
+    if (dateTo) {
+      dateFilter.lte = new Date(dateTo)
+    }
+    
+    whereClause.startDate = dateFilter
+
+    // Configurar ordenamiento con tipos correctos
+    const getOrderBy = (): Prisma.EventOrderByWithRelationInput => {
+      const order = sortOrder as 'asc' | 'desc'
+      
+      switch (sortBy) {
+        case 'price':
+          return { price: order }
+        case 'title':
+          return { title: order }
+        case 'capacity':
+          return { capacity: order }
+        case 'createdAt':
+          return { createdAt: order }
+        default:
+          return { startDate: order }
+      }
     }
 
     // Ejecutar consulta con paginación
@@ -139,7 +141,7 @@ export async function GET(request: NextRequest) {
             }
           }
         },
-        orderBy,
+        orderBy: getOrderBy(),
         skip,
         take: limit
       }),
