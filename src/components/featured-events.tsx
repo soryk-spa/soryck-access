@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -54,7 +54,6 @@ export default function FeaturedEvents() {
   useEffect(() => {
     async function fetchFeaturedEvents() {
       try {
-        // Fetch eventos destacados - solo primeros 6 eventos publicados
         const response = await fetch('/api/events/public?limit=6&sortBy=startDate&sortOrder=asc')
         
         if (!response.ok) {
@@ -200,8 +199,6 @@ export default function FeaturedEvents() {
                           <Calendar className="h-16 w-16 text-[#0053CC]/50" />
                         </div>
                       )}
-                      
-                      {/* Fecha en overlay */}
                       <div className="absolute top-4 left-4 bg-white/95 backdrop-blur rounded-lg p-3 shadow-lg">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-[#0053CC]">{startDate.day}</div>
@@ -209,15 +206,11 @@ export default function FeaturedEvents() {
                           <div className="text-xs text-muted-foreground">{startDate.weekday}</div>
                         </div>
                       </div>
-
-                      {/* Categoría */}
                       <div className="absolute top-4 right-4">
                         <Badge variant="secondary" className="bg-white/90 backdrop-blur text-[#0053CC]">
                           {event.category.name}
                         </Badge>
                       </div>
-
-                      {/* Disponibilidad */}
                       <div className="absolute bottom-4 right-4">
                         <Badge className={availability.color}>
                           {availability.text}
@@ -286,8 +279,6 @@ export default function FeaturedEvents() {
                 )
               })}
             </div>
-
-            {/* CTA para ver más eventos */}
             <div className="text-center">
               <Button 
                 asChild 
@@ -303,7 +294,6 @@ export default function FeaturedEvents() {
             </div>
           </>
         ) : (
-          /* Estado sin eventos */
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-gradient-to-br from-[#01CBFE]/20 to-[#0053CC]/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <Calendar className="h-12 w-12 text-[#0053CC]/50" />

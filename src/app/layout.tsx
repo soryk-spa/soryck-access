@@ -6,12 +6,11 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
-// Configuración de Montserrat según el branbook
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
-  weight: ["300", "400", "500", "600", "700", "800", "900"], // Incluimos todos los pesos disponibles
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -28,7 +27,7 @@ export const metadata: Metadata = {
     siteName: "SorykPass",
     images: [
       {
-        url: "/og-image.jpg", // Añadir imagen OG cuando esté disponible
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "SorykPass - Plataforma de Eventos Digital",
@@ -71,13 +70,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="es" suppressHydrationWarning>
         <head>
-          {/* Preload de la fuente para mejor rendimiento */}
-          {/* Favicon y iconos de la app */}
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="icon" href="/icon.svg" type="image/svg+xml" />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <link rel="manifest" href="/manifest.json" />
-          {/* Meta tag para el tema de SorykPass */}
           <meta name="theme-color" content="#0053CC" />
           <meta name="msapplication-TileColor" content="#0053CC" />
         </head>

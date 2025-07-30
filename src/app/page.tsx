@@ -19,11 +19,8 @@ import {
   Clock,
   Mail
 } from "lucide-react"
-
-// Componente del nuevo logo de SorykPass según el branbook
 const SorykPassLogo = () => (
   <div className="flex items-center space-x-3">
-    {/* Símbolo hexagonal con gradiente según el branbook */}
     <div className="relative w-10 h-10">
       <div className="absolute inset-0 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-lg transform rotate-12"></div>
       <div className="absolute inset-1 bg-background rounded-md flex items-center justify-center">
@@ -155,22 +152,15 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section con el nuevo diseño */}
       <section className="relative overflow-hidden">
-        {/* Fondo con gradiente inspirado en el branbook */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#01CBFE]/10 via-[#0053CC]/5 to-[#CC66CC]/10"></div>
-        
-        {/* Elementos decorativos geométricos */}
         <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-[#FDBD00] to-[#FE4F00] rounded-full opacity-20 blur-xl"></div>
         <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-br from-[#CC66CC] to-[#0053CC] rounded-full opacity-20 blur-xl"></div>
-        
         <div className="container mx-auto px-4 py-24 sm:py-32 relative">
           <div className="text-center">
             <Badge variant="outline" className="mb-6 text-sm border-[#01CBFE] text-[#0053CC]">
               ✨ La Puerta de Entrada al Presente
             </Badge>
-            
-            {/* Logo principal */}
             <div className="flex justify-center mb-8">
               <SorykPassLogo />
             </div>
@@ -220,11 +210,7 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-
-      {/* Eventos Destacados */}
       <FeaturedEvents />
-
-      {/* Características con el estilo del branbook */}
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -255,8 +241,6 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-
-      {/* Testimonios */}
       <section className="py-24 bg-gradient-to-br from-[#01CBFE]/5 to-[#0053CC]/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -291,8 +275,6 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-
-      {/* Precios con gradientes del branbook */}
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
@@ -366,10 +348,7 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-
-      {/* CTA final con gradiente del branbook */}
       <section className="py-24 bg-gradient-to-br from-[#0053CC] via-[#CC66CC] to-[#01CBFE] text-white relative overflow-hidden">
-        {/* Elementos decorativos */}
         <div className="absolute top-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         
@@ -394,8 +373,6 @@ export default function Homepage() {
           </div>
         </div>
       </section>
-
-      {/* Newsletter */}
       <section>
         <div className="bg-gradient-to-r from-[#FDBD00]/10 to-[#01CBFE]/10">
           <div className="container mx-auto px-4 py-12">

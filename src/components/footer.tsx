@@ -13,7 +13,6 @@ import {
 
 const SorykPassFooterLogo = () => (
   <div className="flex items-center space-x-3">
-    {/* Símbolo hexagonal con gradiente según el branbook */}
     <div className="relative w-10 h-10">
       <div className="absolute inset-0 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-lg transform rotate-12"></div>
       <div className="absolute inset-1 bg-background rounded-md flex items-center justify-center">
@@ -86,13 +85,10 @@ export default function Footer() {
 
   return (
     <footer className="bg-gradient-to-br from-background to-muted border-t border-border relative overflow-hidden">
-      {/* Elementos decorativos de fondo */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#01CBFE]/5 to-[#0053CC]/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#FDBD00]/5 to-[#FE4F00]/5 rounded-full blur-3xl"></div>
-      
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-[#FDBD00]/5 to-[#FE4F00]/5 rounded-full blur-3xl"></div> 
       <div className="container mx-auto px-4 py-12 relative">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
-          {/* Información principal de la empresa */}
           <div className="lg:col-span-2">
             <div className="mb-6">
               <SorykPassFooterLogo />
@@ -101,8 +97,6 @@ export default function Footer() {
               La plataforma más confiable para crear, gestionar y vender tickets de eventos. 
               Un sistema ágil, confiable y sin fricciones.
             </p>
-            
-            {/* Información de contacto */}
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-3 text-sm text-muted-foreground hover:text-[#0053CC] transition-colors">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-[#01CBFE] to-[#0053CC] flex items-center justify-center">
@@ -127,8 +121,6 @@ export default function Footer() {
                 <span>Valdivia, Los Ríos, Chile</span>
               </div>
             </div>
-            
-            {/* Redes sociales */}
             <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <a
@@ -143,8 +135,6 @@ export default function Footer() {
               ))}
             </div>
           </div>
-
-          {/* Enlaces del producto */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Producto</h4>
             <ul className="space-y-3">
@@ -161,8 +151,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Enlaces de la empresa */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Empresa</h4>
             <ul className="space-y-3">
@@ -179,8 +167,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Enlaces de soporte */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Soporte</h4>
             <ul className="space-y-3">
@@ -197,8 +183,6 @@ export default function Footer() {
               ))}
             </ul>
           </div>
-
-          {/* Enlaces legales */}
           <div>
             <h4 className="font-semibold text-foreground mb-4">Legal</h4>
             <ul className="space-y-3">
@@ -216,8 +200,6 @@ export default function Footer() {
             </ul>
           </div>
         </div>
-
-        {/* Sección inferior */}
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-4">

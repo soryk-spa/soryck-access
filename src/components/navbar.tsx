@@ -1,15 +1,15 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { UserButton, SignInButton, SignUpButton } from '@clerk/nextjs'
-import { auth } from '@clerk/nextjs/server'
+import { UserButton, SignInButton, SignUpButton, useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { getCurrentUser } from '@/lib/auth'
 import { canOrganizeEvents, canAccessAdmin, ROLE_LABELS, UserRole } from '@/lib/roles'
+import MobileNav from '@/components/mobile-nav'
 
-// Componente del logo de SorykPass según el branbook
 const SorykPassNavLogo = () => (
   <div className="flex items-center space-x-2">
-    {/* Símbolo hexagonal con gradiente según el branbook - versión compacta para navbar */}
     <div className="relative w-8 h-8">
       <div className="absolute inset-0 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-lg transform rotate-12"></div>
       <div className="absolute inset-0.5 bg-background rounded-md flex items-center justify-center">
@@ -22,23 +22,81 @@ const SorykPassNavLogo = () => (
   </div>
 )
 
-export default async function Navbar() {
-  const { userId } = await auth()
-  const user = await getCurrentUser()
+interface User {
+  id: string
+  email: string
+  firstName: string | null
+  lastName: string | null
+  role: UserRole
+}
+
+export default function Navbar() {
+  const { user: clerkUser, isLoaded } = useUser()
+  const [dbUser, setDbUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchUserData() {
+      if (!isLoaded) return
+      
+      if (!clerkUser) {
+        setDbUser(null)
+        setLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/user/profile')
+        if (response.ok) {
+          const data = await response.json()
+          setDbUser(data.user)
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [clerkUser, isLoaded])
+
+  if (!isLoaded || loading) {
+    return (
+      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Link href="/" className="transition-transform hover:scale-105">
+                <SorykPassNavLogo />
+              </Link>
+            </div>
+            
+            <div className="hidden lg:flex items-center space-x-8">
+              <div className="h-4 w-16 bg-muted animate-pulse rounded"></div>
+              <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <div className="w-10 h-10 bg-muted animate-pulse rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    )
+  }
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="transition-transform hover:scale-105">
               <SorykPassNavLogo />
             </Link>
-          </div>
-          
-          {/* Navegación principal */}
-          <div className="hidden md:flex items-center space-x-8">
+          </div>          
+          <div className="hidden lg:flex items-center space-x-8">
             <Link 
               href="/events" 
               className="text-foreground hover:text-[#0053CC] transition-colors font-medium relative group"
@@ -47,7 +105,7 @@ export default async function Navbar() {
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] transition-all group-hover:w-full"></span>
             </Link>
             
-            {userId && (
+            {clerkUser && (
               <>
                 <Link 
                   href="/dashboard" 
@@ -57,7 +115,7 @@ export default async function Navbar() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] transition-all group-hover:w-full"></span>
                 </Link>
                 
-                {user && canOrganizeEvents(user.role) && (
+                {dbUser && canOrganizeEvents(dbUser.role) && (
                   <Link 
                     href="/events/create" 
                     className="text-foreground hover:text-[#CC66CC] transition-colors font-medium relative group"
@@ -67,7 +125,7 @@ export default async function Navbar() {
                   </Link>
                 )}
                 
-                {user && canAccessAdmin(user.role) && (
+                {dbUser && canAccessAdmin(dbUser.role) && (
                   <Link 
                     href="/admin" 
                     className="text-foreground hover:text-[#FE4F00] transition-colors font-medium relative group"
@@ -79,29 +137,26 @@ export default async function Navbar() {
               </>
             )}
           </div>
-
-          {/* Área de usuario y controles */}
-          <div className="flex items-center space-x-4">
-            {/* Badge de rol con colores del branbook */}
-            {user && (
+          <div className="hidden lg:flex items-center space-x-4">
+            {dbUser && (
               <div className="relative">
                 <div 
                   className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                    user.role === 'ADMIN' 
+                    dbUser.role === 'ADMIN' 
                       ? 'bg-gradient-to-r from-[#CC66CC] to-[#0053CC] text-white' 
-                      : user.role === 'ORGANIZER'
+                      : dbUser.role === 'ORGANIZER'
                       ? 'bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white'
                       : 'bg-gradient-to-r from-[#01CBFE] to-[#0053CC] text-white'
                   }`}
                 >
-                  {ROLE_LABELS[user.role as UserRole]}
+                  {ROLE_LABELS[dbUser.role]}
                 </div>
               </div>
             )}
             
             <ThemeToggle />
             
-            {userId ? (
+            {clerkUser ? (
               <div className="relative">
                 <UserButton 
                   appearance={{
@@ -128,6 +183,38 @@ export default async function Navbar() {
                 </SignUpButton>
               </div>
             )}
+          </div>
+          <div className="lg:hidden flex items-center space-x-2">
+            <ThemeToggle />
+            
+            {clerkUser ? (
+              <div className="flex items-center space-x-2">
+                {dbUser && (
+                  <div 
+                    className={`px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
+                      dbUser.role === 'ADMIN' 
+                        ? 'bg-gradient-to-r from-[#CC66CC] to-[#0053CC] text-white' 
+                        : dbUser.role === 'ORGANIZER'
+                        ? 'bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white'
+                        : 'bg-gradient-to-r from-[#01CBFE] to-[#0053CC] text-white'
+                    }`}
+                  >
+                    {dbUser.role === 'ADMIN' ? 'ADM' : dbUser.role === 'ORGANIZER' ? 'ORG' : 'CLI'}
+                  </div>
+                )}
+                
+                <UserButton 
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8 ring-1 ring-[#01CBFE]/30 flex-shrink-0"
+                    }
+                  }}
+                />
+              </div>
+            ) : null}
+            <div className="flex-shrink-0">
+              <MobileNav user={dbUser} userId={clerkUser?.id || null} />
+            </div>
           </div>
         </div>
       </div>
