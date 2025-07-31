@@ -76,26 +76,40 @@ export default function TicketPurchaseSection({
   }
 
   const handlePurchase = async () => {
-    if (!user) return
+  if (!user) return
 
-    setIsProcessing(true)
-    try {
-      // Aquí implementaremos la lógica de compra en el siguiente paso
-      console.log('Purchasing', quantity, 'tickets for event', event.id)
-      
-      // Simulación de proceso de compra
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // TODO: Implementar la lógica real de compra
-      alert('Funcionalidad de compra en desarrollo')
-      
-    } catch (error) {
-      console.error('Error purchasing tickets:', error)
-      alert('Error al procesar la compra')
-    } finally {
-      setIsProcessing(false)
+  setIsProcessing(true)
+  try {
+    const response = await fetch('/api/payments/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventId: event.id,
+        quantity
+      })
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Error al procesar el pago')
     }
+
+    if (result.isFree) {
+      window.location.href = `/payment/success?orderId=${result.orderId}`
+    } else {
+      window.location.href = result.paymentUrl
+    }
+
+  } catch (error) {
+    console.error('Error purchasing tickets:', error)
+    alert(error instanceof Error ? error.message : 'Error al procesar la compra')
+  } finally {
+    setIsProcessing(false)
   }
+}
 
   if (availability.status === 'sold-out') {
     return (

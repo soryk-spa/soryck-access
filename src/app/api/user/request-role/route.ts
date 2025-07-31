@@ -27,7 +27,6 @@ export async function POST(request: NextRequest) {
 
     const { requestedRole, message } = validation.data
 
-    // Verificar que no esté solicitando el mismo rol que ya tiene
     if (user.role === requestedRole) {
       return NextResponse.json(
         { error: 'Ya tienes este rol' },
@@ -35,7 +34,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar que no sea una solicitud para degradar (ej: ADMIN -> CLIENT)
     const roleHierarchy = {
       [UserRole.CLIENT]: 1,
       [UserRole.ORGANIZER]: 2,
@@ -49,7 +47,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verificar si ya existe una solicitud pendiente
     const existingRequest = await prisma.roleRequest.findFirst({
       where: {
         userId: user.id,
@@ -64,7 +61,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Crear la solicitud de rol
     const roleRequest = await prisma.roleRequest.create({
       data: {
         userId: user.id,
@@ -84,7 +80,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Aquí podrías enviar un email a los administradores
     // await sendRoleRequestNotification(roleRequest)
 
     return NextResponse.json({
@@ -109,7 +104,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Obtener solicitudes del usuario actual
 export async function GET() {
   try {
     const user = await requireAuth()

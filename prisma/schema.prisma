@@ -96,6 +96,27 @@ model Ticket {
   @@map("tickets")
 }
 
+model Payment {
+  id              String    @id @default(cuid())
+  orderId         String    @unique
+  transactionId   String    @unique
+  token           String?
+  amount          Float
+  currency        String    @default("CLP")
+  status          String    @default("PENDING") // PENDING, AUTHORIZED, NULLIFIED, FAILED
+  paymentMethod   String?
+  authorizationCode String?
+  responseCode    Int?
+  transactionDate DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relaciones
+  order           Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
 // Órdenes de compra
 model Order {
   id              String      @id @default(cuid())
@@ -114,6 +135,8 @@ model Order {
   eventId String
   event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets Ticket[]
+
+  payment         Payment?
 
   @@map("orders")
 }
