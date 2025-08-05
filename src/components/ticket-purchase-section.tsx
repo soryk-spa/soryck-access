@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useRouter } from 'next/navigation'
 import { 
   Minus, 
   Plus, 
@@ -56,6 +57,7 @@ export default function TicketPurchaseSection({
 }: TicketPurchaseSectionProps) {
   const [quantity, setQuantity] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-CL', {
@@ -76,40 +78,40 @@ export default function TicketPurchaseSection({
   }
 
   const handlePurchase = async () => {
-  if (!user) return
+    if (!user) return
 
-  setIsProcessing(true)
-  try {
-    const response = await fetch('/api/payments/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        eventId: event.id,
-        quantity
+    setIsProcessing(true)
+    try {
+      const response = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          eventId: event.id,
+          quantity
+        })
       })
-    })
 
-    const result = await response.json()
+      const result = await response.json()
 
-    if (!response.ok) {
-      throw new Error(result.error || 'Error al procesar el pago')
+      if (!response.ok) {
+        throw new Error(result.error || 'Error al procesar el pago')
+      }
+
+      if (result.isFree) {
+        router.push(`/payment/success?orderId=${result.orderId}`)
+      } else {
+        const redirectUrl = `/payment/redirect?token=${encodeURIComponent(result.token)}&url=${encodeURIComponent(result.paymentUrl)}`
+        router.push(redirectUrl)
+      }
+
+    } catch (error) {
+      console.error('Error purchasing tickets:', error)
+      alert(error instanceof Error ? error.message : 'Error al procesar la compra')
+      setIsProcessing(false)
     }
-
-    if (result.isFree) {
-      window.location.href = `/payment/success?orderId=${result.orderId}`
-    } else {
-      window.location.href = result.paymentUrl
-    }
-
-  } catch (error) {
-    console.error('Error purchasing tickets:', error)
-    alert(error instanceof Error ? error.message : 'Error al procesar la compra')
-  } finally {
-    setIsProcessing(false)
   }
-}
 
   if (availability.status === 'sold-out') {
     return (

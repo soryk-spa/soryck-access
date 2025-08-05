@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { webpayPlus } from '@/lib/transbank'
 import { prisma } from '@/lib/prisma'
 
+// Definimos las interfaces aquí para tenerlas disponibles
 interface Payment {
   id: string;
   order: {
@@ -18,71 +19,84 @@ interface TransbankResponse {
   response_code: number;
   payment_type_code: string;
   transaction_date: string;
+  status: string; // Añadimos status para verificar si es 'AUTHORIZED'
+}
+
+/**
+ * Función centralizada para confirmar la transacción, llamada por GET o POST.
+ */
+async function handleTransactionCommit(token: string | null) {
+  if (!token) {
+    console.error('No se recibió token en la URL de retorno.');
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=no-token`);
+  }
+
+  console.log(`Intentando confirmar la transacción con el token: ${token}`);
+
+  try {
+    // 1. Confirmar la transacción con Transbank
+    const response = await webpayPlus.commit(token);
+    console.log('Respuesta de webpayPlus.commit:', response);
+
+    // 2. Buscar el pago en nuestra base de datos usando el token
+    const payment = await prisma.payment.findFirst({
+      where: { token },
+      include: {
+        order: {
+          include: {
+            event: true,
+            user: true
+          }
+        }
+      }
+    });
+
+    if (!payment) {
+      console.error(`Error crítico: No se encontró el pago en la BD para el token: ${token}`);
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=payment-not-found`);
+    }
+
+    // 3. Verificar si la transacción fue aprobada
+    const isApproved = response.status === 'AUTHORIZED' && response.response_code === 0;
+
+    if (isApproved) {
+      await processSuccessfulPayment(payment, response);
+      // Redirigir a la página de éxito
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/success?orderId=${payment.order.id}`);
+    } else {
+      await processFailedPayment(payment, response);
+      // Redirigir a la página de error
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?orderId=${payment.order.id}&reason=transaction-failed`);
+    }
+  } catch (transactionError) {
+    console.error('Error al ejecutar webpayPlus.commit:', transactionError);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=confirmation-error`);
+  }
+}
+
+// --- Manejadores de Rutas ---
+
+export async function GET(request: NextRequest) {
+  console.warn('Se recibió una petición GET en la URL de retorno. Procesando...');
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get('token_ws');
+  
+  // Manejar cancelación del usuario (que también llega como GET)
+  if (searchParams.get('TBK_TOKEN')) {
+      console.log('El usuario canceló la transacción en Webpay.');
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=transaction-cancelled`);
+  }
+  
+  return await handleTransactionCommit(token);
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData()
-    const token = formData.get('token_ws') as string
-
-    if (!token) {
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=no-token`
-      )
-    }
-
-    try {
-      const response = await webpayPlus.commit(token)
-      
-      const payment = await prisma.payment.findFirst({
-        where: { token },
-        include: {
-          order: {
-            include: {
-              event: true,
-              user: true
-            }
-          }
-        }
-      })
-
-      if (!payment) {
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=payment-not-found`
-        )
-      }
-
-      const isApproved = response.status === 'AUTHORIZED' && response.response_code === 0
-
-      if (isApproved) {
-        await processSuccessfulPayment(payment, response)
-        
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?orderId=${payment.order.id}`
-        )
-      } else {
-        await processFailedPayment(payment, response)
-        
-        return NextResponse.redirect(
-          `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?orderId=${payment.order.id}&reason=transaction-failed`
-        )
-      }
-
-    } catch (transactionError) {
-      console.error('Error confirming transaction:', transactionError)
-      
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=confirmation-error`
-      )
-    }
-
-  } catch (error) {
-    console.error('Error in Transbank callback:', error)
-    return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=server-error`
-    )
-  }
+  console.log('Se recibió una petición POST en la URL de retorno. Procesando...');
+  const formData = await request.formData();
+  const token = formData.get('token_ws') as string;
+  return await handleTransactionCommit(token);
 }
+
 
 async function processSuccessfulPayment(payment: Payment, transbankResponse: TransbankResponse) {
   const tickets = []

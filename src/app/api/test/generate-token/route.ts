@@ -30,13 +30,13 @@ export async function POST(request: NextRequest) {
 
     // Determinar qué tarjeta usar según el tipo de test
     const cardData = testType === 'reject' ? {
-      number: '4051885600446600', // Tarjeta de RECHAZO
+      number: '5186 1741 1062 9480', // Tarjeta de RECHAZO
       cvv: '123',
       month: '11',
       year: '23',
       result: 'SERÁ RECHAZADA ❌'
     } : {
-      number: '4051885600446623', // Tarjeta de APROBACIÓN
+      number: '4051 8860 0005 6590', // Tarjeta de APROBACIÓN
       cvv: '123', 
       month: '11',
       year: '23',

@@ -1,24 +1,19 @@
-// src/app/api/test/generate-token-cuotas/route.ts - ARCHIVO COMPLETO
-
 import { NextRequest, NextResponse } from 'next/server'
 import { webpayPlus } from '@/lib/transbank'
 
-// ✅ FUNCIÓN PARA GENERAR buyOrder CORTO Y VÁLIDO
 function generateShortBuyOrder(prefix: string = 'C'): string {
   const now = new Date()
-  const year = now.getFullYear().toString().slice(-2)  // 2 dígitos
-  const month = String(now.getMonth() + 1).padStart(2, '0')  // 2 dígitos
-  const day = String(now.getDate()).padStart(2, '0')  // 2 dígitos
-  const hour = String(now.getHours()).padStart(2, '0')  // 2 dígitos
-  const minute = String(now.getMinutes()).padStart(2, '0')  // 2 dígitos
-  const second = String(now.getSeconds()).padStart(2, '0')  // 2 dígitos
-  const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2)  // 2 dígitos
-  const random = Math.random().toString(36).substr(2, 2).toUpperCase()  // 2 caracteres
+  const year = now.getFullYear().toString().slice(-2)
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hour = String(now.getHours()).padStart(2, '0')
+  const minute = String(now.getMinutes()).padStart(2, '0')
+  const second = String(now.getSeconds()).padStart(2, '0')
+  const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2)
+  const random = Math.random().toString(36).substr(2, 2).toUpperCase()
   
-  // Formato: PREFIJO + YYMMDDHHMMSSMMRR = máximo 20 caracteres
   const buyOrder = `${prefix}${year}${month}${day}${hour}${minute}${second}${ms}${random}`
   
-  // Validar longitud
   if (buyOrder.length > 26) {
     console.warn(`buyOrder demasiado largo: ${buyOrder.length} caracteres. Recortando...`)
     return buyOrder.substring(0, 26)
@@ -28,16 +23,13 @@ function generateShortBuyOrder(prefix: string = 'C'): string {
   return buyOrder
 }
 
-// ✅ FUNCIÓN PARA GENERAR sessionId CORTO
 function generateShortSessionId(testType: string, cuotas?: number): string {
-  const timestamp = Date.now().toString(36) // Base 36 es más corto
+  const timestamp = Date.now().toString(36)
   const prefix = cuotas ? `c${cuotas}` : 'sess'
-  const suffix = testType.charAt(0) // 'a' para approve, 'r' para reject
+  const suffix = testType.charAt(0)
   
-  // Formato: prefijo + timestamp + sufijo
   const sessionId = `${prefix}-${timestamp}-${suffix}`
   
-  // Validar longitud (máximo 61 caracteres)
   if (sessionId.length > 61) {
     console.warn(`sessionId demasiado largo: ${sessionId.length} caracteres. Recortando...`)
     return sessionId.substring(0, 61)
@@ -56,24 +48,21 @@ export async function POST(request: NextRequest) {
       customAmount 
     } = body
 
-    // Calcular monto mínimo según las cuotas solicitadas
     let amount: number
     if (customAmount) {
       amount = customAmount
     } else {
-      // Montos mínimos reales de Transbank para cuotas
       if (cuotas <= 3) {
-        amount = 3000  // $3,000 para 2-3 cuotas
+        amount = 3000
       } else if (cuotas <= 12) {
-        amount = 10000 // $10,000 para 4-12 cuotas
+        amount = 10000
       } else if (cuotas <= 24) {
-        amount = 50000 // $50,000 para 13-24 cuotas
+        amount = 50000
       } else {
-        amount = 100000 // $100,000 para más de 24 cuotas
+        amount = 100000
       }
     }
 
-    // ✅ USAR FUNCIONES CORREGIDAS
     const buyOrder = generateShortBuyOrder('C')
     const sessionId = generateShortSessionId(testType, cuotas)
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`
@@ -87,7 +76,6 @@ export async function POST(request: NextRequest) {
       returnUrl
     })
 
-    // Validaciones estrictas de Transbank
     if (buyOrder.length > 26) {
       throw new Error(`buyOrder demasiado largo: ${buyOrder.length} caracteres (máximo 26)`)
     }
@@ -100,7 +88,6 @@ export async function POST(request: NextRequest) {
       throw new Error(`Monto inválido: ${amount} (debe estar entre 1 y 999,999,999)`)
     }
 
-    // Crear transacción
     const response = await webpayPlus.create(
       buyOrder,
       sessionId,
@@ -113,7 +100,6 @@ export async function POST(request: NextRequest) {
       url: response.url
     })
 
-    // Determinar tarjeta según tipo de test
     const cardData = testType === 'reject' ? {
       number: '4051885600446600',
       result: 'SERÁ RECHAZADA ❌'
@@ -122,7 +108,6 @@ export async function POST(request: NextRequest) {
       result: 'SERÁ APROBADA ✅'
     }
 
-    // Calcular cuota aproximada (sin intereses para el ejemplo)
     const cuotaAprox = Math.ceil(amount / cuotas)
 
     return NextResponse.json({
