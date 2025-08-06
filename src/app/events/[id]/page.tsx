@@ -41,7 +41,6 @@ async function getEvent(id: string) {
       return null
     }
 
-    // Verificar si el evento es público o si el usuario tiene permisos
     const user = await getCurrentUser()
     const isPublic = event.isPublished
     const isOwner = user && event.organizerId === user.id
@@ -58,7 +57,6 @@ async function getEvent(id: string) {
   }
 }
 
-// Función para generar metadata dinámico
 export async function generateMetadata({ params }: EventPageProps): Promise<Metadata> {
   const { id } = await params
   const event = await getEvent(id)
@@ -99,7 +97,6 @@ export default async function EventPage({ params }: EventPageProps) {
     notFound()
   }
 
-  // Serializar fechas para el cliente
   const serializedEvent = {
     ...event,
     startDate: event.startDate.toISOString(),
@@ -108,7 +105,6 @@ export default async function EventPage({ params }: EventPageProps) {
     updatedAt: event.updatedAt.toISOString()
   }
 
-  // Verificar si el usuario ya tiene tickets para este evento
   let userTicketsCount = 0
   if (user) {
     userTicketsCount = await prisma.ticket.count({

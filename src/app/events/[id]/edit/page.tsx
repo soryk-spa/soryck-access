@@ -10,14 +10,12 @@ interface EditEventPageProps {
 
 async function getEventForEdit(id: string) {
   try {
-    // Verificar permisos de acceso
     const { canAccess, user } = await canAccessEvent(id)
     
     if (!canAccess) {
       redirect('/unauthorized?required=organizer')
     }
 
-    // Obtener el evento con toda la información necesaria
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -73,7 +71,6 @@ async function getCategories() {
   }
 }
 
-// Función para generar metadata dinámico
 export async function generateMetadata({ params }: EditEventPageProps): Promise<Metadata> {
   const { id } = await params
   const result = await getEventForEdit(id)
@@ -91,7 +88,7 @@ export async function generateMetadata({ params }: EditEventPageProps): Promise<
     title,
     description: `Edita los detalles del evento: ${event.title}`,
     robots: {
-      index: false, // No indexar páginas de edición
+      index: false,
       follow: false,
     }
   }
@@ -108,7 +105,6 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   const { event, user } = result
   const categories = await getCategories()
 
-  // Serializar fechas para el cliente
   const serializedEvent = {
     ...event,
     startDate: event.startDate.toISOString(),

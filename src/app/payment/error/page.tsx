@@ -26,11 +26,11 @@ export default async function PaymentErrorPage({ searchParams }: ErrorPageProps)
         return 'Error al confirmar el pago'
       case 'server-error':
         return 'Error interno del servidor'
-      case 'transaction-cancelled': // Nuevo
+      case 'transaction-cancelled':
         return 'Cancelaste la compra. Puedes intentarlo de nuevo cuando quieras.';
-      case 'invalid-return-method': // Nuevo
+      case 'invalid-return-method':
         return 'Hubo un error en la comunicación con el banco. Por favor, verifica el estado de tu compra en tu dashboard antes de reintentar.';
-      case 'unknown-return': // Nuevo
+      case 'unknown-return':
         return 'Se produjo un retorno inesperado desde la pasarela de pago.';
       default:
         return 'Ocurrió un error durante el pago';

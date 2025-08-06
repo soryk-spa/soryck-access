@@ -11,26 +11,21 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Montserrat como fuente principal según el branbook con peso medium como base
         sans: ["var(--font-montserrat)", "ui-sans-serif", "system-ui"],
         montserrat: ["var(--font-montserrat)", "ui-sans-serif", "system-ui"],
-        // Mantener mono para código
         mono: ["ui-monospace", "SFMono-Regular", "SF Mono", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       fontWeight: {
-        // Redefinir los pesos para que sean más robustos
         thin: "300",
-        light: "400", // Regular en lugar de light
-        normal: "500", // Medium como normal
-        medium: "600", // Semibold como medium  
-        semibold: "700", // Bold como semibold
-        bold: "700", // Mantener bold
+        light: "400",
+        normal: "500",
+        medium: "600",  
+        semibold: "700",
+        bold: "700",
         extrabold: "800",
         black: "900",
       },
-      // Colores del branbook de SorykPass
       colors: {
-        // Colores principales del branbook
         sorykpass: {
           yellow: "#FDBD00",
           orange: "#FE4F00", 
@@ -38,12 +33,10 @@ const config: Config = {
           blue: "#0053CC",
           cyan: "#01CBFE",
         },
-        // Gradientes predefinidos inspirados en el branbook
         brand: {
           primary: "#0053CC",
           secondary: "#01CBFE",
         },
-        // Colores del sistema mantienen compatibilidad
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -100,7 +93,6 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      // Espaciado mejorado para Montserrat
       letterSpacing: {
         tighter: "-0.05em",
         tight: "-0.025em",
@@ -109,7 +101,6 @@ const config: Config = {
         wider: "0.05em",
         widest: "0.1em",
       },
-      // Line heights optimizados para Montserrat
       lineHeight: {
         3: ".75rem",
         4: "1rem",
@@ -120,7 +111,6 @@ const config: Config = {
         9: "2.25rem",
         10: "2.5rem",
       },
-      // Tamaños de fuente adicionales
       fontSize: {
         "2xs": ["0.625rem", { lineHeight: "0.75rem" }],
         xs: ["0.75rem", { lineHeight: "1rem" }],
@@ -137,7 +127,6 @@ const config: Config = {
         "8xl": ["6rem", { lineHeight: "1" }],
         "9xl": ["8rem", { lineHeight: "1" }],
       },
-      // Animaciones personalizadas para SorykPass
       animation: {
         "fade-in": "fadeIn 0.5s ease-in-out",
         "slide-up": "slideUp 0.3s ease-out",
@@ -173,7 +162,6 @@ const config: Config = {
           },
         },
       },
-      // Sombras personalizadas para el diseño
       boxShadow: {
         "sorykpass-sm": "0 1px 2px 0 rgba(0, 83, 204, 0.05)",
         "sorykpass-md": "0 4px 6px -1px rgba(0, 83, 204, 0.1), 0 2px 4px -1px rgba(0, 83, 204, 0.06)",

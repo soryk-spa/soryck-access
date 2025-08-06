@@ -115,8 +115,6 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
         alert(result.error || 'Error al eliminar el evento')
         return
       }
-
-      // Remover el evento del estado
       setEvents(events.filter(event => event.id !== eventId))
 
     } catch (error) {
@@ -158,7 +156,6 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-foreground">
@@ -176,8 +173,6 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
           </Link>
         </Button>
       </div>
-
-      {/* Estadísticas rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -229,8 +224,6 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
           </CardContent>
         </Card>
       </div>
-
-      {/* Lista de eventos */}
       <div className="space-y-4">
         {events.map((event) => {
           const status = getEventStatus(event)

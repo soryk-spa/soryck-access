@@ -1,4 +1,3 @@
-// src/app/admin/page.tsx
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { RoleManagement } from '@/components/role-management'
@@ -7,7 +6,6 @@ import { Users, Calendar, Ticket, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
-// Tipo para los eventos con datos relacionados
 type EventWithDetails = {
   id: string
   title: string
@@ -30,10 +28,7 @@ type EventWithDetails = {
 }
 
 export default async function AdminPage() {
-  // Verificar permisos de admin
   const currentUser = await requireAdmin()
-
-  // Obtener estadísticas del sistema
   const [
     totalUsers,
     totalEvents,
@@ -108,8 +103,6 @@ export default async function AdminPage() {
           Gestiona usuarios, eventos y configuración del sistema
         </p>
       </div>
-
-      {/* Estadísticas generales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -172,7 +165,6 @@ export default async function AdminPage() {
         </Card>
       </div>
 
-      {/* Gestión de roles */}
       <div className="mb-8">
         <RoleManagement 
           users={users} 
@@ -180,7 +172,6 @@ export default async function AdminPage() {
         />
       </div>
 
-      {/* Acciones rápidas */}
       <div className="grid md:grid-cols-2 gap-8 mb-8">
         <Card>
           <CardHeader>
@@ -222,8 +213,6 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Eventos recientes */}
       <Card>
         <CardHeader>
           <CardTitle>Eventos Recientes</CardTitle>

@@ -1,5 +1,3 @@
-// src/app/api/payments/create/route.ts - VERSIÓN ACTUALIZADA CON FUNCIÓN CORREGIDA
-
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -11,22 +9,19 @@ const createPaymentSchema = z.object({
   quantity: z.number().min(1).max(10)
 })
 
-// ✅ FUNCIÓN CORREGIDA PARA GENERAR buyOrder VÁLIDO
 function generateShortBuyOrder(prefix: string = 'SP'): string {
   const now = new Date()
-  const year = now.getFullYear().toString().slice(-2)  // 2 dígitos
-  const month = String(now.getMonth() + 1).padStart(2, '0')  // 2 dígitos
-  const day = String(now.getDate()).padStart(2, '0')  // 2 dígitos
-  const hour = String(now.getHours()).padStart(2, '0')  // 2 dígitos
-  const minute = String(now.getMinutes()).padStart(2, '0')  // 2 dígitos
-  const second = String(now.getSeconds()).padStart(2, '0')  // 2 dígitos
-  const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2)  // 2 dígitos
-  const random = Math.random().toString(36).substr(2, 2).toUpperCase()  // 2 caracteres
+  const year = now.getFullYear().toString().slice(-2)
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hour = String(now.getHours()).padStart(2, '0')
+  const minute = String(now.getMinutes()).padStart(2, '0')
+  const second = String(now.getSeconds()).padStart(2, '0')
+  const ms = String(now.getMilliseconds()).padStart(3, '0').slice(0, 2)
+  const random = Math.random().toString(36).substr(2, 2).toUpperCase()
   
-  // Formato: PREFIJO + YYMMDDHHMMSSMMRR = máximo 20 caracteres
   const buyOrder = `${prefix}${year}${month}${day}${hour}${minute}${second}${ms}${random}`
   
-  // Validar longitud
   if (buyOrder.length > 26) {
     console.warn(`buyOrder demasiado largo: ${buyOrder.length} caracteres. Recortando...`)
     return buyOrder.substring(0, 26)
@@ -36,15 +31,12 @@ function generateShortBuyOrder(prefix: string = 'SP'): string {
   return buyOrder
 }
 
-// ✅ FUNCIÓN PARA GENERAR sessionId CORTO
 function generateShortSessionId(prefix: string = 'sess'): string {
-  const timestamp = Date.now().toString(36) // Base 36 es más corto
-  const random = Math.random().toString(36).substr(2, 4) // 4 caracteres aleatorios
+  const timestamp = Date.now().toString(36)
+  const random = Math.random().toString(36).substr(2, 4)
   
-  // Formato: prefijo-timestamp-random
   const sessionId = `${prefix}-${timestamp}-${random}`
   
-  // Validar longitud (máximo 61 caracteres)
   if (sessionId.length > 61) {
     console.warn(`sessionId demasiado largo: ${sessionId.length} caracteres. Recortando...`)
     return sessionId.substring(0, 61)
@@ -75,7 +67,6 @@ export async function POST(request: NextRequest) {
 
     const { eventId, quantity } = validation.data
 
-    // Obtener evento
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -102,7 +93,6 @@ export async function POST(request: NextRequest) {
       isFree: event.isFree
     })
 
-    // Verificar disponibilidad
     const availableTickets = event.capacity - event._count.tickets
     if (quantity > availableTickets) {
       console.error('No hay suficientes tickets:', { quantity, availableTickets })
@@ -120,11 +110,9 @@ export async function POST(request: NextRequest) {
       isFree: event.isFree 
     })
 
-    // ✅ USAR FUNCIÓN CORREGIDA PARA GENERAR buyOrder
     const orderNumber = generateShortBuyOrder('SP')
     console.log('Número de orden generado:', orderNumber, 'Longitud:', orderNumber.length)
     
-    // Crear orden en la base de datos
     const order = await prisma.order.create({
       data: {
         orderNumber,
@@ -144,13 +132,11 @@ export async function POST(request: NextRequest) {
       status: order.status
     })
 
-    // Si es gratis, manejar directamente
     if (event.isFree || totalAmount === 0) {
       console.log('Evento gratuito, procesando tickets directamente')
       return handleFreeTickets(order, event, user)
     }
 
-    // ✅ USAR FUNCIÓN CORREGIDA PARA GENERAR sessionId
     const sessionId = generateShortSessionId('sess')
     const buyOrder = order.orderNumber
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`
@@ -164,7 +150,6 @@ export async function POST(request: NextRequest) {
       returnUrl: returnUrl
     })
 
-    // Validaciones adicionales para Transbank
     if (!buyOrder || buyOrder.length > 26) {
       console.error('buyOrder inválido:', { buyOrder, length: buyOrder?.length })
       return NextResponse.json(
@@ -191,7 +176,6 @@ export async function POST(request: NextRequest) {
 
     console.log('=== LLAMANDO A TRANSBANK ===')
     
-    // Crear transacción en Transbank
     let transbankResponse
     try {
       transbankResponse = await webpayPlus.create(
@@ -223,7 +207,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validar respuesta de Transbank
     if (!transbankResponse.token || !transbankResponse.url) {
       console.error('Respuesta inválida de Transbank:', transbankResponse)
       return NextResponse.json(
@@ -232,7 +215,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Guardar información del pago
     const payment = await prisma.payment.create({
       data: {
         orderId: order.id,
@@ -260,7 +242,6 @@ export async function POST(request: NextRequest) {
       orderId: order.id,
       paymentUrl: transbankResponse.url,
       token: transbankResponse.token,
-      // Datos adicionales para debug
       debug: {
         buyOrder,
         sessionId,

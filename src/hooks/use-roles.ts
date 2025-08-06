@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import { useUser } from '@clerk/nextjs'
 import { useEffect, useState } from 'react'
 import { UserRole } from '@prisma/client'
@@ -52,7 +52,6 @@ export function useRoles() {
     loading: loading || !isLoaded,
     error,
     permissions,
-    // Funciones de utilidad
     hasRole: (role: UserRole) => dbUser ? dbUser.role === role : false,
     canOrganizeEvents: dbUser ? canOrganizeEvents(dbUser.role) : false,
     canAccessAdmin: dbUser ? canAccessAdmin(dbUser.role) : false,

@@ -117,7 +117,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
     }
   }
 
-  // Ejecutar consultas
   const [events, totalCount] = await Promise.all([
     prisma.event.findMany({
       where: whereClause,
@@ -139,7 +138,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
     prisma.event.count({ where: whereClause })
   ])
 
-  // Calcular paginación
   const totalPages = Math.ceil(totalCount / limit)
   const pagination = {
     currentPage,
@@ -150,7 +148,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
     limit
   }
 
-  // Serializar fechas
   const serializedEvents = events.map(event => ({
     ...event,
     startDate: event.startDate.toISOString(),
@@ -162,7 +159,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
   return { events: serializedEvents, pagination }
 }
 
-// Función para obtener categorías
 async function getCategories() {
   return await prisma.category.findMany({
     select: { id: true, name: true },
@@ -170,21 +166,17 @@ async function getCategories() {
   })
 }
 
-// Componente de loading
 function EventsPageSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-6">
-        {/* Header skeleton */}
         <div className="text-center">
           <div className="h-8 bg-muted rounded w-64 mx-auto mb-4"></div>
           <div className="h-4 bg-muted rounded w-96 mx-auto"></div>
         </div>
         
-        {/* Filters skeleton */}
         <div className="h-32 bg-muted rounded"></div>
         
-        {/* Events grid skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-96 bg-muted rounded animate-pulse"></div>
@@ -195,17 +187,14 @@ function EventsPageSkeleton() {
   )
 }
 
-// Componente principal de la página
 async function EventsPageContent({ searchParams }: EventsPageProps) {
   const params = await searchParams
   
-  // Obtener datos del servidor
   const [{ events, pagination }, categories] = await Promise.all([
     getPublicEvents(params),
     getCategories()
   ])
 
-  // Preparar filtros iniciales
   const initialFilters = {
     search: params.search || '',
     categoryId: params.categoryId || '',
@@ -221,7 +210,6 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Header de la página */}
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-foreground mb-4">
           Descubre Eventos Increíbles
@@ -230,8 +218,6 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
           Encuentra los mejores eventos cerca de ti. Conciertos, conferencias, deportes y mucho más.
         </p>
       </div>
-
-      {/* Lista de eventos con filtros */}
       <PublicEventsList
         initialEvents={events}
         initialPagination={pagination}
@@ -242,7 +228,6 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
   )
 }
 
-// Página principal exportada
 export default function EventsPage(props: EventsPageProps) {
   return (
     <Suspense fallback={<EventsPageSkeleton />}>
@@ -251,19 +236,18 @@ export default function EventsPage(props: EventsPageProps) {
   )
 }
 
-// Función para generar metadata dinámico
 export async function generateMetadata({ searchParams }: EventsPageProps): Promise<Metadata> {
   const params = await searchParams
   const search = params.search
   const categoryId = params.categoryId
   
-  let title = 'Eventos | Soryck Access'
-  let description = 'Descubre eventos increíbles cerca de ti. Conciertos, conferencias, deportes y más en Soryck Access.'
+  let title = 'Eventos | SorykPass'
+  let description = 'Descubre eventos increíbles cerca de ti. Conciertos, conferencias, deportes y más en SorykPass.'
   const keywords = 'eventos, tickets, conciertos, conferencias, deportes, cultura, chile'
 
   if (search) {
-    title = `Eventos: ${search} | Soryck Access`
-    description = `Encuentra eventos relacionados con ${search} en Soryck Access`
+    title = `Eventos: ${search} | SorykPass`
+    description = `Encuentra eventos relacionados con ${search} en SorykPass`
   }
 
   if (categoryId) {
@@ -273,11 +257,10 @@ export async function generateMetadata({ searchParams }: EventsPageProps): Promi
         select: { name: true }
       })
       if (category) {
-        title = `Eventos de ${category.name} | Soryck Access`
-        description = `Descubre los mejores eventos de ${category.name} en Soryck Access`
+        title = `Eventos de ${category.name} | SorykPass`
+        description = `Descubre los mejores eventos de ${category.name} en SorykPass`
       }
     } catch (error) {
-      // Si hay error, usar metadata por defecto
       console.error('Error fetching category for metadata:', error)
     }
   }

@@ -5,8 +5,6 @@ import { Prisma } from '@prisma/client'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
-    // Parámetros de filtro
     const search = searchParams.get('search') || ''
     const categoryId = searchParams.get('categoryId') || ''
     const location = searchParams.get('location') || ''
@@ -17,21 +15,17 @@ export async function GET(request: NextRequest) {
     const isFree = searchParams.get('isFree')
     const sortBy = searchParams.get('sortBy') || 'startDate'
     const sortOrder = searchParams.get('sortOrder') || 'asc'
-    
-    // Paginación
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
 
-    // Construir filtros con tipado correcto de Prisma
     const whereClause: Prisma.EventWhereInput = {
       isPublished: true,
       startDate: {
-        gte: new Date() // Solo eventos futuros
+        gte: new Date()
       }
     }
 
-    // Filtro de búsqueda por título y descripción
     if (search) {
       whereClause.OR = [
         {
@@ -49,12 +43,10 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    // Filtro por categoría
     if (categoryId) {
       whereClause.categoryId = categoryId
     }
 
-    // Filtro por ubicación
     if (location) {
       whereClause.location = {
         contains: location,
@@ -62,14 +54,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Filtro por evento gratuito/pagado
     if (isFree === 'true') {
       whereClause.isFree = true
     } else if (isFree === 'false') {
       whereClause.isFree = false
     }
 
-    // Filtros de precio - construir el objeto de filtro de precio de forma segura
     const priceFilter: Prisma.FloatFilter = {}
     if (minPrice) {
       priceFilter.gte = parseFloat(minPrice)
@@ -78,14 +68,12 @@ export async function GET(request: NextRequest) {
       priceFilter.lte = parseFloat(maxPrice)
     }
     
-    // Solo aplicar filtro de precio si hay al menos un valor
     if (minPrice || maxPrice) {
       whereClause.price = priceFilter
     }
 
-    // Filtros de fecha - construir el objeto de filtro de fecha de forma segura
     const dateFilter: Prisma.DateTimeFilter = {
-      gte: new Date() // Mantener el filtro de eventos futuros
+      gte: new Date()
     }
     
     if (dateFrom) {
@@ -97,7 +85,6 @@ export async function GET(request: NextRequest) {
     
     whereClause.startDate = dateFilter
 
-    // Configurar ordenamiento con tipos correctos
     const getOrderBy = (): Prisma.EventOrderByWithRelationInput => {
       const order = sortOrder as 'asc' | 'desc'
       
@@ -115,7 +102,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Ejecutar consulta con paginación
     const [events, totalCount] = await Promise.all([
       prisma.event.findMany({
         where: whereClause,
@@ -150,12 +136,10 @@ export async function GET(request: NextRequest) {
       })
     ])
 
-    // Calcular información de paginación
     const totalPages = Math.ceil(totalCount / limit)
     const hasNextPage = page < totalPages
     const hasPrevPage = page > 1
 
-    // Convertir fechas a strings para serialización
     const serializedEvents = events.map(event => ({
       ...event,
       startDate: event.startDate.toISOString(),

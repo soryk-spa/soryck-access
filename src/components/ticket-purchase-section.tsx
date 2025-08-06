@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -67,7 +67,7 @@ export default function TicketPurchaseSection({
     }).format(price)
   }
 
-  const maxQuantity = Math.min(availability.available, 10) // Máximo 10 tickets por compra
+  const maxQuantity = Math.min(availability.available, 10)
   const totalPrice = quantity * event.price
   const canPurchase = availability.status !== 'sold-out' && user
 

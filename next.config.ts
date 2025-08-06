@@ -15,7 +15,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Agregar otros dominios comunes para imágenes de eventos
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -34,7 +33,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Agregar otros servicios de imágenes que podrías usar
       {
         protocol: 'https',
         hostname: 'picsum.photos',
@@ -49,7 +47,6 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  /* otras opciones de configuración aquí */
 };
 
 export default nextConfig;

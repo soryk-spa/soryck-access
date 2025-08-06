@@ -1,24 +1,21 @@
-// src/app/payment/redirect/page.tsx
-
-'use client'
+"use client"
 
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
 export default function TransbankRedirectPage() {
   const searchParams = useSearchParams()
-  const buttonRef = useRef<HTMLButtonElement>(null) // Referencia para el botón
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   const token = searchParams.get('token')
   const url = searchParams.get('url')
 
-  // Este useEffect intentará hacer clic en el botón de envío automáticamente
   useEffect(() => {
     const timer = setTimeout(() => {
       if (buttonRef.current) {
         buttonRef.current.click()
       }
-    }, 500) // Un pequeño retraso para asegurar que el DOM esté listo
+    }, 500)
 
     return () => clearTimeout(timer)
   }, [])
@@ -42,10 +39,8 @@ export default function TransbankRedirectPage() {
           Serás redirigido a Webpay para completar el pago.
         </p>
 
-        {/* Formulario que se enviará a Transbank */}
         <form method="POST" action={url}>
           <input type="hidden" name="token_ws" value={token} />
-          {/* Este botón estará visible en caso de que la redirección automática falle */}
           <button
             ref={buttonRef}
             type="submit"

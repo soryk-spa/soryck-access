@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -89,7 +89,6 @@ export default function PublicEventsList({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Función para construir URL con parámetros (memoizada)
   const buildQueryString = useCallback((newFilters: EventFilters, page: number = 1) => {
     const params = new URLSearchParams()
     
@@ -108,7 +107,6 @@ export default function PublicEventsList({
     return params.toString()
   }, [])
 
-  // Función para hacer fetch de eventos (memoizada)
   const fetchEvents = useCallback(async (newFilters: EventFilters, page: number = 1) => {
     setLoading(true)
     setError(null)
@@ -117,7 +115,7 @@ export default function PublicEventsList({
       const queryString = buildQueryString(newFilters, page)
       const url = `/api/events/public${queryString ? `?${queryString}` : ''}`
       
-      console.log('Fetching events from:', url) // Debug log
+      console.log('Fetching events from:', url)
       
       const response = await fetch(url)
       
@@ -133,7 +131,6 @@ export default function PublicEventsList({
       
       const data = await response.json()
       
-      // Validar que la respuesta tenga la estructura esperada
       if (!data.events || !Array.isArray(data.events)) {
         console.error('Invalid API response structure:', data)
         throw new Error('Respuesta de la API inválida')
@@ -142,7 +139,6 @@ export default function PublicEventsList({
       setEvents(data.events)
       setPagination(data.pagination)
       
-      // Actualizar URL sin recargar la página
       const newUrl = queryString ? `/events?${queryString}` : '/events'
       router.push(newUrl, { scroll: false })
       
@@ -155,29 +151,24 @@ export default function PublicEventsList({
     }
   }, [router, buildQueryString])
 
-  // Debounce para la búsqueda
   useEffect(() => {
-    // Solo hacer fetch si la búsqueda cambió comparado con el valor inicial
     if (filters.search !== initialFilters.search) {
       const timeoutId = setTimeout(() => {
         fetchEvents(filters, 1)
-      }, 500) // 500ms de delay
+      }, 500)
 
       return () => clearTimeout(timeoutId)
     }
   }, [filters.search, initialFilters.search, fetchEvents, filters])
 
-  // Handler para cambios en filtros (excepto búsqueda)
   const handleFiltersChange = (newFilters: EventFilters) => {
     setFilters(newFilters)
     
-    // Si no es solo cambio de búsqueda, fetch inmediatamente
     if (newFilters.search === filters.search) {
       fetchEvents(newFilters, 1)
     }
   }
 
-  // Handler para limpiar filtros (memoizado)
   const handleClearFilters = useCallback(() => {
     const clearedFilters: EventFilters = {
       search: '',
@@ -195,10 +186,8 @@ export default function PublicEventsList({
     fetchEvents(clearedFilters, 1)
   }, [fetchEvents])
 
-  // Handler para paginación (memoizado)
   const handlePageChange = useCallback((page: number) => {
     fetchEvents(filters, page)
-    // Scroll suave al inicio de la lista
     document.getElementById('events-list')?.scrollIntoView({ 
       behavior: 'smooth',
       block: 'start'
@@ -207,7 +196,6 @@ export default function PublicEventsList({
 
   return (
     <div className="space-y-6" id="events-list">
-      {/* Filtros */}
       <EventsFilters
         categories={categories}
         filters={filters}
@@ -216,7 +204,6 @@ export default function PublicEventsList({
         totalResults={pagination.totalCount}
       />
 
-      {/* Estado de error */}
       {error && (
         <Card className="border-destructive/20 bg-destructive/10">
           <CardContent className="pt-6">
@@ -235,7 +222,6 @@ export default function PublicEventsList({
         </Card>
       )}
 
-      {/* Estado de carga */}
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -245,7 +231,6 @@ export default function PublicEventsList({
         </div>
       )}
 
-      {/* Lista de eventos */}
       {!loading && !error && (
         <>
           {events.length > 0 ? (
@@ -269,7 +254,6 @@ export default function PublicEventsList({
             </Card>
           )}
 
-          {/* Paginación */}
           {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
@@ -289,7 +273,6 @@ export default function PublicEventsList({
                   Anterior
                 </Button>
 
-                {/* Números de página */}
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                     let pageNumber
