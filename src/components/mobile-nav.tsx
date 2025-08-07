@@ -25,6 +25,7 @@ import {
   Home
 } from 'lucide-react'
 import { UserRole } from '@prisma/client'
+import Image from 'next/image'
 
 interface User {
   id: string
@@ -39,7 +40,61 @@ interface MobileNavProps {
   userId: string | null
 }
 
+const SorykPassLogo = ({
+  className = "",
+  size = "default",
+  variant = "auto",
+}: {
+  className?: string;
+  size?: "sm" | "default" | "lg";
+  variant?: "light" | "dark" | "auto";
+}) => {
+  const sizeClasses = {
+    sm: "h-8 w-auto",
+    default: "h-10 w-auto",
+    lg: "h-12 w-auto",
+  };
+
+  return (
+    <Link
+      href="/"
+      className={`transition-transform hover:scale-105 ${className}`}
+    >
+      {variant === "auto" ? (
+        <>
+          <Image
+            src="/sorykpass_horizontal_black.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} dark:hidden`}
+            priority
+          />
+          <Image
+            src="/sorykpass_horizontal_white.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} hidden dark:block`}
+            priority
+          />
+        </>
+      ) : (
+        <Image
+          src={variant === "dark" ? "/logo/logo-white.svg" : "/logo/logo.svg"}
+          alt="SorykPass"
+          width={200}
+          height={40}
+          className={sizeClasses[size]}
+          priority
+        />
+      )}
+    </Link>
+  );
+};
+
 export default function MobileNav({ user, userId }: MobileNavProps) {
+  
   const [isOpen, setIsOpen] = useState(false)
 
   const handleLinkClick = () => {
@@ -90,7 +145,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="lg:hidden relative hover:bg-[#01CBFE]/10"
+          className="lg:hidden relative hover:bg-[#01CBFE]/10 border-0"
           aria-label="Abrir menú de navegación"
         >
           <Menu className="h-6 w-6" />
@@ -103,7 +158,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
       >
         <SheetHeader className="text-left pb-6 border-b border-border">
           <SheetTitle className="text-xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
-            SORYKPASS
+            <SorykPassLogo className="h-8 w-auto" />
           </SheetTitle>
           {userId && user && (
             <div className="mt-4 p-3 bg-gradient-to-r from-[#01CBFE]/10 to-[#0053CC]/10 rounded-lg">
@@ -119,7 +174,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
                     {user.email}
                   </div>
                   <Badge 
-                    className={`text-xs mt-2 ${
+                    className={`text-xs mt-2 border-0 ${
                       user.role === 'ADMIN' 
                         ? 'bg-gradient-to-r from-[#CC66CC] to-[#0053CC] text-white' 
                         : user.role === 'ORGANIZER'
@@ -145,7 +200,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
                   <Link
                     href={item.href}
                     onClick={handleLinkClick}
-                    className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-muted/50 transition-colors group"
+                    className="flex items-center space-x-3 px-3 py-3 rounded-lg hover:bg-muted/50 transition-colors group border-0"
                   >
                     <div className={`w-8 h-8 bg-gradient-to-r ${item.gradient} rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform`}>
                       <item.icon className="h-4 w-4 text-white" />
@@ -161,28 +216,31 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
           {!userId && (
             <div className="pt-6 border-t border-border space-y-3">
               <SignInButton>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start space-x-3 border-[#0053CC] text-[#0053CC] hover:bg-[#0053CC] hover:text-white"
+                <div 
+                  className="w-full cursor-pointer"
                   onClick={handleLinkClick}
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
-                    <LogIn className="h-4 w-4 text-white" />
+                  <div className="flex items-center justify-start space-x-3 px-3 py-3 rounded-lg border-2 border-[#0053CC]/20 text-[#0053CC] hover:bg-[#0053CC]/5 hover:border-[#0053CC]/40 transition-all duration-200 bg-background">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                      <LogIn className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="font-medium">Iniciar Sesión</span>
                   </div>
-                  <span>Iniciar Sesión</span>
-                </Button>
+                </div>
               </SignInButton>
               
               <SignUpButton>
-                <Button 
-                  className="w-full justify-start space-x-3 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
+                <div 
+                  className="w-full cursor-pointer"
                   onClick={handleLinkClick}
                 >
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <UserPlus className="h-4 w-4 text-white" />
+                  <div className="flex items-center justify-start space-x-3 px-3 py-3 rounded-lg bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 transition-all duration-200 text-white border-0">
+                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                      <UserPlus className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="font-medium">Registrarse</span>
                   </div>
-                  <span>Registrarse</span>
-                </Button>
+                </div>
               </SignUpButton>
             </div>
           )}

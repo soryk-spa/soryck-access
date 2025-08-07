@@ -14,67 +14,11 @@ import {
   Globe,
   Star,
   ChevronRight,
-  Play,
   CheckCircle,
   Award,
   Clock,
   Mail
 } from "lucide-react"
-
-const SorykPassLogo = ({
-  className = "",
-  size = "default",
-  variant = "auto", // "light", "dark", "auto"
-}: {
-  className?: string;
-  size?: "sm" | "default" | "lg";
-  variant?: "light" | "dark" | "auto";
-}) => {
-  const sizeClasses = {
-    sm: "h-8 w-auto",
-    default: "h-10 w-auto",
-    lg: "h-12 w-auto",
-  };
-
-  return (
-    <Link
-      href="/"
-      className={`transition-transform hover:scale-105 ${className}`}
-    >
-      {variant === "auto" ? (
-        <>
-          {/* Logo para modo claro */}
-          <Image
-            src="/sorykpass_horizontal_white.png"
-            alt="SorykPass"
-            width={200}
-            height={40}
-            className={`${sizeClasses[size]} dark:hidden`}
-            priority
-          />
-          {/* Logo para modo oscuro */}
-          <Image
-            src="/sorykpass_horizontal_black.png" // 👈 LOGO PARA FONDO OSCURO
-            alt="SorykPass"
-            width={200}
-            height={40}
-            className={`${sizeClasses[size]} hidden dark:block`}
-            priority
-          />
-        </>
-      ) : (
-        <Image
-          src={variant === "dark" ? "/logo/logo-white.svg" : "/logo/logo.svg"}
-          alt="SorykPass"
-          width={200}
-          height={40}
-          className={sizeClasses[size]}
-          priority
-        />
-      )}
-    </Link>
-  );
-};
 
 export default function Homepage() {
   const features = [
@@ -195,83 +139,40 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden min-h-screen flex items-center">
+      <section className="relative overflow-hidden h-[70vh] flex items-center">
         <div className="absolute inset-0 z-0">
           <Image
             src="/sorykpass_1.jpg"
             alt="SorykPass Hero Background"
             fill
-            className="object-cover object-center"
+            className="object-cover object-center blur-xsm brightness-75"
             priority
             quality={90}
           />
-          <div className="absolute inset-0 bg-black/50"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0053CC]/30 via-transparent to-[#01CBFE]/30"></div>
+          <div className="absolute inset-0"></div>
         </div>
-
-        <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-[#FDBD00] to-[#FE4F00] rounded-full opacity-20 blur-xl z-10"></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-br from-[#CC66CC] to-[#0053CC] rounded-full opacity-20 blur-xl z-10"></div>
-        
-        <div className="container mx-auto px-4 py-24 sm:py-32 relative z-20">
-          <div className="text-center">
-            <Badge variant="outline" className="mb-6 text-sm border-white/30 text-white bg-white/10 backdrop-blur">
-              ✨ La Puerta de Entrada al Presente
-            </Badge>
+        <div className="container mx-auto px-4 relative z-20">
+          <div className="max-w-3xl mx-auto text-center">
             
-            <div className="flex justify-center mb-8">
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-4">
-                <SorykPassLogo />
-              </div>
-            </div>
-            
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
-              <span className="bg-gradient-to-r from-white via-[#01CBFE] to-white bg-clip-text text-transparent drop-shadow-lg">
-                El Futuro de los Eventos
-              </span>
-              <br />
-              <span className="text-white drop-shadow-lg">
-                Es Digital
+            <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
+              Tu pase,
+              <span className="bg-gradient-to-r from-[#01CBFE] to-[#FDBD00] bg-clip-text text-transparent">
+                {" "}tu entrada, tu acceso digital
               </span>
             </h1>
             
-            <p className="text-xl text-white/90 max-w-3xl mx-auto mb-8 leading-relaxed drop-shadow">
-              Un sistema ágil, confiable y sin fricciones, donde el pase digital 
-              se vuelve parte natural del día a día. Más que una marca: es la puerta de entrada al presente.
+            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+              Sistema 100% digital.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button size="lg" asChild className="min-w-[200px] bg-white text-[#0053CC] hover:bg-white/90 shadow-xl">
-                <Link href="/sign-up">
-                  Comenzar Gratis
-                  <ChevronRight className="ml-2 h-4 w-4" />
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Button size="lg" className="bg-white text-[#0053CC] hover:bg-white/90">
+                <Link href="/sign-up" className="flex items-center">
+                  Crear evento gratis
+                  <ChevronRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="min-w-[200px] border-white text-white hover:bg-white hover:text-[#0053CC] shadow-xl backdrop-blur">
-                <Play className="mr-2 h-4 w-4" />
-                Ver Demo
-              </Button>
             </div>
-            
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-white/80">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2">
-                <CheckCircle className="h-4 w-4 text-[#01CBFE]" />
-                Setup en 5 minutos
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2">
-                <CheckCircle className="h-4 w-4 text-[#01CBFE]" />
-                Solo pagas cuando vendes
-              </div>
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-2">
-                <CheckCircle className="h-4 w-4 text-[#01CBFE]" />
-                Soporte 24/7
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-20">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
       </section>

@@ -20,55 +20,16 @@ const SorykPassLogo = () => (
     className="flex items-center transition-transform hover:scale-105"
   >
     <Image
-      src="/sorykpass_horizontal_white.png"
+      src="/sorykpass_horizontal_black.png"
       alt="SorykPass - La Puerta de Entrada al Presente"
-      width={160}
-      height={40}
-      className="h-8 w-auto sm:h-10"
-      priority
-    />
-  </Link>
-);
-
-// 🎨 ALTERNATIVA: Logo con Icono + Texto
-const SorykPassLogoWithText = () => (
-  <Link
-    href="/"
-    className="flex items-center space-x-3 transition-transform hover:scale-105"
-  >
-    <Image
-      src="/logo/logo-icon.svg" // 👈 SOLO EL ICONO
-      alt="SorykPass Icon"
-      width={32}
-      height={32}
-      className="h-8 w-8"
-      priority
-    />
-    <span className="hidden sm:block font-bold text-xl text-foreground tracking-tight">
-      SORYKPASS
-    </span>
-  </Link>
-);
-
-// 🎨 ALTERNATIVA: Logo con Modo Oscuro/Claro
-const SorykPassLogoResponsive = () => (
-  <Link
-    href="/"
-    className="flex items-center transition-transform hover:scale-105"
-  >
-    {/* Logo para modo claro */}
-    <Image
-      src="/logo/logo.svg"
-      alt="SorykPass"
       width={160}
       height={40}
       className="h-8 w-auto sm:h-10 dark:hidden"
       priority
     />
-    {/* Logo para modo oscuro */}
     <Image
-      src="/logo/logo-white.svg" // 👈 LOGO BLANCO PARA FONDO OSCURO
-      alt="SorykPass"
+      src="/sorykpass_horizontal_white.png"
+      alt="SorykPass - La Puerta de Entrada al Presente"
       width={160}
       height={40}
       className="h-8 w-auto sm:h-10 hidden dark:block"
@@ -122,7 +83,6 @@ export default function Navbar() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              {/* Skeleton del logo */}
               <div className="h-8 w-32 bg-muted animate-pulse rounded"></div>
             </div>
 
@@ -146,10 +106,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            {/* 🎨 USA UNO DE ESTOS LOGOS */}
             <SorykPassLogo />
-            {/* <SorykPassLogoWithText /> */}
-            {/* <SorykPassLogoResponsive /> */}
           </div>
 
           <div className="hidden lg:flex items-center space-x-8">

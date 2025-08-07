@@ -10,20 +10,60 @@ import {
   Github,
   ExternalLink
 } from 'lucide-react'
+import Image from 'next/image'
 
-const SorykPassFooterLogo = () => (
-  <div className="flex items-center space-x-3">
-    <div className="relative w-10 h-10">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-lg transform rotate-12"></div>
-      <div className="absolute inset-1 bg-background rounded-md flex items-center justify-center">
-        <span className="text-lg font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">S</span>
-      </div>
-    </div>
-    <span className="font-bold text-2xl text-foreground tracking-tight">
-      SORYKPASS
-    </span>
-  </div>
-)
+const SorykPassFooterLogo = ({
+  className = "",
+  size = "default",
+  variant = "auto",
+}: {
+  className?: string;
+  size?: "sm" | "default" | "lg";
+  variant?: "light" | "dark" | "auto";
+}) => {
+  const sizeClasses = {
+    sm: "h-8 w-auto",
+    default: "h-10 w-auto",
+    lg: "h-12 w-auto",
+  };
+
+  return (
+    <Link
+      href="/"
+      className={`transition-transform hover:scale-105 ${className}`}
+    >
+      {variant === "auto" ? (
+        <>
+          <Image
+            src="/sorykpass_horizontal_black.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} dark:hidden`}
+            priority
+          />
+          <Image
+            src="/sorykpass_horizontal_white.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} hidden dark:block`}
+            priority
+          />
+        </>
+      ) : (
+        <Image
+          src={variant === "dark" ? "/logo/logo-white.svg" : "/logo/logo.svg"}
+          alt="SorykPass"
+          width={200}
+          height={40}
+          className={sizeClasses[size]}
+          priority
+        />
+      )}
+    </Link>
+  );
+};
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
