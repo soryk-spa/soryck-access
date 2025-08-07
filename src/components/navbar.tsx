@@ -128,6 +128,14 @@ export default function Navbar() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] transition-all group-hover:w-full"></span>
                 </Link>
 
+                <Link
+                  href="/tickets"
+                  className="text-foreground hover:text-[#01CBFE] transition-colors font-medium relative group"
+                >
+                  Mis Tickets
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] transition-all group-hover:w-full"></span>
+                </Link>
+
                 {dbUser && canOrganizeEvents(dbUser.role) && (
                   <Link
                     href="/events/create"

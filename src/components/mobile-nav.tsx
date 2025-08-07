@@ -22,7 +22,8 @@ import {
   User,
   LogIn,
   UserPlus,
-  Home
+  Home,
+  Ticket
 } from 'lucide-react'
 import { UserRole } from '@prisma/client'
 import Image from 'next/image'
@@ -122,6 +123,13 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
       icon: LayoutDashboard,
       show: !!userId,
       gradient: 'from-[#0053CC] to-[#CC66CC]'
+    },
+    {
+      href: '/tickets',
+      label: 'Mis Tickets',
+      icon: Ticket,
+      show: !!userId,
+      gradient: 'from-[#01CBFE] to-[#CC66CC]'
     },
     {
       href: '/events/create',

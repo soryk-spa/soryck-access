@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { webpayPlus } from '@/lib/transbank'
+import { generateUniqueQRCode } from '@/lib/qr'
 import { z } from 'zod'
 
 const createPaymentSchema = z.object({
@@ -280,16 +281,22 @@ async function handleFreeTickets(
   },
   event: {
     id: string
+    title: string
   },
   user: {
     id: string
+    email: string
+    firstName: string | null
+    lastName: string | null
   }
 ) {
   console.log('Procesando tickets gratuitos...')
 
+  const timestamp = Date.now()
   const tickets = []
+  
   for (let i = 0; i < order.quantity; i++) {
-    const qrCode = `${event.id}-${user.id}-${Date.now()}-${i}`
+    const qrCode = generateUniqueQRCode(event.id, user.id, timestamp, i)
     tickets.push({
       qrCode,
       eventId: event.id,
@@ -312,6 +319,7 @@ async function handleFreeTickets(
     success: true,
     orderId: order.id,
     isFree: true,
-    ticketsGenerated: order.quantity
+    ticketsGenerated: order.quantity,
+    tickets: tickets.map(t => ({ qrCode: t.qrCode }))
   })
 }
