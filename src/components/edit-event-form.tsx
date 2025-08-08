@@ -40,6 +40,7 @@ import {
   Info,
   Clock
 } from 'lucide-react'
+import { UserRole } from '@prisma/client'
 
 interface Category {
   id: string
@@ -51,7 +52,7 @@ interface User {
   email: string
   firstName: string | null
   lastName: string | null
-  role: 'CLIENT' | 'ORGANIZER' | 'ADMIN'
+  role: UserRole
 }
 
 interface Event {
