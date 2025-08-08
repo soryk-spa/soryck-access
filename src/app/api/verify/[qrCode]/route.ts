@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { validateQRCode } from "@/lib/qr";
+import { canScanTickets } from "@/lib/roles";
 
 export async function GET(
   request: NextRequest,
@@ -10,6 +11,7 @@ export async function GET(
   try {
     const { qrCode } = await params;
 
+    // Validar formato del código QR
     if (!validateQRCode(qrCode)) {
       return NextResponse.json(
         { error: "Código QR inválido" },
@@ -111,6 +113,13 @@ export async function POST(
       );
     }
 
+    if (!canScanTickets(user.role)) {
+      return NextResponse.json(
+        { error: "No tienes permisos para validar tickets" },
+        { status: 403 }
+      );
+    }
+
     const ticket = await prisma.ticket.findUnique({
       where: { qrCode },
       include: {
@@ -132,12 +141,16 @@ export async function POST(
       );
     }
 
-    const isOrganizer = ticket.event.organizerId === user.id;
-    const isAdmin = user.role === "ADMIN";
+    const hasPermission = await checkScanPermission(
+      user.id,
+      user.role,
+      ticket.event.id,
+      ticket.event.organizerId
+    );
 
-    if (!isOrganizer && !isAdmin) {
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: "No tienes permisos para usar este ticket" },
+        { error: "No tienes permisos para validar tickets de este evento" },
         { status: 403 }
       );
     }
@@ -201,4 +214,33 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+async function checkScanPermission(
+  userId: string,
+  userRole: string,
+  eventId: string,
+  eventOrganizerId: string
+): Promise<boolean> {
+  if (userRole === "ADMIN") {
+    return true;
+  }
+
+  if (userRole === "ORGANIZER" && eventOrganizerId === userId) {
+    return true;
+  }
+
+  if (userRole === "SCANNER") {
+    const assignment = await prisma.eventScanner.findFirst({
+      where: {
+        eventId: eventId,
+        scannerId: userId,
+        isActive: true,
+      },
+    });
+
+    return !!assignment;
+  }
+
+  return false;
 }
