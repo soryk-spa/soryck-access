@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { esMX } from "@clerk/localizations"
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -67,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={esMX}>
       <html lang="es" suppressHydrationWarning>
         <head>
           <link rel="icon" href="/favicon.ico" sizes="any" />
