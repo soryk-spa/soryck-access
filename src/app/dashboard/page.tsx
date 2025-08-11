@@ -15,6 +15,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
+import QRCodeDisplay from '@/components/qr-code-display'
 
 export default async function DashboardPage() {
   const user = await requireAuth()
@@ -226,6 +227,9 @@ export default async function DashboardPage() {
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Ticket: {ticket.qrCode.slice(-8)}
+                      </div>
+                      <div className="mt-2">
+                        <QRCodeDisplay qrCodeValue={ticket.qrCode} />
                       </div>
                     </div>
                     <Badge variant={ticket.isUsed ? "secondary" : "default"}>
