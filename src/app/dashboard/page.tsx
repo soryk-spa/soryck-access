@@ -12,8 +12,7 @@ import {
   Users, 
   Plus,
   Settings,
-  BarChart3,
-  ArrowRight
+  BarChart3
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -217,31 +216,22 @@ export default async function DashboardPage() {
               <CardTitle>Mis Tickets Recientes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {recentTickets.map((ticket) => (
-                  <Link
-                    key={ticket.id}
-                    href={`/dashboard/tickets/${ticket.id}`}
-                    className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium">{ticket.event.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(ticket.event.startDate).toLocaleDateString('es-CL')} - {ticket.event.location}
-                        </div>
+                  <div key={ticket.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <div className="font-medium">{ticket.event.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(ticket.event.startDate).toLocaleDateString()} - {ticket.event.location}
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Badge variant={ticket.isUsed ? 'secondary' : 'default'}>
-                          {ticket.isUsed ? 'Usado' : 'Válido'}
-                        </Badge>
-                        <Button variant="ghost" size="sm">
-                          Ver QR
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Ticket: {ticket.qrCode.slice(-8)}
                       </div>
                     </div>
-                  </Link>
+                    <Badge variant={ticket.isUsed ? "secondary" : "default"}>
+                      {ticket.isUsed ? "Usado" : "Válido"}
+                    </Badge>
+                  </div>
                 ))}
                 
                 {recentTickets.length === 0 && (
