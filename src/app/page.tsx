@@ -16,9 +16,61 @@ import {
   ChevronRight,
   CheckCircle,
   Award,
-  Clock,
   Mail
 } from "lucide-react"
+
+const SorykPassLogo = ({
+  className = "",
+  size = "default",
+  variant = "auto",
+}: {
+  className?: string;
+  size?: "sm" | "default" | "lg";
+  variant?: "light" | "dark" | "auto";
+}) => {
+  const sizeClasses = {
+    sm: "h-8 w-auto",
+    default: "h-10 w-auto",
+    lg: "h-12 w-auto",
+  };
+
+  return (
+    <Link
+      href="/"
+      className={`transition-transform hover:scale-105 ${className}`}
+    >
+      {variant === "auto" ? (
+        <>
+          <Image
+            src="/sorykpass_horizontal_black.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} dark:hidden`}
+            priority
+          />
+          <Image
+            src="/sorykpass_horizontal_white.png"
+            alt="SorykPass"
+            width={200}
+            height={40}
+            className={`${sizeClasses[size]} hidden dark:block`}
+            priority
+          />
+        </>
+      ) : (
+        <Image
+          src={variant === "dark" ? "/logo/logo-white.svg" : "/logo/logo.svg"}
+          alt="SorykPass"
+          width={200}
+          height={40}
+          className={sizeClasses[size]}
+          priority
+        />
+      )}
+    </Link>
+  );
+};
 
 export default function Homepage() {
   const features = [
@@ -139,39 +191,47 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <section className="relative overflow-hidden h-[70vh] flex items-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/sorykpass_1.jpg"
-            alt="SorykPass Hero Background"
-            fill
-            className="object-cover object-center blur-xsm brightness-75"
-            priority
-            quality={90}
-          />
-          <div className="absolute inset-0"></div>
-        </div>
-        <div className="container mx-auto px-4 relative z-20">
-          <div className="max-w-3xl mx-auto text-center">
-            
-            <h1 className="text-4xl lg:text-5xl font-bold mb-6 text-white">
-              Tu pase,
-              <span className="bg-gradient-to-r from-[#01CBFE] to-[#FDBD00] bg-clip-text text-transparent">
-                {" "}tu entrada, tu acceso digital
-              </span>
-            </h1>
-            
-            <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-              Sistema 100% digital.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Button size="lg" className="bg-white text-[#0053CC] hover:bg-white/90">
-                <Link href="/sign-up" className="flex items-center">
-                  Crear evento gratis
-                  <ChevronRight className="ml-2 h-5 w-5" />
-                </Link>
-              </Button>
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-blue-50/50 to-background dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center py-24 lg:py-32">
+            <div className="text-center lg:text-left">
+              <div className="inline-block lg:mx-0 mx-auto mb-6">
+                <SorykPassLogo />
+              </div>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6">
+                La plataforma para tus eventos, 
+                <span className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent"> simplificada.</span>
+              </h1>
+              
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8">
+                Olvídate de las complicaciones. SorykPass te entrega las herramientas para vender tickets, controlar el acceso y analizar los resultados de tus eventos de forma segura y eficiente.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button size="lg" asChild className="min-w-[220px] bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white shadow-lg">
+                  <Link href="/events/create">
+                    Empieza a Crear tu Evento
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" asChild className="min-w-[220px]">
+                  <Link href="/events">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Explorar Eventos
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="relative h-80 lg:h-[500px] w-full max-w-lg mx-auto lg:max-w-none">
+              <div className="absolute -inset-2 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-2xl opacity-50 blur-xl"></div>
+              <Image
+                src="/sorykpass_1.jpg"
+                alt="Una persona emocionada disfrutando de un evento"
+                fill
+                className="object-cover rounded-xl shadow-2xl"
+                priority
+              />
             </div>
           </div>
         </div>
@@ -189,7 +249,7 @@ export default function Homepage() {
               <span className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] bg-clip-text text-transparent"> eventos exitosos</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Herramientas profesionales diseñadas para organizadores que buscan la excelencia
+              Desde la publicación hasta el análisis post-evento, nuestras herramientas están diseñadas para que solo te preocupes de una cosa: crear una experiencia inolvidable.
             </p>
           </div>
           
@@ -249,11 +309,11 @@ export default function Homepage() {
               Precios
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-              Solo cobramos cuando
-              <span className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent"> tú vendes</span>
+              Un precio
+              <span className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent"> simple y transparente</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Sin costos mensuales ni suscripciones. Únicamente una pequeña comisión por cada ticket vendido.
+              Sin mensualidades ni costos ocultos. Solo cobramos una pequeña comisión cuando tú vendes un ticket. Si tu evento es gratuito, SorykPass también lo es.
             </p>
           </div>
           
@@ -321,21 +381,17 @@ export default function Homepage() {
         
         <div className="container mx-auto px-4 text-center relative">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            ¿Listo para crear eventos increíbles?
+            ¿Listo para lanzar tu próximo evento?
           </h2>
           <p className="text-xl opacity-90 max-w-2xl mx-auto mb-8">
-            Únete a miles de organizadores que ya confían en SorykPass para sus eventos más importantes
+            Miles de personas están buscando nuevas experiencias. Publica tu evento en SorykPass y empieza a vender tickets hoy mismo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild className="min-w-[200px] bg-white text-[#0053CC] hover:bg-white/90">
               <Link href="/sign-up">
-                Comenzar Ahora
+                Regístrate Gratis
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="min-w-[200px] border-white text-white hover:bg-white hover:text-[#0053CC]">
-              <Clock className="mr-2 h-4 w-4" />
-              Agendar Demo
             </Button>
           </div>
         </div>
