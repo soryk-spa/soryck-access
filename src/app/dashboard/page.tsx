@@ -12,10 +12,10 @@ import {
   Users, 
   Plus,
   Settings,
-  BarChart3
+  BarChart3,
+  ArrowRight
 } from 'lucide-react'
 import Link from 'next/link'
-import QRCodeDisplay from '@/components/qr-code-display'
 
 export default async function DashboardPage() {
   const user = await requireAuth()
@@ -217,25 +217,31 @@ export default async function DashboardPage() {
               <CardTitle>Mis Tickets Recientes</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="font-medium">{ticket.event.title}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {new Date(ticket.event.startDate).toLocaleDateString()} - {ticket.event.location}
+                  <Link
+                    key={ticket.id}
+                    href={`/dashboard/tickets/${ticket.id}`}
+                    className="block p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium">{ticket.event.title}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(ticket.event.startDate).toLocaleDateString('es-CL')} - {ticket.event.location}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Ticket: {ticket.qrCode.slice(-8)}
-                      </div>
-                      <div className="mt-2">
-                        <QRCodeDisplay qrCodeValue={ticket.qrCode} />
+                      <div className="flex items-center gap-4">
+                        <Badge variant={ticket.isUsed ? 'secondary' : 'default'}>
+                          {ticket.isUsed ? 'Usado' : 'Válido'}
+                        </Badge>
+                        <Button variant="ghost" size="sm">
+                          Ver QR
+                          <ArrowRight className="h-4 w-4 ml-2" />
+                        </Button>
                       </div>
                     </div>
-                    <Badge variant={ticket.isUsed ? "secondary" : "default"}>
-                      {ticket.isUsed ? "Usado" : "Válido"}
-                    </Badge>
-                  </div>
+                  </Link>
                 ))}
                 
                 {recentTickets.length === 0 && (
