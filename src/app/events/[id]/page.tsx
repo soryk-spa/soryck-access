@@ -99,10 +99,16 @@ export default async function EventPage({ params }: EventPageProps) {
 
   const serializedEvent = {
     ...event,
+    description: event.description ?? undefined,
+    imageUrl: event.imageUrl ?? undefined,
     startDate: event.startDate.toISOString(),
-    endDate: event.endDate?.toISOString() || null,
+    endDate: event.endDate ? event.endDate.toISOString() : undefined,
     createdAt: event.createdAt.toISOString(),
-    updatedAt: event.updatedAt.toISOString()
+    updatedAt: event.updatedAt.toISOString(),
+    organizer: {
+      ...event.organizer,
+      imageUrl: event.organizer.imageUrl ?? undefined
+    }
   }
 
   let userTicketsCount = 0
