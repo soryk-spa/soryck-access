@@ -151,9 +151,11 @@ async function getPublicEvents(filters: PublicEventFilters) {
   const serializedEvents = events.map(event => ({
     ...event,
     startDate: event.startDate.toISOString(),
-    endDate: event.endDate?.toISOString() || null,
+    endDate: event.endDate ? event.endDate.toISOString() : undefined,
     createdAt: event.createdAt.toISOString(),
-    updatedAt: event.updatedAt.toISOString()
+    updatedAt: event.updatedAt.toISOString(),
+    description: event.description ?? '',
+    imageUrl: event.imageUrl === null ? undefined : event.imageUrl
   }))
 
   return { events: serializedEvents, pagination }

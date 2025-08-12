@@ -17,7 +17,7 @@ export default async function CreateEventPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <CreateEventForm categories={categories} />
+      <CreateEventForm categories={categories} mode={'create'} />
     </div>
   )
 }
