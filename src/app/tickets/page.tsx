@@ -64,21 +64,31 @@ export default async function TicketsPage() {
 
   const [activeTickets, usedTickets, cancelledTickets] = ticketStats
 
-  const serializedTickets = tickets.map(ticket => ({
-    ...ticket,
-    createdAt: ticket.createdAt.toISOString(),
-    updatedAt: ticket.updatedAt.toISOString(),
-    usedAt: ticket.usedAt?.toISOString() || null,
-    event: {
-      ...ticket.event,
-      startDate: ticket.event.startDate.toISOString(),
-      endDate: ticket.event.endDate?.toISOString() || null
-    },
-    order: {
-      ...ticket.order,
-      createdAt: ticket.order.createdAt.toISOString()
-    }
-  }))
+  const serializedTickets = tickets.map(ticket => {
+    const startDate = new Date(ticket.event.startDate);
+
+    return {
+      ...ticket,
+      createdAt: ticket.createdAt.toISOString(),
+      updatedAt: ticket.updatedAt.toISOString(),
+      usedAt: ticket.usedAt?.toISOString() || null,
+      event: {
+        ...ticket.event,
+        startDate: ticket.event.startDate.toISOString(),
+        endDate: ticket.event.endDate ? ticket.event.endDate.toISOString() : null,
+        formattedDate: startDate.toLocaleDateString("es-ES", {
+          weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        }),
+        formattedTime: startDate.toLocaleTimeString("es-ES", {
+          hour: '2-digit', minute: '2-digit'
+        }),
+      },
+      order: {
+        ...ticket.order,
+        createdAt: ticket.order.createdAt.toISOString()
+      }
+    };
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">

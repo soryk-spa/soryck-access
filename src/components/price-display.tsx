@@ -1,11 +1,11 @@
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Info } from 'lucide-react';
-import { 
-  calculatePriceBreakdown, 
-  formatPriceBreakdown, 
-} from '@/lib/commission';
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Info } from "lucide-react";
+import {
+  calculatePriceBreakdown,
+  formatPriceBreakdown,
+} from "@/lib/commission";
 
 interface PriceDisplayProps {
   basePrice: number;
@@ -15,23 +15,24 @@ interface PriceDisplayProps {
   className?: string;
 }
 
-export default function PriceDisplay({ 
-  basePrice, 
-  quantity = 1, 
-  currency = 'CLP',
+export default function PriceDisplay({
+  basePrice,
+  quantity = 1,
+  currency = "CLP",
   showBreakdown = false,
-  className = '' 
+  className = "",
 }: PriceDisplayProps) {
   const singleItemBreakdown = calculatePriceBreakdown(basePrice, currency);
-  const totalBreakdown = calculatePriceBreakdown(basePrice * quantity, currency);
+  const totalBreakdown = calculatePriceBreakdown(
+    basePrice * quantity,
+    currency
+  );
   const formatted = formatPriceBreakdown(totalBreakdown);
 
   if (basePrice === 0) {
     return (
       <div className={`text-center ${className}`}>
-        <div className="text-2xl font-bold text-green-600">
-          Gratis
-        </div>
+        <div className="text-2xl font-bold text-green-600">Gratis</div>
         {quantity > 1 && (
           <div className="text-sm text-muted-foreground">
             {quantity} tickets
@@ -69,7 +70,9 @@ export default function PriceDisplay({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Precio por ticket:</span>
-                <span>{formatPriceBreakdown(singleItemBreakdown).basePrice}</span>
+                <span>
+                  {formatPriceBreakdown(singleItemBreakdown).basePrice}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Cantidad:</span>
@@ -82,10 +85,14 @@ export default function PriceDisplay({
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm">
-                {quantity > 1 ? 'Subtotal del evento:' : 'Precio del evento:'}
+                {quantity > 1 ? "Subtotal del evento:" : "Precio del evento:"}
               </span>
               <span className="font-medium">
-                {formatPriceBreakdown(calculatePriceBreakdown(basePrice * quantity, currency)).basePrice}
+                {
+                  formatPriceBreakdown(
+                    calculatePriceBreakdown(basePrice * quantity, currency)
+                  ).basePrice
+                }
               </span>
             </div>
 
@@ -109,12 +116,51 @@ export default function PriceDisplay({
 
           <div className="text-xs text-muted-foreground mt-3 p-2 bg-muted rounded">
             <p>
-              💡 La comisión del {formatted.commissionPercentage} nos ayuda a mantener 
-              la plataforma funcionando y mejorar continuamente tu experiencia.
+              💡 La comisión del {formatted.commissionPercentage} nos ayuda a
+              mantener la plataforma funcionando y mejorar continuamente tu
+              experiencia.
             </p>
           </div>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+export function SimplePriceDisplay({
+  basePrice,
+  quantity = 1,
+  currency = "CLP",
+  className = "",
+}: Omit<PriceDisplayProps, "showBreakdown">) {
+  const breakdown = calculatePriceBreakdown(basePrice * quantity, currency);
+  const formatted = formatPriceBreakdown(breakdown);
+
+  if (basePrice === 0) {
+    return (
+      <span className={`text-green-600 font-semibold ${className}`}>
+        Gratis
+      </span>
+    );
+  }
+
+  return (
+    <span className={`font-semibold ${className}`}>{formatted.totalPrice}</span>
+  );
+}
+
+export function usePriceCalculation(
+  basePrice: number,
+  quantity: number = 1,
+  currency: string = "CLP"
+) {
+  const breakdown = calculatePriceBreakdown(basePrice * quantity, currency);
+  const formatted = formatPriceBreakdown(breakdown);
+
+  return {
+    breakdown,
+    formatted,
+    isFree: basePrice === 0,
+    totalPrice: breakdown.totalPrice,
+  };
 }

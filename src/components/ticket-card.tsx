@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,20 @@ import {
   AlertCircle,
   CheckCircle2,
   User,
+  Loader2,
 } from "lucide-react";
+
+const QRCodeCanvas = dynamic(
+  () => import("qrcode.react").then((mod) => mod.QRCodeCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-64 h-64 flex items-center justify-center bg-gray-100 rounded-lg">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    ),
+  }
+);
 
 interface TicketCardProps {
   ticket: {
@@ -185,6 +199,9 @@ export default function TicketCard({ ticket }: TicketCardProps) {
   const canUseTicket =
     ticket.status === "ACTIVE" && !ticket.isUsed && !isEventPast;
 
+  // URL para el QR code
+  const qrCodeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
+
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="relative h-48">
@@ -308,9 +325,15 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                       className="rounded-lg"
                     />
                   ) : (
-                    <div className="w-64 h-64 flex items-center justify-center text-muted-foreground">
-                      <QrCode className="h-16 w-16" />
-                    </div>
+                    // Usar el QR code generado dinámicamente como fallback
+                    <QRCodeCanvas
+                      value={qrCodeUrl}
+                      size={256}
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                      level="L"
+                      includeMargin={true}
+                    />
                   )}
                 </div>
 
@@ -323,26 +346,26 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                   </p>
                 </div>
 
-                {qrImage && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleDownload}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Descargar
-                    </Button>
-                    <Button
-                      onClick={handleShare}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Compartir
-                    </Button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleDownload}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!qrImage}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Descargar
+                  </Button>
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    className="flex-1"
+                    disabled={!qrImage}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Compartir
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
