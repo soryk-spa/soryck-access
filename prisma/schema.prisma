@@ -8,13 +8,19 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  firstName String?
-  lastName  String?
-  imageUrl  String?
-  role      UserRole @default(CLIENT)
+  id           String   @id @default(cuid())
+  clerkId      String   @unique
+  email        String   @unique
+  firstName    String?
+  lastName     String?
+  imageUrl     String?
+  role         UserRole @default(CLIENT)
+  producerName String?
+  bio          String?
+  websiteUrl   String?
+  twitterUrl   String?
+  instagramUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -147,7 +153,7 @@ model Order {
   event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets Ticket[]
 
-  payment Payment?
+  payment    Payment?
   Commission Commission[]
 
   @@map("orders")
@@ -170,21 +176,21 @@ model RoleRequest {
 }
 
 model Commission {
-  id               String          @id @default(cuid())
-  orderId          String
-  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  type             CommissionType  @default(PLATFORM_FEE)
-  baseAmount       Float
-  rate             Float
-  amount           Float
-  currency         String          @default("CLP")
-  
-  status           String          @default("PENDING")
-  
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  type       CommissionType @default(PLATFORM_FEE)
+  baseAmount Float
+  rate       Float
+  amount     Float
+  currency   String         @default("CLP")
+
+  status String @default("PENDING")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("commissions")
 }
 

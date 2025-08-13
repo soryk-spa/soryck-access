@@ -12,7 +12,8 @@ import {
   Users, 
   Plus,
   Settings,
-  BarChart3
+  BarChart3,
+  UserCircle
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -87,9 +88,7 @@ export default async function DashboardPage() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Dashboard
-            </h1>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
             <p className="text-muted-foreground mt-2">
               Bienvenido, {user.firstName || user.email}
             </p>
@@ -103,31 +102,23 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Mis Tickets
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Mis Tickets</CardTitle>
             <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{ticketsCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Tickets comprados
-            </p>
+            <p className="text-xs text-muted-foreground">Tickets comprados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Mis Órdenes
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Mis Órdenes</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{ordersCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Órdenes realizadas
-            </p>
+            <p className="text-xs text-muted-foreground">Órdenes realizadas</p>
           </CardContent>
         </Card>
 
@@ -142,9 +133,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{eventsCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Eventos creados
-                </p>
+                <p className="text-xs text-muted-foreground">Eventos creados</p>
               </CardContent>
             </Card>
 
@@ -157,9 +146,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{ticketsSoldCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  En mis eventos
-                </p>
+                <p className="text-xs text-muted-foreground">En mis eventos</p>
               </CardContent>
             </Card>
           </>
@@ -197,6 +184,15 @@ export default async function DashboardPage() {
               </Button>
             )}
 
+            {canOrganizeEvents(user.role) && (
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/dashboard/organizer-profile">
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Perfil de Organizador
+                </Link>
+              </Button>
+            )}
+
             <Button asChild variant="outline" className="w-full">
               <Link href="/profile">
                 <Users className="w-4 h-4 mr-2" />
@@ -206,11 +202,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {user.role === 'CLIENT' && (
-          <RoleRequestForm />
-        )}
+        {user.role === "CLIENT" && <RoleRequestForm />}
 
-        {user.role !== 'CLIENT' || recentTickets.length > 0 ? (
+        {user.role !== "CLIENT" || recentTickets.length > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle>Mis Tickets Recientes</CardTitle>
@@ -218,11 +212,15 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="space-y-4">
                 {recentTickets.map((ticket) => (
-                  <div key={ticket.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <div className="font-medium">{ticket.event.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {new Date(ticket.event.startDate).toLocaleDateString()} - {ticket.event.location}
+                        {new Date(ticket.event.startDate).toLocaleDateString()}{" "}
+                        - {ticket.event.location}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Ticket: {ticket.qrCode.slice(-8)}
@@ -233,7 +231,7 @@ export default async function DashboardPage() {
                     </Badge>
                   </div>
                 ))}
-                
+
                 {recentTickets.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     No tienes tickets aún
@@ -252,24 +250,31 @@ export default async function DashboardPage() {
             <CardContent>
               <div className="space-y-4">
                 {userEvents.map((event) => (
-                  <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div
+                    key={event.id}
+                    className="flex items-center justify-between p-3 border rounded-lg"
+                  >
                     <div className="flex-1">
                       <div className="font-medium">{event.title}</div>
                       <div className="text-sm text-muted-foreground">
-                        {new Date(event.startDate).toLocaleDateString()} - {event.location}
+                        {new Date(event.startDate).toLocaleDateString()} -{" "}
+                        {event.location}
                       </div>
                       <div className="text-xs text-muted-foreground mt-1">
-                        {event._count.tickets} tickets vendidos • {event._count.orders} órdenes
+                        {event._count.tickets} tickets vendidos •{" "}
+                        {event._count.orders} órdenes
                       </div>
                     </div>
                     <div className="text-right">
-                      <Badge variant={event.isPublished ? "default" : "secondary"}>
+                      <Badge
+                        variant={event.isPublished ? "default" : "secondary"}
+                      >
                         {event.isPublished ? "Publicado" : "Borrador"}
                       </Badge>
                     </div>
                   </div>
                 ))}
-                
+
                 {userEvents.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
                     No has creado eventos aún
@@ -291,20 +296,28 @@ export default async function DashboardPage() {
                   <div key={request.id} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-sm font-medium">
-                        {ROLE_LABELS[request.currentRole]} → {ROLE_LABELS[request.requestedRole]}
+                        {ROLE_LABELS[request.currentRole]} →{" "}
+                        {ROLE_LABELS[request.requestedRole]}
                       </div>
-                      <Badge 
+                      <Badge
                         variant={
-                          request.status === 'APPROVED' ? 'default' :
-                          request.status === 'REJECTED' ? 'destructive' : 'secondary'
+                          request.status === "APPROVED"
+                            ? "default"
+                            : request.status === "REJECTED"
+                            ? "destructive"
+                            : "secondary"
                         }
                       >
-                        {request.status === 'PENDING' ? 'Pendiente' :
-                         request.status === 'APPROVED' ? 'Aprobada' : 'Rechazada'}
+                        {request.status === "PENDING"
+                          ? "Pendiente"
+                          : request.status === "APPROVED"
+                          ? "Aprobada"
+                          : "Rechazada"}
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Solicitado: {new Date(request.createdAt).toLocaleDateString()}
+                      Solicitado:{" "}
+                      {new Date(request.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 ))}
@@ -314,5 +327,5 @@ export default async function DashboardPage() {
         )}
       </div>
     </div>
-  )
+  );
 }

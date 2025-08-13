@@ -291,8 +291,6 @@ export default function EventDetailView({
                 </CardContent>
               </Card>
             )}
-
-            {/* Información del organizador */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -301,23 +299,25 @@ export default function EventDetailView({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center gap-4">
-                  {event.organizer.imageUrl && (
-                    <Image
-                      src={event.organizer.imageUrl}
-                      alt={organizerName}
-                      width={48}
-                      height={48}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  )}
-                  <div>
-                    <div className="font-medium">{organizerName}</div>
-                    <div className="text-sm text-muted-foreground">
-                      Organizador del evento
-                    </div>
+                <Link href={`/organizer/${event.organizer.id}`} className="group">
+                  <div className="flex items-center gap-4">
+                      {event.organizer.imageUrl && (
+                        <Image
+                          src={event.organizer.imageUrl}
+                          alt={organizerName}
+                          width={48}
+                          height={48}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div>
+                        <div className="font-medium">{organizerName}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Organizador del evento
+                        </div>
+                      </div>
                   </div>
-                </div>
+                </Link>
               </CardContent>
             </Card>
           </div>
