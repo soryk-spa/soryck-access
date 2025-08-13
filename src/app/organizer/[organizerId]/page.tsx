@@ -4,7 +4,7 @@ import OrganizerPublicProfile from "@/components/organizer-public-profile";
 import type { Metadata } from "next";
 
 interface OrganizerPageProps {
-  params: { organizerId: string };
+  params: Promise<{ organizerId: string }>;
 }
 
 async function getOrganizerData(organizerId: string) {
@@ -65,7 +65,7 @@ async function getOrganizerData(organizerId: string) {
 export async function generateMetadata({
   params,
 }: OrganizerPageProps): Promise<Metadata> {
-  const data = await getOrganizerData(params.organizerId);
+  const data = await getOrganizerData((await params).organizerId);
 
   if (!data?.organizer) {
     return { title: "Organizador no encontrado" };
@@ -91,7 +91,7 @@ export async function generateMetadata({
 }
 
 export default async function OrganizerPage({ params }: OrganizerPageProps) {
-  const data = await getOrganizerData(params.organizerId);
+  const data = await getOrganizerData((await params).organizerId);
 
   if (!data) {
     notFound();
