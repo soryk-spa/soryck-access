@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { TicketEmail } from "@/app/api/_emails/ticket-email";
 import { render } from "@react-email/render";
-import { generateTicketQR } from "@/lib/qr";
+import { saveMultipleQRs } from "@/lib/qr-storage";
 import { User, Event, Order, Ticket } from "@prisma/client";
 
 if (!process.env.RESEND_API_KEY) {
@@ -36,6 +36,11 @@ export async function sendTicketEmail({
     return;
   }
 
+  console.log(`[EMAIL] Iniciando proceso para orden: ${order.orderNumber}`);
+  console.log(`[EMAIL] Usuario: ${user.email}`);
+  console.log(`[EMAIL] Evento: ${event.title}`);
+  console.log(`[EMAIL] Tickets: ${order.tickets.length}`);
+
   const userName = user.firstName || user.email.split("@")[0];
   const eventDate = new Date(event.startDate).toLocaleDateString("es-ES", {
     weekday: "long",
@@ -46,25 +51,43 @@ export async function sendTicketEmail({
     minute: "2-digit",
   });
 
-  const ticketsWithQR = await Promise.all(
-    order.tickets.map(async (ticket) => {
-      const qrCodeImage = await generateTicketQR({
-        ticketId: ticket.id,
-        qrCode: ticket.qrCode,
-        eventTitle: event.title,
-        attendeeName: userName,
-        attendeeEmail: user.email,
-        eventDate: event.startDate.toISOString(),
-        eventLocation: event.location,
-        eventId: event.id,
-        userId: user.id,
-        timestamp: order.createdAt.toISOString(),
-      });
-      return { qrCode: ticket.qrCode, qrCodeImage };
-    })
+  // Preparar datos para generar QRs
+  const ticketsData = order.tickets.map((ticket) => ({
+    ticketId: ticket.id,
+    qrCode: ticket.qrCode,
+    eventTitle: event.title,
+    attendeeName: userName,
+    attendeeEmail: user.email,
+    eventDate: event.startDate.toISOString(),
+    eventLocation: event.location,
+    eventId: event.id,
+    userId: user.id,
+    timestamp: order.createdAt.toISOString(),
+  }));
+
+  console.log(`[EMAIL] 🎨 Generando y guardando ${ticketsData.length} QRs...`);
+
+  // Generar y guardar QRs como archivos
+  const qrResults = await saveMultipleQRs(ticketsData);
+
+  // Crear tickets con URLs de archivos guardados
+  const ticketsWithQR = qrResults.map((result, index) => {
+    console.log(`[EMAIL] Ticket ${index + 1}:`);
+    console.log(`  - QR Code: ${result.qrCode}`);
+    console.log(`  - QR URL: ${result.qrImageUrl}`);
+
+    return {
+      qrCode: result.qrCode,
+      qrCodeImage: result.qrImageUrl,
+    };
+  });
+
+  // Verificar que todos los QRs se generaron correctamente
+  const successfulQRs = ticketsWithQR.filter((t) => t.qrCodeImage).length;
+  console.log(
+    `[EMAIL] ✅ QRs generados exitosamente: ${successfulQRs}/${ticketsWithQR.length}`
   );
 
-  // ✨ CAMBIO: Agregar 'await' a la función render ✨
   const emailHtml = await render(
     <TicketEmail
       userName={userName}
@@ -77,16 +100,27 @@ export async function sendTicketEmail({
   );
 
   try {
-    await resend.emails.send({
+    const emailData = {
       from: process.env.EMAIL_FROM,
       to: user.email,
-      subject: `Tus tickets para ${event.title}`,
+      subject: `🎫 Tus tickets para ${event.title}`,
       html: emailHtml,
-    });
+      // Sin attachments - usamos archivos públicos
+    };
+
+    console.log("[EMAIL] 📧 Enviando email...");
+    console.log(`[EMAIL] Para: ${user.email}`);
+    console.log(`[EMAIL] Asunto: ${emailData.subject}`);
+
+    await resend.emails.send(emailData);
+
+    console.log(`[EMAIL] ✅ Correo enviado exitosamente a ${user.email}`);
+    console.log(`[EMAIL] 📋 Orden: ${order.orderNumber}`);
     console.log(
-      `Correo de tickets enviado exitosamente a ${user.email} para la orden ${order.orderNumber}`
+      `[EMAIL] 🎫 Tickets con QR: ${successfulQRs}/${ticketsWithQR.length}`
     );
   } catch (error) {
-    console.error("Error al enviar correo con Resend:", error);
+    console.error("[EMAIL] ❌ Error al enviar correo:", error);
+    throw error;
   }
 }
