@@ -1,4 +1,3 @@
-// src/components/create-event-form.tsx o edit-event-form.tsx (ACTUALIZAR)
 "use client";
 
 import { useState } from "react";
@@ -17,12 +16,15 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import ImageUpload from "@/components/image-upload-simple";
 import {
   Calendar,
   MapPin,
   DollarSign,
   Users,
   Info,
+  CheckCircle,
+  ImageIcon,
 } from "lucide-react";
 import {
   formatPrice,
@@ -63,7 +65,6 @@ export default function EventForm({
   const [loading, setLoading] = useState(false);
   const [showPriceBreakdown, setShowPriceBreakdown] = useState(false);
 
-  // Estados del formulario
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -78,7 +79,6 @@ export default function EventForm({
     imageUrl: initialData?.imageUrl || "",
   });
 
-  // Calcular precios en tiempo real
   const priceBreakdown = calculatePriceBreakdown(
     formData.price,
     formData.currency
@@ -138,6 +138,13 @@ export default function EventForm({
     }
   };
 
+  function handleImageChange(imageUrl: string): void {
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl,
+    }));
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="text-center">
@@ -153,9 +160,7 @@ export default function EventForm({
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Formulario principal */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Información básica */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -209,22 +214,36 @@ export default function EventForm({
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="imageUrl">URL de imagen (opcional)</Label>
-                  <Input
-                    id="imageUrl"
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) =>
-                      handleInputChange("imageUrl", e.target.value)
-                    }
-                    placeholder="https://ejemplo.com/imagen.jpg"
+                <div className="space-y-3">
+                  <Label htmlFor="imageUrl">Imagen del evento (opcional)</Label>
+                  <ImageUpload
+                    currentImageUrl={formData.imageUrl}
+                    onImageChange={handleImageChange}
                   />
+
+                  {/* Información adicional */}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>• Los eventos con imágenes obtienen 40% más clicks</p>
+                    <p>• Formatos permitidos: PNG, JPG, WebP (máx 4MB)</p>
+                    <p>• Se recomienda una proporción 16:9 o 3:2</p>
+                  </div>
+
+                  {/* Estado de la imagen */}
+                  {formData.imageUrl ? (
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle className="h-4 w-4" />
+                      Imagen cargada y lista para usar
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <ImageIcon className="h-4 w-4" />
+                      Sin imagen - se usará una imagen por defecto
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Fecha y ubicación */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -277,7 +296,6 @@ export default function EventForm({
               </CardContent>
             </Card>
 
-            {/* Capacidad y tickets */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -307,7 +325,6 @@ export default function EventForm({
             </Card>
           </div>
 
-          {/* Sidebar - Configuración de precios */}
           <div className="space-y-6">
             <Card className="sticky top-6">
               <CardHeader>
@@ -317,7 +334,6 @@ export default function EventForm({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Toggle gratuito/pagado */}
                 <div className="flex items-center justify-between">
                   <Label>Tipo de evento</Label>
                   <div className="flex gap-2">
@@ -340,7 +356,6 @@ export default function EventForm({
                   </div>
                 </div>
 
-                {/* Configuración de precio */}
                 {!formData.isFree && (
                   <div className="space-y-4">
                     <div>
@@ -367,7 +382,6 @@ export default function EventForm({
 
                     <Separator />
 
-                    {/* Desglose de precios */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium">
@@ -432,7 +446,6 @@ export default function EventForm({
                   </div>
                 )}
 
-                {/* Información sobre comisiones */}
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
@@ -442,7 +455,6 @@ export default function EventForm({
                   </AlertDescription>
                 </Alert>
 
-                {/* Estimaciones */}
                 {!formData.isFree && formData.price > 0 && (
                   <div className="pt-4 border-t space-y-2">
                     <h4 className="font-medium text-sm">
@@ -479,7 +491,6 @@ export default function EventForm({
               </CardContent>
             </Card>
 
-            {/* Botones de acción */}
             <div className="space-y-3">
               <Button
                 type="submit"
@@ -510,7 +521,6 @@ export default function EventForm({
               </Button>
             </div>
 
-            {/* Información adicional */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">💡 Consejos</CardTitle>

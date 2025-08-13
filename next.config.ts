@@ -44,7 +44,19 @@ const nextConfig: NextConfig = {
         hostname: 'source.unsplash.com',
         port: '',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'uploadthing.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   async headers() {
