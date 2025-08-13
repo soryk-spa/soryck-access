@@ -110,12 +110,22 @@ export default function EventForm({
 
       const method = mode === "create" ? "POST" : "PUT";
 
+      const body = {
+        ...formData,
+        startDate: formData.startDate
+          ? new Date(formData.startDate).toISOString()
+          : "",
+        endDate: formData.endDate
+          ? new Date(formData.endDate).toISOString()
+          : "",
+      };
+
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();

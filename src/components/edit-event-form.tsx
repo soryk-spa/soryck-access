@@ -144,20 +144,27 @@ export default function EditEventForm({
     setFormErrors([]);
 
     try {
-      const startDateTime = combineDateTime(
+      const startDateTimeString = combineDateTime(
         formData.startDate,
         formData.startTime
       );
-      const endDateTime = formData.endDate
+      const endDateTimeString = formData.endDate
         ? combineDateTime(formData.endDate, formData.endTime)
+        : undefined;
+
+      const startDateISO = startDateTimeString
+        ? new Date(startDateTimeString).toISOString()
+        : undefined;
+      const endDateISO = endDateTimeString
+        ? new Date(endDateTimeString).toISOString()
         : undefined;
 
       const eventData = {
         title: formData.title,
         description: formData.description || undefined,
         location: formData.location,
-        startDate: startDateTime,
-        endDate: endDateTime,
+        startDate: startDateISO,
+        endDate: endDateISO,
         categoryId: formData.categoryId,
         capacity: formData.capacity,
         price: formData.price,
