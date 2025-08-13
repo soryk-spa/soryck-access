@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { TicketEmail } from "@/app/api/_emails/ticket-email";
 import { render } from "@react-email/render";
+import { generateTicketQR } from "@/lib/qr";
 import { saveMultipleQRs } from "@/lib/qr-storage";
 import { User, Event, Order, Ticket } from "@prisma/client";
 
@@ -36,10 +37,10 @@ export async function sendTicketEmail({
     return;
   }
 
-  console.log(`[EMAIL] Iniciando proceso para orden: ${order.orderNumber}`);
-  console.log(`[EMAIL] Usuario: ${user.email}`);
-  console.log(`[EMAIL] Evento: ${event.title}`);
-  console.log(`[EMAIL] Tickets: ${order.tickets.length}`);
+  console.log(`[EMAIL] 🚀 Iniciando proceso para orden: ${order.orderNumber}`);
+  console.log(`[EMAIL] 👤 Usuario: ${user.email}`);
+  console.log(`[EMAIL] 🎪 Evento: ${event.title}`);
+  console.log(`[EMAIL] 🎫 Tickets: ${order.tickets.length}`);
 
   const userName = user.firstName || user.email.split("@")[0];
   const eventDate = new Date(event.startDate).toLocaleDateString("es-ES", {
@@ -65,28 +66,47 @@ export async function sendTicketEmail({
     timestamp: order.createdAt.toISOString(),
   }));
 
-  console.log(`[EMAIL] 🎨 Generando y guardando ${ticketsData.length} QRs...`);
+  console.log(`[EMAIL] 🎨 Generando QRs con estrategia híbrida...`);
 
-  // Generar y guardar QRs como archivos
-  const qrResults = await saveMultipleQRs(ticketsData);
+  // Estrategia híbrida: Data URLs + archivos de backup
+  const ticketsWithQR = [];
 
-  // Crear tickets con URLs de archivos guardados
-  const ticketsWithQR = qrResults.map((result, index) => {
-    console.log(`[EMAIL] Ticket ${index + 1}:`);
-    console.log(`  - QR Code: ${result.qrCode}`);
-    console.log(`  - QR URL: ${result.qrImageUrl}`);
+  for (let i = 0; i < ticketsData.length; i++) {
+    const ticketData = ticketsData[i];
 
-    return {
-      qrCode: result.qrCode,
-      qrCodeImage: result.qrImageUrl,
-    };
-  });
+    try {
+      // 1. Generar QR como Data URL (para embebido)
+      console.log(`[EMAIL] 📱 Generando Data URL para ticket ${i + 1}...`);
+      const qrDataUrl = await generateTicketQR(ticketData);
 
-  // Verificar que todos los QRs se generaron correctamente
+      // 2. También guardar como archivo (backup)
+      console.log(
+        `[EMAIL] 💾 Guardando archivo backup para ticket ${i + 1}...`
+      );
+      await saveMultipleQRs([ticketData]);
+
+      ticketsWithQR.push({
+        qrCode: ticketData.qrCode,
+        qrCodeImage: qrDataUrl, // Usar Data URL para mejor compatibilidad
+      });
+
+      console.log(`[EMAIL] ✅ Ticket ${i + 1} procesado exitosamente`);
+      console.log(`[EMAIL]    - Data URL: ${qrDataUrl.substring(0, 50)}...`);
+    } catch (error) {
+      console.error(`[EMAIL] ❌ Error procesando ticket ${i + 1}:`, error);
+      // Fallback sin imagen
+      ticketsWithQR.push({
+        qrCode: ticketData.qrCode,
+        qrCodeImage: "", // Sin imagen si falla
+      });
+    }
+  }
+
   const successfulQRs = ticketsWithQR.filter((t) => t.qrCodeImage).length;
   console.log(
-    `[EMAIL] ✅ QRs generados exitosamente: ${successfulQRs}/${ticketsWithQR.length}`
+    `[EMAIL] 📊 QRs generados: ${successfulQRs}/${ticketsWithQR.length}`
   );
+  console.log(`[EMAIL] 📧 Preparando email con Data URLs embebidos...`);
 
   const emailHtml = await render(
     <TicketEmail
@@ -105,19 +125,19 @@ export async function sendTicketEmail({
       to: user.email,
       subject: `🎫 Tus tickets para ${event.title}`,
       html: emailHtml,
-      // Sin attachments - usamos archivos públicos
     };
 
-    console.log("[EMAIL] 📧 Enviando email...");
-    console.log(`[EMAIL] Para: ${user.email}`);
-    console.log(`[EMAIL] Asunto: ${emailData.subject}`);
+    console.log("[EMAIL] 📤 Enviando email...");
+    console.log(`[EMAIL]    - Para: ${user.email}`);
+    console.log(`[EMAIL]    - Asunto: ${emailData.subject}`);
+    console.log(`[EMAIL]    - Tickets con QR embebido: ${successfulQRs}`);
 
     await resend.emails.send(emailData);
 
-    console.log(`[EMAIL] ✅ Correo enviado exitosamente a ${user.email}`);
+    console.log(`[EMAIL] ✅ Correo enviado exitosamente`);
     console.log(`[EMAIL] 📋 Orden: ${order.orderNumber}`);
     console.log(
-      `[EMAIL] 🎫 Tickets con QR: ${successfulQRs}/${ticketsWithQR.length}`
+      `[EMAIL] 🎫 QRs embebidos: ${successfulQRs}/${ticketsWithQR.length}`
     );
   } catch (error) {
     console.error("[EMAIL] ❌ Error al enviar correo:", error);
