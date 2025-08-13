@@ -25,10 +25,12 @@ interface UserProfile {
 
 interface OrganizerProfileFormProps {
   initialData: UserProfile;
+  userId: string;
 }
 
 export default function OrganizerProfileForm({
   initialData,
+  userId,
 }: OrganizerProfileFormProps) {
   const [formData, setFormData] = useState({
     producerName: initialData.producerName || "",
@@ -62,7 +64,7 @@ export default function OrganizerProfileForm({
       }
 
       toast.success("Perfil actualizado exitosamente");
-      router.refresh();
+      router.push(`/organizer/${userId}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Ocurrió un error");
     } finally {

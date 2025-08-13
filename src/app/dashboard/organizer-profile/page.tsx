@@ -51,7 +51,7 @@ export default async function OrganizerProfilePage() {
           </CardHeader>
         </Card>
 
-        <OrganizerProfileForm initialData={initialData} />
+        <OrganizerProfileForm initialData={initialData} userId={user.id} />
 
         <Alert>
           <Info className="h-4 w-4" />
