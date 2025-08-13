@@ -4,13 +4,16 @@ import { prisma } from "@/lib/prisma";
 import { webpayPlus } from "@/lib/transbank";
 import { generateUniqueQRCode } from "@/lib/qr";
 import { calculatePriceBreakdown } from "@/lib/commission";
+import { sendTicketEmail } from '@/lib/email';
 import { z } from "zod";
+import { Order, Event, User } from "@prisma/client";
 
 const createPaymentSchema = z.object({
   eventId: z.string(),
   quantity: z.number().min(1).max(10),
 });
 
+// ... (las funciones generateShortBuyOrder y generateShortSessionId no cambian) ...
 function generateShortBuyOrder(prefix: string = "SP"): string {
   const now = new Date();
   const year = now.getFullYear().toString().slice(-2);
@@ -143,9 +146,9 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
-        totalAmount: finalTotalAmount, // Guardar el precio final con comisión
-        baseAmount: baseTotalAmount, // Guardar también el precio base
-        commissionAmount: priceBreakdown.commission, // Guardar la comisión
+        totalAmount: finalTotalAmount,
+        baseAmount: baseTotalAmount,
+        commissionAmount: priceBreakdown.commission,
         currency: event.currency,
         quantity,
         status: "PENDING",
@@ -165,9 +168,10 @@ export async function POST(request: NextRequest) {
 
     if (event.isFree || finalTotalAmount === 0) {
       console.log("Evento gratuito, procesando tickets directamente");
-      return handleFreeTickets(order, event, user);
+      return handleFreeTickets(order, event, user); // ✨ CAMBIO: Pasamos los objetos completos
     }
-
+    
+    // ... (resto de la función POST sin cambios)
     const sessionId = generateShortSessionId("sess");
     const buyOrder = order.orderNumber;
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`;
@@ -215,7 +219,7 @@ export async function POST(request: NextRequest) {
       transbankResponse = await webpayPlus.create(
         buyOrder,
         sessionId,
-        finalTotalAmount, // Enviar el precio final con comisión a Transbank
+        finalTotalAmount,
         returnUrl
       );
 
@@ -260,7 +264,7 @@ export async function POST(request: NextRequest) {
         orderId: order.id,
         transactionId: sessionId,
         token: transbankResponse.token,
-        amount: finalTotalAmount, // Guardar el monto final
+        amount: finalTotalAmount,
         currency: event.currency,
         status: "PENDING",
       },
@@ -318,22 +322,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleFreeTickets(
-  order: {
-    id: string;
-    quantity: number;
-  },
-  event: {
-    id: string;
-    title: string;
-  },
-  user: {
-    id: string;
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
-  }
-) {
+
+// ✨ CAMBIOS EN ESTA FUNCIÓN ✨
+async function handleFreeTickets(order: Order, event: Event, user: User) {
   console.log("Procesando tickets gratuitos...");
 
   const timestamp = Date.now();
@@ -349,21 +340,27 @@ async function handleFreeTickets(
     });
   }
 
-  await prisma.$transaction([
+  // La transacción ahora devuelve los resultados de cada operación
+  const transactionResult = await prisma.$transaction([
     prisma.ticket.createMany({ data: tickets }),
     prisma.order.update({
       where: { id: order.id },
       data: { status: "PAID" },
+      include: { tickets: true }
     }),
   ]);
+  
+  // El pedido actualizado (con los tickets) es el segundo resultado
+  const updatedOrder = transactionResult[1];
 
   console.log("Tickets gratuitos creados:", tickets.length);
+
+  await sendTicketEmail({ user, event, order: updatedOrder });
 
   return NextResponse.json({
     success: true,
     orderId: order.id,
     isFree: true,
     ticketsGenerated: order.quantity,
-    tickets: tickets.map((t) => ({ qrCode: t.qrCode })),
   });
 }

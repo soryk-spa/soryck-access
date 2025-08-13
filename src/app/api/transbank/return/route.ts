@@ -1,19 +1,24 @@
+// src/app/api/transbank/return/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { webpayPlus } from '@/lib/transbank'
 import { prisma } from '@/lib/prisma'
 import { generateUniqueQRCode } from '@/lib/qr'
+import { sendTicketEmail } from '@/lib/email'
+import { Payment, Order, User, Event as PrismaEvent, Ticket } from '@prisma/client'
 
-interface Payment {
-  id: string;
-  order: {
-    id: string;
-    quantity: number;
-    event: { id: string };
-    user: { id: string };
-  };
+// Tipos para mayor claridad
+type FullPayment = Payment & {
+  order: Order & {
+    user: User,
+    event: PrismaEvent
+  }
 }
 
-interface TransbankResponse {
+type OrderWithTickets = Order & {
+  tickets: Ticket[]
+}
+
+interface TransbankCommitResponse {
   buy_order: string;
   authorization_code: string;
   response_code: number;
@@ -54,11 +59,12 @@ async function handleTransactionCommit(token: string | null) {
     const isApproved = response.status === 'AUTHORIZED' && response.response_code === 0;
 
     if (isApproved) {
-      await processSuccessfulPayment(payment, response);
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await processSuccessfulPayment(payment as FullPayment, response);
+      // Damos un pequeño respiro para que la BD procese todo antes de redirigir
+      await new Promise(resolve => setTimeout(resolve, 500));
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/success?orderId=${payment.order.id}`);
     } else {
-      await processFailedPayment(payment, response);
+      await processFailedPayment(payment as FullPayment, response);
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/payment/error?orderId=${payment.order.id}&reason=transaction-failed`);
     }
   } catch (transactionError) {
@@ -87,42 +93,38 @@ export async function POST(request: NextRequest) {
   return await handleTransactionCommit(token);
 }
 
-async function processSuccessfulPayment(payment: Payment, transbankResponse: TransbankResponse) {
+async function processSuccessfulPayment(payment: FullPayment, transbankResponse: TransbankCommitResponse) {
   console.log('Procesando pago exitoso, generando tickets...');
   
   const timestamp = Date.now();
-  const tickets = [];
-  
-  for (let i = 0; i < payment.order.quantity; i++) {
+  const ticketsData = Array.from({ length: payment.order.quantity }).map((_, i) => {
     const qrCode = generateUniqueQRCode(
       payment.order.event.id, 
       payment.order.user.id, 
       timestamp, 
       i
     );
-    
-    tickets.push({
+    return {
       qrCode,
-      eventId: payment.order.event.id.toString(),
-      userId: payment.order.user.id.toString(),
-      orderId: payment.order.id.toString()
-    });
-  }
+      eventId: payment.order.event.id,
+      userId: payment.order.user.id,
+      orderId: payment.order.id
+    };
+  });
 
   try {
-    await prisma.$transaction([
-      prisma.ticket.createMany({ data: tickets }),
-      
+    const transactionResult = await prisma.$transaction([
+      prisma.ticket.createMany({ data: ticketsData }),
       prisma.order.update({
-        where: { id: payment.order.id.toString() },
+        where: { id: payment.order.id },
         data: { 
           status: 'PAID',
           paymentIntentId: transbankResponse.buy_order
-        }
+        },
+        include: { tickets: true } // Importante para obtener los IDs de los tickets
       }),
-      
       prisma.payment.update({
-        where: { id: payment.id.toString() },
+        where: { id: payment.id },
         data: {
           status: 'AUTHORIZED',
           authorizationCode: transbankResponse.authorization_code,
@@ -133,25 +135,33 @@ async function processSuccessfulPayment(payment: Payment, transbankResponse: Tra
       })
     ]);
     
-    console.log('Tickets creados exitosamente:', tickets.length);
+    console.log('Tickets creados exitosamente:', ticketsData.length);
+    
+    const updatedOrder = transactionResult[1] as OrderWithTickets;
+
+    // Usamos los datos correctos y completos que ya tenemos
+    await sendTicketEmail({
+        user: payment.order.user,
+        event: payment.order.event,
+        order: updatedOrder
+    });
     
   } catch (error) {
-    console.error('Error al crear tickets:', error);
-    throw error;
+    console.error('Error al crear tickets y enviar correo:', error);
+    // No relanzamos el error para no afectar la redirección del usuario
   }
 }
 
-async function processFailedPayment(payment: Payment, transbankResponse: TransbankResponse) {
+async function processFailedPayment(payment: FullPayment, transbankResponse: TransbankCommitResponse) {
   console.log('Procesando pago fallido...');
   
   await prisma.$transaction([
     prisma.order.update({
-      where: { id: payment.order.id.toString() },
+      where: { id: payment.order.id },
       data: { status: 'CANCELLED' }
     }),
-    
     prisma.payment.update({
-      where: { id: payment.id.toString() },
+      where: { id: payment.id },
       data: {
         status: 'FAILED',
         responseCode: transbankResponse.response_code,
