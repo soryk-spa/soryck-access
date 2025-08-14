@@ -78,18 +78,20 @@ export default function TicketCard({ ticket }: TicketCardProps) {
   const [loading, setLoading] = useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString("es-CL", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "America/Santiago",
     });
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("es-ES", {
+    return new Date(dateString).toLocaleTimeString("es-CL", {
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "America/Santiago",
     });
   };
 

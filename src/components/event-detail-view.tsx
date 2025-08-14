@@ -86,7 +86,6 @@ export default function EventDetailView({
 
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
-  // Helper to display event price range or "Gratis"
   function getEventPriceDisplay(ticketTypes: EventDetailViewProps["event"]["ticketTypes"]) {
     if (!ticketTypes.length) return "No disponible";
     const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
@@ -102,13 +101,14 @@ export default function EventDetailView({
     : event.organizer.email.split("@")[0];
 
   const formatEventDate = (date: Date) => {
-    return date.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString("es-CL", {
       weekday: "long",
       year: "numeric",
       month: "long",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "America/Santiago",
     });
   };
 
