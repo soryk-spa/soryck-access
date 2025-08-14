@@ -1,0 +1,98 @@
+{
+  "name": "SorykPass - La Puerta de Entrada al Presente",
+  "short_name": "SorykPass",
+  "description": "Plataforma digital para eventos con pase digital inteligente",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0053CC",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "es",
+  "categories": ["events", "tickets", "business"],
+  "icons": [
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vista móvil de SorykPass"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Vista desktop de SorykPass"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "shortcuts": [
+    {
+      "name": "Explorar Eventos",
+      "short_name": "Eventos",
+      "description": "Descubre eventos increíbles",
+      "url": "/events",
+      "icons": [
+        {
+          "src": "/icon-calendar.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Mis Tickets",
+      "short_name": "Tickets",
+      "description": "Ver mis tickets comprados",
+      "url": "/tickets",
+      "icons": [
+        {
+          "src": "/icon-ticket.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Panel",
+      "description": "Panel de control personal",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/icon-dashboard.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
