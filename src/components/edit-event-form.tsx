@@ -359,6 +359,7 @@ export default function EditEventForm({
                       </Label>
                       <Input
                         id={`ticketName-${index}`}
+                        type="text"
                         value={ticket.name}
                         onChange={(e) =>
                           handleTicketTypeChange(index, "name", e.target.value)
