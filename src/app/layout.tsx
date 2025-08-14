@@ -16,14 +16,40 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "SorykPass - La Puerta de Entrada al Presente",
-  description: "Plataforma digital que funciona como una tarjeta de acceso inteligente o pase digital. Un sistema ágil, confiable y sin fricciones para eventos.",
-  keywords: "sorykpass, eventos, tickets digitales, pase digital, acceso inteligente, chile",
+  description:
+    "Plataforma digital que funciona como una tarjeta de acceso inteligente o pase digital. Un sistema ágil, confiable y sin fricciones para eventos.",
+  keywords:
+    "sorykpass, eventos, tickets digitales, pase digital, acceso inteligente, chile",
   authors: [{ name: "SorykPass Team" }],
   creator: "SorykPass",
   publisher: "SorykPass",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    other: [
+      {
+        url: "/android-chrome-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: "/android-chrome-512x512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+    ],
+  },
   openGraph: {
     title: "SorykPass - La Puerta de Entrada al Presente",
-    description: "Un sistema ágil, confiable y sin fricciones, donde el pase digital se vuelve parte natural del día a día.",
+    description:
+      "Un sistema ágil, confiable y sin fricciones, donde el pase digital se vuelve parte natural del día a día.",
     url: "https://sorykpass.com",
     siteName: "SorykPass",
     images: [
@@ -40,7 +66,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "SorykPass - La Puerta de Entrada al Presente",
-    description: "Un sistema ágil, confiable y sin fricciones para eventos digitales.",
+    description:
+      "Un sistema ágil, confiable y sin fricciones para eventos digitales.",
     images: ["/og-image.jpg"],
     creator: "@sorykpass",
   },
