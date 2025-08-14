@@ -1,13 +1,11 @@
 import { Suspense } from "react";
 import PaymentSuccessClient from "@/components/payment-success-client";
 
-// Interfaz corregida
 interface SuccessPageProps {
-  searchParams: { orderId?: string };
+  searchParams: Promise<{ orderId?: string }>;
 }
 
 function LoadingSkeleton() {
-  // ... (el contenido no cambia)
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="animate-pulse space-y-6">
@@ -33,7 +31,8 @@ function LoadingSkeleton() {
 export default async function PaymentSuccessPage({
   searchParams,
 }: SuccessPageProps) {
-  const orderId = searchParams.orderId; // Corregido
+  const params = await searchParams;
+  const orderId = params.orderId;
 
   return (
     <Suspense fallback={<LoadingSkeleton />}>
