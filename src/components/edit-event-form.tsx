@@ -144,33 +144,56 @@ export default function EditEventForm({
     e.preventDefault();
     setLoading(true);
 
-    const body = {
+    // ✅ VALIDACIÓN: Verificar que todos los tipos de entrada sean válidos
+    const invalidTicketTypes = ticketTypes.filter(
+      (ticket) =>
+        !ticket.name || ticket.capacity <= 0 || ticket.ticketsGenerated <= 0
+    );
+
+    if (invalidTicketTypes.length > 0) {
+      toast.error("Completa todos los campos para cada tipo de entrada.");
+      setLoading(false);
+      return;
+    }
+
+    // ✅ PREPARAR DATOS: Estructura correcta para el API
+    const requestBody = {
       ...formData,
       startDate: new Date(formData.startDate).toISOString(),
       endDate: formData.endDate
         ? new Date(formData.endDate).toISOString()
         : null,
+      // ✅ TIPOS DE ENTRADA: Incluir solo campos necesarios
       ticketTypes: ticketTypes.map((ticket) => ({
-        ...ticket,
-        id: ticket.id.startsWith("new-") ? undefined : ticket.id,
+        id: ticket.id.startsWith("new-") ? undefined : ticket.id, // No enviar IDs temporales
+        name: ticket.name,
+        price: Number(ticket.price),
+        capacity: Number(ticket.capacity),
+        ticketsGenerated: Number(ticket.ticketsGenerated),
       })),
     };
+
+    console.log("📤 Enviando datos:", JSON.stringify(requestBody, null, 2));
 
     try {
       const response = await fetch(`/api/events/${event.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(requestBody),
       });
+
       const data = await response.json();
+
       if (response.ok) {
         toast.success("Evento actualizado con éxito!");
         router.push(`/events/${event.id}`);
         router.refresh();
       } else {
+        console.error("❌ Error del servidor:", data);
         throw new Error(data.error || "No se pudo actualizar el evento.");
       }
     } catch (error) {
+      console.error("❌ Error en la solicitud:", error);
       toast.error(
         error instanceof Error ? error.message : "Ocurrió un error inesperado."
       );
