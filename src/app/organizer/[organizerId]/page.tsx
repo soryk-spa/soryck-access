@@ -4,7 +4,7 @@ import OrganizerPublicProfile from "@/components/organizer-public-profile";
 import type { Metadata } from "next";
 
 interface OrganizerPageProps {
-  params: { organizerId: string };
+  params: Promise<{ organizerId: string }>;
 }
 
 async function getOrganizerData(organizerId: string) {
