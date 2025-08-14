@@ -3,7 +3,7 @@ import { validateQRCode } from "@/lib/qr";
 import TicketVerification from "@/components/ticket-verification";
 
 interface VerifyPageProps {
-  params: Promise<{ qrCode: string }>;
+  params: { qrCode: string };
 }
 
 export default async function VerifyPage({ params }: VerifyPageProps) {

@@ -4,20 +4,42 @@ import { canAccessEvent } from "@/lib/auth";
 import EditEventForm from "@/components/edit-event-form";
 import type { Metadata } from "next";
 
-// Interfaz corregida
-interface EditEventPageProps {
+// ✅ CORRECCIÓN: Tipos definidos directamente en la función
+export async function generateMetadata({
+  params,
+}: {
   params: { id: string };
+}): Promise<Metadata> {
+  const { id } = params;
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { title: true },
+    });
+
+    if (event) {
+      return {
+        title: `Editar: ${event.title} | SorykPass`,
+        description: `Edita los detalles del evento ${event.title}`,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching event for metadata:", error);
+  }
+
+  return {
+    title: "Editar Evento | SorykPass",
+    description: "Edita los detalles de tu evento",
+  };
 }
 
-// ✅ Función definitiva para convertir Date a datetime-local sin timezone issues
+// ... (las funciones de ayuda como formatForDateTimeLocal y getEventForEdit no cambian)
 function formatForDateTimeLocal(date: Date): string {
-  // Obtener componentes de fecha en hora local
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
-
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
@@ -41,7 +63,6 @@ async function getEventForEdit(id: string) {
         _count: {
           select: { tickets: true, orders: true },
         },
-        // ✅ CAMBIO CLAVE: Incluimos los ticketTypes y contamos los tickets vendidos para cada uno.
         ticketTypes: {
           include: {
             _count: {
@@ -67,7 +88,6 @@ async function getEventForEdit(id: string) {
 }
 
 async function getCategories() {
-  // Fetch categories from the database
   return prisma.category.findMany({
     select: {
       id: true,
@@ -79,36 +99,13 @@ async function getCategories() {
   });
 }
 
-export async function generateMetadata({
+// ✅ CORRECCIÓN: Tipos definidos directamente en la función
+export default async function EditEventPage({
   params,
-}: EditEventPageProps): Promise<Metadata> {
-  const { id } = params; // Corregido: ya no es una promesa
-
-  try {
-    const event = await prisma.event.findUnique({
-      where: { id },
-      select: { title: true },
-    });
-
-    if (event) {
-      return {
-        title: `Editar: ${event.title} | SorykPass`,
-        description: `Edita los detalles del evento ${event.title}`,
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching event for metadata:", error);
-  }
-
-  // Fallback metadata
-  return {
-    title: "Editar Evento | SorykPass",
-    description: "Edita los detalles de tu evento",
-  };
-}
-
-export default async function EditEventPage({ params }: EditEventPageProps) {
-  const { id } = params; // Corregido: ya no es una promesa
+}: {
+  params: { id: string };
+}) {
+  const { id } = params;
   const result = await getEventForEdit(id);
 
   if (!result) {

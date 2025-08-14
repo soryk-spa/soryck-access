@@ -4,10 +4,10 @@ import { XCircle, ArrowLeft, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 interface ErrorPageProps {
-  searchParams: Promise<{ 
-    orderId?: string
-    reason?: string 
-  }>
+  searchParams: {
+    orderId?: string;
+    reason?: string;
+  };
 }
 
 export default async function PaymentErrorPage({ searchParams }: ErrorPageProps) {
