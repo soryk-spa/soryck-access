@@ -62,7 +62,7 @@ interface EventFormProps {
   mode: "create" | "edit";
 }
 
-export default function EventForm({
+export default function CreateEventForm({
   categories,
   initialData,
   mode,
@@ -101,12 +101,23 @@ export default function EventForm({
     value: string | number
   ) => {
     const newTicketTypes = [...ticketTypes];
-    const numericValue =
-      typeof value === "string" ? parseInt(value, 10) || 0 : value;
-    newTicketTypes[index] = {
-      ...newTicketTypes[index],
-      [field]: isNaN(numericValue) ? value : numericValue,
-    };
+
+    if (field === "name") {
+      // Para el nombre, mantener como string
+      newTicketTypes[index] = {
+        ...newTicketTypes[index],
+        [field]: value as string,
+      };
+    } else {
+      // Para campos numéricos (price, capacity, ticketsGenerated)
+      const numericValue =
+        typeof value === "string" ? parseInt(value, 10) || 0 : value;
+      newTicketTypes[index] = {
+        ...newTicketTypes[index],
+        [field]: numericValue,
+      };
+    }
+
     setTicketTypes(newTicketTypes);
   };
 
@@ -204,6 +215,7 @@ export default function EventForm({
                   <Label htmlFor="title">Título del evento *</Label>
                   <Input
                     id="title"
+                    type="text"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
                     placeholder="Ej: Concierto Acústico de Verano"
@@ -300,6 +312,7 @@ export default function EventForm({
                   <Label htmlFor="location">Ubicación *</Label>
                   <Input
                     id="location"
+                    type="text"
                     value={formData.location}
                     onChange={(e) =>
                       handleInputChange("location", e.target.value)
@@ -356,6 +369,7 @@ export default function EventForm({
                               e.target.value
                             )
                           }
+                          placeholder="Ej: Entrada General, VIP, Early Bird"
                           required
                         />
                       </div>
@@ -366,6 +380,7 @@ export default function EventForm({
                         <Input
                           id={`ticketPrice-${index}`}
                           type="number"
+                          min="0"
                           value={ticket.price}
                           onChange={(e) =>
                             handleTicketTypeChange(
@@ -374,6 +389,7 @@ export default function EventForm({
                               e.target.value
                             )
                           }
+                          placeholder="0"
                           required
                         />
                       </div>
@@ -395,6 +411,7 @@ export default function EventForm({
                               e.target.value
                             )
                           }
+                          placeholder="100"
                           required
                         />
                       </div>
@@ -414,6 +431,7 @@ export default function EventForm({
                               e.target.value
                             )
                           }
+                          placeholder="1"
                           required
                         />
                         <p className="text-xs text-muted-foreground mt-1">

@@ -15,13 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Loader2,
-  Save,
-  Trash2,
-  Ticket,
-  PlusCircle,
-} from "lucide-react";
+import { Loader2, Save, Trash2, Ticket, PlusCircle } from "lucide-react";
 import { UserRole } from "@prisma/client";
 import { toast } from "sonner";
 
@@ -101,12 +95,20 @@ export default function EditEventForm({
     value: string | number
   ) => {
     const newTicketTypes = [...ticketTypes];
-    // Explicitly handle the type for each field
+
     if (field === "name") {
+      // Para el nombre, mantener como string
       newTicketTypes[index][field] = value as string;
-    } else if (field === "price" || field === "capacity" || field === "ticketsGenerated") {
-      newTicketTypes[index][field] = typeof value === "string" ? Number(value) : value;
+    } else if (
+      field === "price" ||
+      field === "capacity" ||
+      field === "ticketsGenerated"
+    ) {
+      // Para campos numéricos
+      newTicketTypes[index][field] =
+        typeof value === "string" ? Number(value) : value;
     }
+
     setTicketTypes(newTicketTypes);
   };
 
@@ -167,6 +169,7 @@ export default function EditEventForm({
       ticketTypes: ticketTypes.map((ticket) => ({
         id: ticket.id.startsWith("new-") ? undefined : ticket.id, // No enviar IDs temporales
         name: ticket.name,
+        description: null, // Agregar si necesitas descripción
         price: Number(ticket.price),
         capacity: Number(ticket.capacity),
         ticketsGenerated: Number(ticket.ticketsGenerated),
@@ -235,6 +238,7 @@ export default function EditEventForm({
                 <Label htmlFor="title">Título del evento *</Label>
                 <Input
                   id="title"
+                  type="text"
                   value={formData.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
                   required
@@ -312,6 +316,7 @@ export default function EditEventForm({
                 <Label htmlFor="location">Ubicación *</Label>
                 <Input
                   id="location"
+                  type="text"
                   value={formData.location}
                   onChange={(e) =>
                     handleInputChange("location", e.target.value)
@@ -364,6 +369,7 @@ export default function EditEventForm({
                         onChange={(e) =>
                           handleTicketTypeChange(index, "name", e.target.value)
                         }
+                        placeholder="Ej: Entrada General, VIP, Early Bird"
                         required
                       />
                     </div>
@@ -374,10 +380,12 @@ export default function EditEventForm({
                       <Input
                         id={`ticketPrice-${index}`}
                         type="number"
+                        min="0"
                         value={ticket.price}
                         onChange={(e) =>
                           handleTicketTypeChange(index, "price", e.target.value)
                         }
+                        placeholder="0"
                         required
                       />
                     </div>
@@ -399,6 +407,7 @@ export default function EditEventForm({
                             e.target.value
                           )
                         }
+                        placeholder="100"
                         required
                       />
                       {ticket._count.tickets > 0 && (
@@ -415,6 +424,7 @@ export default function EditEventForm({
                       <Input
                         id={`ticketsGenerated-${index}`}
                         type="number"
+                        min="1"
                         value={ticket.ticketsGenerated}
                         onChange={(e) =>
                           handleTicketTypeChange(
@@ -423,6 +433,7 @@ export default function EditEventForm({
                             e.target.value
                           )
                         }
+                        placeholder="1"
                         required
                         disabled={ticket._count.tickets > 0}
                       />

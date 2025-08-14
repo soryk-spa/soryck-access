@@ -115,9 +115,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
 
   const getOrderBy = () => {
     const order = sortOrder as "asc" | "desc";
-    // La ordenación por precio ahora es más compleja, así que la manejamos como un caso especial.
-    // Para una ordenación precisa por precio mínimo, se requeriría una consulta más avanzada.
-    // Por ahora, mantenemos la ordenación por fecha como la principal.
     switch (sortBy) {
       case "title":
         return { title: order };
@@ -220,6 +217,7 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
     getCategories(),
   ]);
 
+  // ✅ CORRECCIÓN: Incluir page en initialFilters
   const initialFilters = {
     search: params.search || "",
     categoryId: params.categoryId || "",
@@ -231,7 +229,7 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
     isFree: params.isFree || "all",
     sortBy: params.sortBy || "startDate",
     sortOrder: params.sortOrder || "asc",
-    page: params.page || "1", // ✅ Agregar esta línea
+    page: params.page || "1", // ✅ Agregar página
   };
 
   return (
