@@ -4,11 +4,13 @@ import { getCurrentUser } from "@/lib/auth";
 import EventDetailView from "@/components/event-detail-view";
 import type { Metadata } from "next";
 
+// Interfaz corregida
 interface EventPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 async function getEvent(id: string) {
+  // ... (el contenido de la función no cambia)
   try {
     const event = await prisma.event.findUnique({
       where: { id },
@@ -70,7 +72,7 @@ async function getEvent(id: string) {
 export async function generateMetadata({
   params,
 }: EventPageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id } = params; // Corregido
   const event = await getEvent(id);
 
   if (!event) {
@@ -103,7 +105,7 @@ export async function generateMetadata({
 }
 
 export default async function EventPage({ params }: EventPageProps) {
-  const { id } = await params;
+  const { id } = params; // Corregido
   const event = await getEvent(id);
   const user = await getCurrentUser();
 
@@ -111,8 +113,6 @@ export default async function EventPage({ params }: EventPageProps) {
     notFound();
   }
 
-  // Serializamos los datos para pasarlos de forma segura a un componente de cliente.
-  // Convertimos null a undefined para las propiedades opcionales
   const serializedEvent = {
     ...event,
     description: event.description ?? undefined,
@@ -135,7 +135,6 @@ export default async function EventPage({ params }: EventPageProps) {
     })),
   };
 
-  // Serializar usuario para evitar problemas de tipos
   const serializedUser = user
     ? {
         id: user.id,
