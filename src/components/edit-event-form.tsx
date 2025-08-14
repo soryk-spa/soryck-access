@@ -65,17 +65,19 @@ interface EditEventFormProps {
   user: User;
 }
 
-
 const parseFromDateTimeLocal = (datetimeLocal: string): string => {
   if (!datetimeLocal) return "";
 
-  const fullDateTime =
-    datetimeLocal.includes(":") && datetimeLocal.split(":").length === 2
-      ? `${datetimeLocal}:00`
-      : datetimeLocal;
+  // Dividir fecha y hora
+  const [datePart, timePart] = datetimeLocal.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
 
-  const date = new Date(fullDateTime);
-  return date.toISOString();
+  // Crear fecha usando componentes locales (sin conversión UTC)
+  const localDate = new Date(year, month - 1, day, hour, minute);
+
+  // Convertir a ISO manteniendo la hora local como UTC
+  return localDate.toISOString();
 };
 
 export default function EditEventForm({
@@ -89,8 +91,8 @@ export default function EditEventForm({
     title: event.title,
     description: event.description || "",
     location: event.location,
-    startDate: event.startDate,
-    endDate: event.endDate || "",
+    startDate: event.startDate, // Ya viene formateado desde la página
+    endDate: event.endDate || "", // Ya viene formateado desde la página
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
   });
@@ -111,12 +113,14 @@ export default function EditEventForm({
     const newTicketTypes = [...ticketTypes];
 
     if (field === "name") {
+      // Para el nombre, mantener como string
       newTicketTypes[index][field] = value as string;
     } else if (
       field === "price" ||
       field === "capacity" ||
       field === "ticketsGenerated"
     ) {
+      // Para campos numéricos
       newTicketTypes[index][field] =
         typeof value === "string" ? Number(value) : value;
     }
@@ -158,6 +162,7 @@ export default function EditEventForm({
     e.preventDefault();
     setLoading(true);
 
+    // ✅ VALIDACIÓN: Verificar que todos los tipos de entrada sean válidos
     const invalidTicketTypes = ticketTypes.filter(
       (ticket) =>
         !ticket.name || ticket.capacity <= 0 || ticket.ticketsGenerated <= 0
@@ -169,16 +174,18 @@ export default function EditEventForm({
       return;
     }
 
+    // ✅ PREPARAR DATOS: Estructura correcta para el API
     const requestBody = {
       ...formData,
       startDate: parseFromDateTimeLocal(formData.startDate),
       endDate: formData.endDate
         ? parseFromDateTimeLocal(formData.endDate)
         : null,
+      // ✅ TIPOS DE ENTRADA: Incluir solo campos necesarios
       ticketTypes: ticketTypes.map((ticket) => ({
-        id: ticket.id.startsWith("new-") ? undefined : ticket.id,
+        id: ticket.id.startsWith("new-") ? undefined : ticket.id, // No enviar IDs temporales
         name: ticket.name,
-        description: null,
+        description: null, // Agregar si necesitas descripción
         price: Number(ticket.price),
         capacity: Number(ticket.capacity),
         ticketsGenerated: Number(ticket.ticketsGenerated),

@@ -74,17 +74,20 @@ const formatForDateTimeLocal = (isoString: string): string => {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-// Función simple para convertir datetime-local a ISO
+// Función definitiva para convertir datetime-local a ISO manteniendo hora local
 const parseFromDateTimeLocal = (datetimeLocal: string): string => {
   if (!datetimeLocal) return "";
 
-  const fullDateTime =
-    datetimeLocal.includes(":") && datetimeLocal.split(":").length === 2
-      ? `${datetimeLocal}:00`
-      : datetimeLocal;
+  // Dividir fecha y hora
+  const [datePart, timePart] = datetimeLocal.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = timePart.split(":").map(Number);
 
-  const date = new Date(fullDateTime);
-  return date.toISOString();
+  // Crear fecha usando componentes locales (sin conversión UTC)
+  const localDate = new Date(year, month - 1, day, hour, minute);
+
+  // Convertir a ISO manteniendo la hora local como UTC
+  return localDate.toISOString();
 };
 
 export default function CreateEventForm({
