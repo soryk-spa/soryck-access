@@ -1,9 +1,11 @@
+ import * as React from "react";
 import { Resend } from "resend";
 import { TicketEmail } from "@/app/api/_emails/ticket-email";
 import { render } from "@react-email/render";
 import { generateTicketQR } from "@/lib/qr";
 import { saveMultipleQRs } from "@/lib/qr-storage";
 import { User, Event, Order, Ticket } from "@prisma/client";
+import { formatFullDateTime } from "@/lib/date";
 
 if (!process.env.RESEND_API_KEY) {
   console.warn(
@@ -43,14 +45,7 @@ export async function sendTicketEmail({
   console.log(`[EMAIL] 🎫 Tickets: ${order.tickets.length}`);
 
   const userName = user.firstName || user.email.split("@")[0];
-  const eventDate = new Date(event.startDate).toLocaleDateString("es-ES", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const eventDate = formatFullDateTime(event.startDate); // Uso de la función centralizada
 
   // Preparar datos para generar QRs
   const ticketsData = order.tickets.map((ticket) => ({

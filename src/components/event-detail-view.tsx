@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
+import { formatFullDateTime } from "@/lib/date"; // Importación actualizada
 
 // Define the props type for EventDetailView
 type EventDetailViewProps = {
@@ -86,7 +87,10 @@ export default function EventDetailView({
 
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
-  function getEventPriceDisplay(ticketTypes: EventDetailViewProps["event"]["ticketTypes"]) {
+  // Helper to display event price range or "Gratis"
+  function getEventPriceDisplay(
+    ticketTypes: EventDetailViewProps["event"]["ticketTypes"]
+  ) {
     if (!ticketTypes.length) return "No disponible";
     const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
     const min = Math.min(...prices);
@@ -99,18 +103,6 @@ export default function EventDetailView({
   const organizerName = event.organizer.firstName
     ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
     : event.organizer.email.split("@")[0];
-
-  const formatEventDate = (date: Date) => {
-    return date.toLocaleDateString("es-CL", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Santiago",
-    });
-  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -141,13 +133,13 @@ export default function EventDetailView({
                   <div className="flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-primary" />
                     <span className="text-lg">
-                      {formatEventDate(startDate)}
+                      {formatFullDateTime(startDate)}
                     </span>
                   </div>
                   {endDate && (
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-primary" />
-                      <span>Hasta {formatEventDate(endDate)}</span>
+                      <span>Hasta {formatFullDateTime(endDate)}</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2">

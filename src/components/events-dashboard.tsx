@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
 
 interface Event {
   id: string;
@@ -133,24 +134,6 @@ export default function EventsDashboard({
     } finally {
       setLoadingAction(null);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-CL", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "America/Santiago",
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("es-CL", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Santiago",
-    });
   };
 
   const getEventStatus = (event: Event) => {

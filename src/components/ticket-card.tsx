@@ -25,6 +25,7 @@ import {
   User,
   Loader2,
 } from "lucide-react";
+import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
 
 const QRCodeCanvas = dynamic(
   () => import("qrcode.react").then((mod) => mod.QRCodeCanvas),
@@ -76,24 +77,6 @@ export default function TicketCard({ ticket }: TicketCardProps) {
   const [showQR, setShowQR] = useState(false);
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-CL", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: "America/Santiago",
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("es-CL", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Santiago",
-    });
-  };
 
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat("es-CL", {

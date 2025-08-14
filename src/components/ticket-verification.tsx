@@ -14,6 +14,7 @@ import {
   Loader2,
   QrCode,
 } from "lucide-react";
+import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
 
 interface TicketData {
   id: string;
@@ -126,22 +127,6 @@ export default function TicketVerification({
     } finally {
       setUsing(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString("es-ES", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
   };
 
   const formatPrice = (price: number, currency: string) => {
