@@ -33,7 +33,6 @@ export async function generateMetadata({
   };
 }
 
-// ... (las funciones de ayuda como formatForDateTimeLocal y getEventForEdit no cambian)
 function formatForDateTimeLocal(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -54,32 +53,19 @@ async function getEventForEdit(id: string) {
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
-        category: {
-          select: { id: true, name: true },
-        },
+        category: { select: { id: true, name: true } },
         organizer: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
-        _count: {
-          select: { tickets: true, orders: true },
-        },
+        _count: { select: { tickets: true, orders: true } },
         ticketTypes: {
-          include: {
-            _count: {
-              select: { tickets: true },
-            },
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
+          include: { _count: { select: { tickets: true } } },
+          orderBy: { createdAt: "asc" },
         },
       },
     });
 
-    if (!event) {
-      return null;
-    }
-
+    if (!event) return null;
     return { event, user };
   } catch (error) {
     console.error("Error fetching event for edit:", error);
@@ -89,13 +75,8 @@ async function getEventForEdit(id: string) {
 
 async function getCategories() {
   return prisma.category.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
   });
 }
 
