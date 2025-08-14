@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import ImageUpload from "@/components/image-upload-simple";
 import {
   Select,
   SelectContent,
@@ -14,101 +15,80 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import ImageUpload from "@/components/image-upload-simple";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Info,
-  ImageIcon,
-  Ticket,
-  Trash2,
-  PlusCircle,
-  Loader2,
-  Save,
-} from "lucide-react";
+import { Loader2, Save, Trash2, Ticket, PlusCircle } from "lucide-react";
+import { UserRole } from "@prisma/client";
 import { toast } from "sonner";
-import { Badge } from "./ui/badge";
 
 interface Category {
   id: string;
   name: string;
 }
 
+interface User {
+  id: string;
+  role: UserRole;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+}
+
 interface TicketType {
+  id: string;
   name: string;
   price: number;
   capacity: number;
   ticketsGenerated: number;
+  _count: {
+    tickets: number;
+  };
 }
 
-interface InitialData {
-  id?: string;
-  title?: string;
-  description?: string;
-  location?: string;
-  startDate?: string;
-  endDate?: string;
-  categoryId?: string;
-  imageUrl?: string;
-  ticketTypes?: TicketType[];
+interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string | null;
+  location: string;
+  startDate: string; // Ya formateado como datetime-local
+  endDate: string | null; // Ya formateado como datetime-local
+  isPublished: boolean;
+  createdAt: string;
+  updatedAt: string;
+  category: { id: string; name: string };
+  _count: { tickets: number };
+  ticketTypes: TicketType[];
 }
 
-interface EventFormProps {
+interface EditEventFormProps {
+  event: Event;
   categories: Category[];
-  initialData?: InitialData;
-  mode: "create" | "edit";
+  user: User;
 }
-
-// Función helper para convertir Date a formato datetime-local
-const formatDateTimeLocal = (date: Date): string => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
 
 // Función helper para convertir string datetime-local a Date sin cambio de timezone
 const parseLocalDateTime = (dateTimeString: string): Date => {
-  // datetime-local ya está en hora local, solo necesitamos parsearlo
   return new Date(dateTimeString);
 };
 
-export default function CreateEventForm({
+export default function EditEventForm({
+  event,
   categories,
-  initialData,
-  mode,
-}: EventFormProps) {
+}: EditEventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    title: initialData?.title || "",
-    description: initialData?.description || "",
-    location: initialData?.location || "",
-    startDate: initialData?.startDate
-      ? formatDateTimeLocal(new Date(initialData.startDate))
-      : "",
-    endDate: initialData?.endDate
-      ? formatDateTimeLocal(new Date(initialData.endDate))
-      : "",
-    categoryId: initialData?.categoryId || "",
-    imageUrl: initialData?.imageUrl || "",
+    title: event.title,
+    description: event.description || "",
+    location: event.location,
+    startDate: event.startDate, // Ya viene formateado desde la página
+    endDate: event.endDate || "", // Ya viene formateado desde la página
+    categoryId: event.category.id,
+    imageUrl: event.imageUrl || "",
   });
 
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>(
-    initialData?.ticketTypes || [
-      {
-        name: "Entrada General",
-        price: 10000,
-        capacity: 100,
-        ticketsGenerated: 1,
-      },
-    ]
+    event.ticketTypes
   );
 
   const handleInputChange = (field: string, value: string) => {
@@ -117,40 +97,52 @@ export default function CreateEventForm({
 
   const handleTicketTypeChange = (
     index: number,
-    field: keyof TicketType,
+    field: keyof Omit<TicketType, "id" | "_count" | "createdAt" | "updatedAt">,
     value: string | number
   ) => {
     const newTicketTypes = [...ticketTypes];
 
     if (field === "name") {
       // Para el nombre, mantener como string
-      newTicketTypes[index] = {
-        ...newTicketTypes[index],
-        [field]: value as string,
-      };
-    } else {
-      // Para campos numéricos (price, capacity, ticketsGenerated)
-      const numericValue =
-        typeof value === "string" ? parseInt(value, 10) || 0 : value;
-      newTicketTypes[index] = {
-        ...newTicketTypes[index],
-        [field]: numericValue,
-      };
+      newTicketTypes[index][field] = value as string;
+    } else if (
+      field === "price" ||
+      field === "capacity" ||
+      field === "ticketsGenerated"
+    ) {
+      // Para campos numéricos
+      newTicketTypes[index][field] =
+        typeof value === "string" ? Number(value) : value;
     }
 
     setTicketTypes(newTicketTypes);
   };
 
   const addTicketType = () => {
+    const tempId = `new-${Date.now()}`;
     setTicketTypes([
       ...ticketTypes,
-      { name: "", price: 0, capacity: 50, ticketsGenerated: 1 },
+      {
+        id: tempId,
+        name: "",
+        price: 0,
+        capacity: 50,
+        ticketsGenerated: 1,
+        _count: { tickets: 0 },
+      },
     ]);
   };
 
   const removeTicketType = (index: number) => {
     if (ticketTypes.length <= 1) {
       toast.error("Debes tener al menos un tipo de entrada.");
+      return;
+    }
+    const ticketToRemove = ticketTypes[index];
+    if (ticketToRemove._count.tickets > 0) {
+      toast.error(
+        "No puedes eliminar un tipo de entrada que ya tiene tickets vendidos."
+      );
       return;
     }
     setTicketTypes(ticketTypes.filter((_, i) => i !== index));
@@ -160,53 +152,60 @@ export default function CreateEventForm({
     e.preventDefault();
     setLoading(true);
 
-    if (
-      ticketTypes.some(
-        (t) => !t.name || t.capacity <= 0 || t.ticketsGenerated <= 0
-      )
-    ) {
+    // ✅ VALIDACIÓN: Verificar que todos los tipos de entrada sean válidos
+    const invalidTicketTypes = ticketTypes.filter(
+      (ticket) =>
+        !ticket.name || ticket.capacity <= 0 || ticket.ticketsGenerated <= 0
+    );
+
+    if (invalidTicketTypes.length > 0) {
       toast.error("Completa todos los campos para cada tipo de entrada.");
       setLoading(false);
       return;
     }
 
+    // ✅ PREPARAR DATOS: Estructura correcta para el API
+    const requestBody = {
+      ...formData,
+      startDate: parseLocalDateTime(formData.startDate).toISOString(),
+      endDate: formData.endDate
+        ? parseLocalDateTime(formData.endDate).toISOString()
+        : null,
+      // ✅ TIPOS DE ENTRADA: Incluir solo campos necesarios
+      ticketTypes: ticketTypes.map((ticket) => ({
+        id: ticket.id.startsWith("new-") ? undefined : ticket.id, // No enviar IDs temporales
+        name: ticket.name,
+        description: null, // Agregar si necesitas descripción
+        price: Number(ticket.price),
+        capacity: Number(ticket.capacity),
+        ticketsGenerated: Number(ticket.ticketsGenerated),
+      })),
+    };
+
+    console.log("📤 Enviando datos:", JSON.stringify(requestBody, null, 2));
+
     try {
-      const url =
-        mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
-      const method = mode === "create" ? "POST" : "PUT";
-
-      // ✅ CORRECCIÓN: Usar parseLocalDateTime para mantener la hora local
-      const body = {
-        ...formData,
-        startDate: parseLocalDateTime(formData.startDate).toISOString(),
-        endDate: formData.endDate
-          ? parseLocalDateTime(formData.endDate).toISOString()
-          : null,
-        ticketTypes,
-      };
-
-      console.log("📤 Enviando datos:", JSON.stringify(body, null, 2));
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(requestBody),
       });
+
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(
-          mode === "create"
-            ? "Evento creado exitosamente"
-            : "Evento actualizado"
-        );
-        router.push(`/events/${data.event.id}`);
+        toast.success("Evento actualizado con éxito!");
+        router.push(`/events/${event.id}`);
+        router.refresh();
       } else {
-        toast.error(data.error || "Error al procesar la solicitud");
+        console.error("❌ Error del servidor:", data);
+        throw new Error(data.error || "No se pudo actualizar el evento.");
       }
     } catch (error) {
-      console.error("❌ Error:", error);
-      toast.error("Error de conexión");
+      console.error("❌ Error en la solicitud:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Ocurrió un error inesperado."
+      );
     } finally {
       setLoading(false);
     }
@@ -222,335 +221,262 @@ export default function CreateEventForm({
   );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight">
-          {mode === "create" ? "Crear un Nuevo Evento" : "Editar Evento"}
-        </h1>
-        <p className="text-lg text-muted-foreground mt-2">
-          Da vida a tu próxima gran idea. Rellena los detalles a continuación.
-        </p>
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Editar Evento</h1>
+        </div>
+        <div className="flex items-center space-x-3">
+          <Badge variant={event.isPublished ? "default" : "secondary"}>
+            {event.isPublished ? "Publicado" : "Borrador"}
+          </Badge>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Info className="h-5 w-5" />
-                  Información Principal
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Título del evento *</Label>
-                  <Input
-                    id="title"
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    placeholder="Ej: Concierto Acústico de Verano"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Descripción</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
-                    placeholder="Describe tu evento: el ambiente, los artistas, qué esperar..."
-                    rows={5}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="category">Categoría *</Label>
-                  <Select
-                    value={formData.categoryId}
-                    onValueChange={(value) =>
-                      handleInputChange("categoryId", value)
-                    }
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5" />
-                  Imagen del Evento
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ImageUpload
-                  currentImageUrl={formData.imageUrl}
-                  onImageChange={handleImageChange}
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Información Básica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="title">Título del evento *</Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  required
                 />
-              </CardContent>
-            </Card>
+              </div>
+              <div>
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
+                  rows={4}
+                />
+              </div>
+              <div>
+                <Label htmlFor="category">Categoría *</Label>
+                <Select
+                  value={formData.categoryId}
+                  onValueChange={(value) =>
+                    handleInputChange("categoryId", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageChange={handleImageChange}
+              />
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
-                  Fecha y Ubicación
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="startDate">Fecha y hora de inicio *</Label>
-                    <Input
-                      id="startDate"
-                      type="datetime-local"
-                      value={formData.startDate}
-                      onChange={(e) =>
-                        handleInputChange("startDate", e.target.value)
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="endDate">
-                      Fecha y hora de fin (opcional)
-                    </Label>
-                    <Input
-                      id="endDate"
-                      type="datetime-local"
-                      value={formData.endDate}
-                      onChange={(e) =>
-                        handleInputChange("endDate", e.target.value)
-                      }
-                    />
-                  </div>
-                </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Fecha y Ubicación</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="location">Ubicación *</Label>
+                  <Label htmlFor="startDate">Inicio *</Label>
                   <Input
-                    id="location"
-                    type="text"
-                    value={formData.location}
+                    id="startDate"
+                    type="datetime-local"
+                    value={formData.startDate}
                     onChange={(e) =>
-                      handleInputChange("location", e.target.value)
+                      handleInputChange("startDate", e.target.value)
                     }
-                    placeholder="Ej: Teatro Cervantes, Valdivia"
                     required
                   />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <Label htmlFor="endDate">Fin (opcional)</Label>
+                  <Input
+                    id="endDate"
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={(e) =>
+                      handleInputChange("endDate", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="location">Ubicación *</Label>
+                <Input
+                  id="location"
+                  type="text"
+                  value={formData.location}
+                  onChange={(e) =>
+                    handleInputChange("location", e.target.value)
+                  }
+                  required
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Ticket className="h-5 w-5" />
-                    Tipos de Entrada
-                  </div>
-                  <Badge variant="outline">
-                    Capacidad Total: {totalCapacity} personas
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {ticketTypes.map((ticket, index) => (
-                  <div
-                    key={index}
-                    className="space-y-4 border bg-background p-4 rounded-lg relative"
-                  >
-                    {ticketTypes.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute top-2 right-2 h-7 w-7"
-                        onClick={() => removeTicketType(index)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
-                    )}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`ticketName-${index}`}>
-                          Nombre del Ticket *
-                        </Label>
-                        <Input
-                          id={`ticketName-${index}`}
-                          type="text"
-                          value={ticket.name}
-                          onChange={(e) =>
-                            handleTicketTypeChange(
-                              index,
-                              "name",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Ej: Entrada General, VIP, Early Bird"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`ticketPrice-${index}`}>
-                          Precio (CLP) *
-                        </Label>
-                        <Input
-                          id={`ticketPrice-${index}`}
-                          type="number"
-                          min="0"
-                          value={ticket.price}
-                          onChange={(e) =>
-                            handleTicketTypeChange(
-                              index,
-                              "price",
-                              e.target.value
-                            )
-                          }
-                          placeholder="0"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor={`ticketCapacity-${index}`}>
-                          Cantidad de Lotes *
-                        </Label>
-                        <Input
-                          id={`ticketCapacity-${index}`}
-                          type="number"
-                          min="1"
-                          value={ticket.capacity}
-                          onChange={(e) =>
-                            handleTicketTypeChange(
-                              index,
-                              "capacity",
-                              e.target.value
-                            )
-                          }
-                          placeholder="100"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`ticketsGenerated-${index}`}>
-                          Entradas por Lote *
-                        </Label>
-                        <Input
-                          id={`ticketsGenerated-${index}`}
-                          type="number"
-                          min="1"
-                          value={ticket.ticketsGenerated}
-                          onChange={(e) =>
-                            handleTicketTypeChange(
-                              index,
-                              "ticketsGenerated",
-                              e.target.value
-                            )
-                          }
-                          placeholder="1"
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Para paquetes (ej. 2 para un 2x1).
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-dashed"
-                  onClick={addTicketType}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                <span>
+                  <Ticket className="inline mr-2 h-5 w-5" />
+                  Tipos de Entrada
+                </span>
+                <Badge variant="secondary">
+                  Capacidad Total: {totalCapacity}
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {ticketTypes.map((ticket, index) => (
+                <div
+                  key={ticket.id}
+                  className="space-y-4 border p-4 rounded-lg relative"
                 >
-                  <PlusCircle className="w-4 h-4 mr-2" /> Añadir otro tipo de
-                  entrada
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6 lg:sticky top-6">
-            <Card className="bg-muted/50">
-              <CardHeader>
-                <CardTitle>Resumen del Evento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <h3 className="font-bold text-xl">
-                  {formData.title || "Título de tu evento"}
-                </h3>
-                <div className="text-sm text-muted-foreground space-y-3">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <span>{formData.location || "Ubicación del evento"}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Calendar className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <span>
-                      {formData.startDate
-                        ? new Date(formData.startDate).toLocaleString("es-ES", {
-                            dateStyle: "long",
-                            timeStyle: "short",
-                          })
-                        : "Fecha y hora"}
-                    </span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Users className="h-4 w-4 mt-1 flex-shrink-0" />
-                    <span>Capacidad para {totalCapacity} personas</span>
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <h4 className="font-semibold">Precios:</h4>
-                  {ticketTypes.map((t, i) => (
-                    <div key={i} className="flex justify-between text-sm">
-                      <span>
-                        {t.name || "Ticket sin nombre"}{" "}
-                        {t.ticketsGenerated > 1
-                          ? `(Paquete ${t.ticketsGenerated}x)`
-                          : ""}
-                      </span>
-                      <span className="font-bold">
-                        {t.price === 0
-                          ? "Gratis"
-                          : `$${t.price.toLocaleString("es-CL")}`}
-                      </span>
+                  {ticketTypes.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={() => removeTicketType(index)}
+                      disabled={ticket._count.tickets > 0}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`ticketName-${index}`}>
+                        Nombre del Ticket *
+                      </Label>
+                      <Input
+                        id={`ticketName-${index}`}
+                        type="text"
+                        value={ticket.name}
+                        onChange={(e) =>
+                          handleTicketTypeChange(index, "name", e.target.value)
+                        }
+                        placeholder="Ej: Entrada General, VIP, Early Bird"
+                        required
+                      />
                     </div>
-                  ))}
+                    <div>
+                      <Label htmlFor={`ticketPrice-${index}`}>
+                        Precio (CLP) *
+                      </Label>
+                      <Input
+                        id={`ticketPrice-${index}`}
+                        type="number"
+                        min="0"
+                        value={ticket.price}
+                        onChange={(e) =>
+                          handleTicketTypeChange(index, "price", e.target.value)
+                        }
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`ticketCapacity-${index}`}>
+                        Cantidad Disponible *
+                      </Label>
+                      <Input
+                        id={`ticketCapacity-${index}`}
+                        type="number"
+                        value={ticket.capacity}
+                        min={ticket._count.tickets}
+                        onChange={(e) =>
+                          handleTicketTypeChange(
+                            index,
+                            "capacity",
+                            e.target.value
+                          )
+                        }
+                        placeholder="100"
+                        required
+                      />
+                      {ticket._count.tickets > 0 && (
+                        <p className="text-xs text-yellow-600 mt-1">
+                          ⚠️ {ticket._count.tickets} vendidos. Mínimo{" "}
+                          {ticket._count.tickets}.
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor={`ticketsGenerated-${index}`}>
+                        Entradas por Venta *
+                      </Label>
+                      <Input
+                        id={`ticketsGenerated-${index}`}
+                        type="number"
+                        min="1"
+                        value={ticket.ticketsGenerated}
+                        onChange={(e) =>
+                          handleTicketTypeChange(
+                            index,
+                            "ticketsGenerated",
+                            e.target.value
+                          )
+                        }
+                        placeholder="1"
+                        required
+                        disabled={ticket._count.tickets > 0}
+                      />
+                      {ticket._count.tickets > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No se puede cambiar.
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-3">
+              ))}
               <Button
-                type="submit"
-                className="w-full h-11 text-base"
-                size="lg"
-                disabled={loading}
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={addTicketType}
               >
+                <PlusCircle className="w-4 h-4 mr-2" /> Añadir tipo de entrada
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="lg:sticky top-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Acciones</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button type="submit" disabled={loading} className="w-full">
                 {loading ? (
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Save className="h-5 w-5 mr-2" />
+                  <Save className="h-4 w-4 mr-2" />
                 )}
-                {mode === "create" ? "Crear Evento" : "Guardar Cambios"}
+                Guardar Cambios
               </Button>
               <Button
                 type="button"
@@ -561,18 +487,10 @@ export default function CreateEventForm({
               >
                 Cancelar
               </Button>
-            </div>
-
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                Una vez creado, podrás publicar tu evento, ver estadísticas y
-                más desde su panel de gestión.
-              </AlertDescription>
-            </Alert>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

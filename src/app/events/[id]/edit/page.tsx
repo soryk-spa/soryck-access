@@ -8,6 +8,16 @@ interface EditEventPageProps {
   params: Promise<{ id: string }>;
 }
 
+// ✅ Función helper para convertir Date a formato datetime-local sin timezone issues
+function formatDateTimeLocal(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 async function getEventForEdit(id: string) {
   try {
     const { canAccess, user } = await canAccessEvent(id);
@@ -66,11 +76,32 @@ async function getCategories() {
   });
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  // Provide a default metadata object to satisfy the return type
+export async function generateMetadata({
+  params,
+}: EditEventPageProps): Promise<Metadata> {
+  const { id } = await params;
+
+  // ✅ Mejorar metadata con información del evento
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { title: true },
+    });
+
+    if (event) {
+      return {
+        title: `Editar: ${event.title} | SorykPass`,
+        description: `Edita los detalles del evento ${event.title}`,
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching event for metadata:", error);
+  }
+
+  // Fallback metadata
   return {
-    title: "Edit Event",
-    description: "Edit your event details",
+    title: "Editar Evento | SorykPass",
+    description: "Edita los detalles de tu evento",
   };
 }
 
@@ -85,13 +116,15 @@ export default async function EditEventPage({ params }: EditEventPageProps) {
   const { event, user } = result;
   const categories = await getCategories();
 
+  // ✅ CORRECCIÓN: Serialización correcta con formateo de fechas local
   const serializedEvent = {
     ...event,
-    startDate: event.startDate.toISOString(),
-    endDate: event.endDate?.toISOString() || null,
+    // ✅ Usar formatDateTimeLocal para evitar problemas de timezone
+    startDate: formatDateTimeLocal(event.startDate),
+    endDate: event.endDate ? formatDateTimeLocal(event.endDate) : null,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
-    // Nos aseguramos de serializar las fechas dentro de los ticketTypes también.
+    // ✅ Serializar ticketTypes correctamente
     ticketTypes: event.ticketTypes.map((tt) => ({
       ...tt,
       createdAt: tt.createdAt.toISOString(),
