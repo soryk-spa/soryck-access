@@ -4,19 +4,19 @@ import { canAccessEvent } from "@/lib/auth";
 import EditEventForm from "@/components/edit-event-form";
 import type { Metadata } from "next";
 
-// ✅ CORRECCIÓN: Tipos definidos directamente en la función
+// ✅ CORRECCIÓN: params ahora es Promise en Next.js 15
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = params;
+  const { id } = await params; // ← Await añadido aquí
+
   try {
     const event = await prisma.event.findUnique({
       where: { id },
       select: { title: true },
     });
-
     if (event) {
       return {
         title: `Editar: ${event.title} | SorykPass`,
@@ -26,7 +26,6 @@ export async function generateMetadata({
   } catch (error) {
     console.error("Error fetching event for metadata:", error);
   }
-
   return {
     title: "Editar Evento | SorykPass",
     description: "Edita los detalles de tu evento",
@@ -45,11 +44,9 @@ function formatForDateTimeLocal(date: Date): string {
 async function getEventForEdit(id: string) {
   try {
     const { canAccess, user } = await canAccessEvent(id);
-
     if (!canAccess) {
       redirect("/unauthorized?required=organizer");
     }
-
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -64,7 +61,6 @@ async function getEventForEdit(id: string) {
         },
       },
     });
-
     if (!event) return null;
     return { event, user };
   } catch (error) {
@@ -80,19 +76,18 @@ async function getCategories() {
   });
 }
 
-// ✅ CORRECCIÓN: Tipos definidos directamente en la función
+// ✅ CORRECCIÓN: params ahora es Promise en Next.js 15
 export default async function EditEventPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>; // ← Promise añadida aquí
 }) {
-  const { id } = params;
-  const result = await getEventForEdit(id);
+  const { id } = await params; // ← Await añadido aquí
 
+  const result = await getEventForEdit(id);
   if (!result) {
     notFound();
   }
-
   const { event, user } = result;
   const categories = await getCategories();
 
