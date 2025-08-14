@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,30 +14,36 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import EventCard from "@/components/event-card";
 import {
-  Calendar,
-  MapPin,
   Search,
   Filter,
+  Calendar,
+  MapPin,
+  DollarSign,
+  Grid3X3,
+  List,
   ChevronLeft,
   ChevronRight,
+  SlidersHorizontal,
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { calculateTotalPrice, formatPrice } from "@/lib/commission";
+import { toast } from "sonner";
+
+interface TicketType {
+  price: number;
+  currency: string;
+  capacity: number;
+}
 
 interface Event {
   id: string;
   title: string;
   description?: string;
+  imageUrl?: string;
+  location: string;
   startDate: string;
   endDate?: string;
-  location: string;
-  price: number;
-  currency: string;
-  isFree: boolean;
-  capacity: number;
-  imageUrl?: string;
+  isPublished: boolean;
   category: {
     id: string;
     name: string;
@@ -51,6 +58,7 @@ interface Event {
     tickets: number;
     orders: number;
   };
+  ticketTypes: TicketType[];
 }
 
 interface Category {
@@ -67,22 +75,25 @@ interface Pagination {
   limit: number;
 }
 
+interface Filters {
+  search: string;
+  categoryId: string;
+  location: string;
+  minPrice: string;
+  maxPrice: string;
+  dateFrom: string;
+  dateTo: string;
+  isFree: string;
+  sortBy: string;
+  sortOrder: string;
+  page: string;
+}
+
 interface PublicEventsListProps {
   initialEvents: Event[];
   initialPagination: Pagination;
   categories: Category[];
-  initialFilters: {
-    search: string;
-    categoryId: string;
-    location: string;
-    minPrice: string;
-    maxPrice: string;
-    dateFrom: string;
-    dateTo: string;
-    isFree: string;
-    sortBy: string;
-    sortOrder: string;
-  };
+  initialFilters: Filters;
 }
 
 export default function PublicEventsList({
@@ -91,43 +102,62 @@ export default function PublicEventsList({
   categories,
   initialFilters,
 }: PublicEventsListProps) {
+  const router = useRouter();
+
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [pagination, setPagination] = useState<Pagination>(initialPagination);
+  const [filters, setFilters] = useState<Filters>(initialFilters);
   const [loading, setLoading] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
 
-  const [filters, setFilters] = useState(initialFilters);
+  const updateFilters = async (
+    newFilters: Partial<Filters>,
+    resetPage = true
+  ) => {
+    const updatedFilters = { ...filters, ...newFilters };
+    if (resetPage) {
+      updatedFilters.page = "1";
+    }
 
-  const fetchEvents = async (newFilters: typeof filters, page: number = 1) => {
+    setFilters(updatedFilters);
     setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        ...newFilters,
-        page: page.toString(),
-      });
 
-      const response = await fetch(`/api/events/public?${params}`);
+    try {
+      const params = new URLSearchParams();
+      Object.entries(updatedFilters).forEach(([key, value]) => {
+        if (value && value !== "all" && key !== "page") {
+          params.set(key, value);
+        }
+      });
+      if (updatedFilters.page && updatedFilters.page !== "1") {
+        params.set("page", updatedFilters.page);
+      }
+
+      // Actualizar URL sin recargar página
+      router.push(`/events?${params.toString()}`, { scroll: false });
+
+      // Fetch nuevos eventos
+      const response = await fetch(`/api/events/public?${params.toString()}`);
       const data = await response.json();
 
       if (response.ok) {
         setEvents(data.events);
         setPagination(data.pagination);
+      } else {
+        toast.error("Error al cargar eventos");
       }
     } catch (error) {
-      console.error("Error fetching events:", error);
+      console.error("Error filtering events:", error);
+      toast.error("Error al filtrar eventos");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    fetchEvents(newFilters, 1);
-  };
-
-  const handlePageChange = (page: number) => {
-    fetchEvents(filters, page);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateFilters({});
   };
 
   const clearFilters = () => {
@@ -143,169 +173,95 @@ export default function PublicEventsList({
       sortBy: "startDate",
       sortOrder: "asc",
     };
-    setFilters(clearedFilters);
-    fetchEvents(clearedFilters, 1);
+    updateFilters(clearedFilters);
   };
 
-  const renderEventCard = (event: Event) => {
-    const startDate = new Date(event.startDate);
-    const isUpcoming = startDate > new Date();
-    const availableTickets = event.capacity - event._count.tickets;
-    const isSoldOut = availableTickets <= 0;
-
-    const finalPrice = event.isFree ? 0 : calculateTotalPrice(event.price);
-    const displayPrice = formatPrice(finalPrice, event.currency);
-
-    return (
-      <Card
-        key={event.id}
-        className="overflow-hidden hover:shadow-lg transition-all duration-300 group"
-      >
-        <div className="relative">
-          <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
-            {event.imageUrl ? (
-              <Image
-                src={event.imageUrl}
-                alt={event.title}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <Calendar className="h-16 w-16 text-muted-foreground" />
-              </div>
-            )}
-
-            <div className="absolute top-4 right-4">
-              {isSoldOut && isUpcoming && (
-                <Badge variant="destructive">Agotado</Badge>
-              )}
-              {availableTickets <= 10 && availableTickets > 0 && isUpcoming && (
-                <Badge
-                  variant="outline"
-                  className="bg-orange-100 text-orange-700"
-                >
-                  Últimos tickets
-                </Badge>
-              )}
-            </div>
-
-            <div className="absolute bottom-4 left-4">
-              <div className="bg-white/90 dark:bg-gray-900/90 rounded-lg px-3 py-2 backdrop-blur-sm">
-                <div className="text-lg font-bold text-primary">
-                  {displayPrice}
-                </div>
-                {!event.isFree && (
-                  <div className="text-xs text-muted-foreground">
-                    Precio final
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <CardContent className="p-4 space-y-3">
-            <Badge variant="outline" className="w-fit">
-              {event.category.name}
-            </Badge>
-
-            <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
-              {event.title}
-            </h3>
-
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {startDate.toLocaleDateString("es-ES", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="line-clamp-1">{event.location}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {availableTickets > 0
-                  ? `${availableTickets} disponibles`
-                  : "Agotado"}
-              </span>
-              <span className="text-muted-foreground">
-                {event._count.tickets} vendidos
-              </span>
-            </div>
-
-            <Button
-              asChild
-              className="w-full"
-              disabled={isSoldOut && isUpcoming}
-            >
-              <Link href={`/events/${event.id}`}>
-                {isSoldOut
-                  ? "Ver detalles (Agotado)"
-                  : event.isFree
-                  ? "Registrarse gratis"
-                  : `Comprar tickets - ${displayPrice}`}
-              </Link>
-            </Button>
-          </CardContent>
-        </div>
-      </Card>
-    );
+  const goToPage = (page: number) => {
+    updateFilters({ page: page.toString() }, false);
   };
+
+  const hasActiveFilters = Object.values(filters).some((value, index) => {
+    const keys = Object.keys(filters);
+    const key = keys[index];
+    return value && value !== "all" && key !== "sortBy" && key !== "sortOrder";
+  });
 
   return (
     <div className="space-y-6">
+      {/* Header con búsqueda */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <CardTitle>Encuentra tu próximo evento</CardTitle>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              {showFilters ? "Ocultar" : "Mostrar"} filtros
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar eventos..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
-                className="pl-10"
-              />
+        <CardContent className="p-6">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <Label htmlFor="search" className="sr-only">
+                  Buscar eventos
+                </Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Buscar eventos por nombre o descripción..."
+                    value={filters.search}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        search: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Buscando..." : "Buscar"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Filtros
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-1">
+                      •
+                    </Badge>
+                  )}
+                </Button>
+              </div>
             </div>
-          </div>
+          </form>
+        </CardContent>
+      </Card>
 
-          {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
+      {/* Panel de filtros expandible */}
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros avanzados
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Categoría */}
               <div>
-                <Label>Categoría</Label>
+                <Label htmlFor="category">Categoría</Label>
                 <Select
                   value={filters.categoryId}
                   onValueChange={(value) =>
-                    handleFilterChange("categoryId", value)
+                    updateFilters({ categoryId: value === "all" ? "" : value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todas las categorías" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las categorías</SelectItem>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -315,22 +271,32 @@ export default function PublicEventsList({
                 </Select>
               </div>
 
+              {/* Ubicación */}
               <div>
-                <Label>Ubicación</Label>
-                <Input
-                  placeholder="Ciudad, región..."
-                  value={filters.location}
-                  onChange={(e) =>
-                    handleFilterChange("location", e.target.value)
-                  }
-                />
+                <Label htmlFor="location">Ubicación</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="location"
+                    placeholder="Ciudad o lugar"
+                    value={filters.location}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        location: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
               </div>
 
+              {/* Tipo de precio */}
               <div>
-                <Label>Precio</Label>
+                <Label htmlFor="priceType">Precio</Label>
                 <Select
                   value={filters.isFree}
-                  onValueChange={(value) => handleFilterChange("isFree", value)}
+                  onValueChange={(value) => updateFilters({ isFree: value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Todos los precios" />
@@ -338,108 +304,247 @@ export default function PublicEventsList({
                   <SelectContent>
                     <SelectItem value="all">Todos los precios</SelectItem>
                     <SelectItem value="true">Solo eventos gratuitos</SelectItem>
-                    <SelectItem value="false">Solo eventos pagados</SelectItem>
+                    <SelectItem value="false">Solo eventos de pago</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Ordenar por */}
               <div>
-                <Label>Ordenar por</Label>
+                <Label htmlFor="sortBy">Ordenar por</Label>
                 <Select
                   value={filters.sortBy}
-                  onValueChange={(value) => handleFilterChange("sortBy", value)}
+                  onValueChange={(value) => updateFilters({ sortBy: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="startDate">Fecha</SelectItem>
-                    <SelectItem value="price">Precio</SelectItem>
-                    <SelectItem value="title">Nombre</SelectItem>
+                    <SelectItem value="startDate">Fecha del evento</SelectItem>
+                    <SelectItem value="title">Nombre A-Z</SelectItem>
                     <SelectItem value="createdAt">Más recientes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div className="md:col-span-2 lg:col-span-4">
-                <Button
-                  variant="outline"
-                  onClick={clearFilters}
-                  className="w-full sm:w-auto"
-                >
-                  Limpiar filtros
-                </Button>
+            {/* Rango de precios */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="minPrice">Precio mínimo (CLP)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="minPrice"
+                    type="number"
+                    placeholder="0"
+                    value={filters.minPrice}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        minPrice: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="maxPrice">Precio máximo (CLP)</Label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="maxPrice"
+                    type="number"
+                    placeholder="Sin límite"
+                    value={filters.maxPrice}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        maxPrice: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Rango de fechas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="dateFrom">Desde</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="dateFrom"
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        dateFrom: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="dateTo">Hasta</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="dateTo"
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        dateTo: e.target.value,
+                      }))
+                    }
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button onClick={() => updateFilters({})}>Aplicar filtros</Button>
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Barra de resultados y vista */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="text-muted-foreground">
+          {loading ? (
+            "Cargando eventos..."
+          ) : (
+            <>
+              Mostrando {events.length} de {pagination.totalCount} eventos
+              {hasActiveFilters && " (filtrados)"}
+            </>
           )}
-        </CardContent>
-      </Card>
-
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">
-            {loading
-              ? "Cargando..."
-              : `${pagination.totalCount} eventos encontrados`}
-          </p>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Vista:</span>
+          <Button
+            variant={viewMode === "grid" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("grid")}
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === "list" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-96 bg-muted rounded-lg animate-pulse"
-              ></div>
-            ))}
-          </div>
-        ) : events.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {events.map(renderEventCard)}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
+      {/* Lista de eventos */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-96 bg-muted rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ) : events.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-6xl">🎭</div>
+              <h3 className="text-xl font-semibold">
                 No se encontraron eventos
               </h3>
-              <p className="text-muted-foreground mb-4">
-                Prueba ajustando los filtros o busca con otros términos
+              <p className="text-muted-foreground">
+                {hasActiveFilters
+                  ? "Intenta ajustar tus filtros para ver más resultados"
+                  : "Parece que no hay eventos disponibles en este momento"}
               </p>
-              <Button onClick={clearFilters}>Limpiar filtros</Button>
-            </CardContent>
-          </Card>
-        )}
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={clearFilters}>
+                  Limpiar filtros
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              : "space-y-4"
+          }
+        >
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              variant={viewMode === "list" ? "compact" : "default"}
+              showQuickActions={true}
+            />
+          ))}
+        </div>
+      )}
 
-        {pagination.totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrevPage || loading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
+      {/* Paginación */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => goToPage(pagination.currentPage - 1)}
+            disabled={!pagination.hasPrevPage || loading}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
 
-            <span className="px-4 py-2 text-sm">
-              Página {pagination.currentPage} de {pagination.totalPages}
-            </span>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(5, pagination.totalPages) }).map(
+              (_, i) => {
+                const pageNum = Math.max(1, pagination.currentPage - 2 + i);
+                if (pageNum > pagination.totalPages) return null;
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage || loading}
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={
+                      pageNum === pagination.currentPage ? "default" : "outline"
+                    }
+                    size="sm"
+                    onClick={() => goToPage(pageNum)}
+                    disabled={loading}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              }
+            )}
           </div>
-        )}
-      </div>
+
+          <Button
+            variant="outline"
+            onClick={() => goToPage(pagination.currentPage + 1)}
+            disabled={!pagination.hasNextPage || loading}
+          >
+            Siguiente
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

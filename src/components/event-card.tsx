@@ -1,34 +1,36 @@
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, User, Clock } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
-import { calculateTotalPrice, formatPrice } from "@/lib/commission";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  ExternalLink,
+  Heart,
+  Share2,
+} from "lucide-react";
+import { formatPrice } from "@/lib/commission";
 
-/**
- * Interfaz para los tipos de entrada que se esperan del backend.
- * Solo necesitamos el precio y la moneda para la lógica de visualización.
- */
-interface TicketTypeInfo {
+interface TicketType {
   price: number;
   currency: string;
-  capacity: number; // Incluido para futuros cálculos de capacidad total
+  capacity: number;
 }
 
-/**
- * Interfaz actualizada para las props del EventCard.
- * Ahora espera un array `ticketTypes` en lugar de `price` y `isFree`.
- */
 interface EventCardProps {
   event: {
     id: string;
     title: string;
     description?: string;
+    imageUrl?: string;
+    location: string;
     startDate: string;
     endDate?: string;
-    location: string;
-    imageUrl?: string;
     isPublished: boolean;
     category: {
       id: string;
@@ -44,201 +46,291 @@ interface EventCardProps {
       tickets: number;
       orders: number;
     };
-    ticketTypes: TicketTypeInfo[]; // <-- CAMBIO CLAVE
+    ticketTypes: TicketType[];
   };
-  showOrganizerInfo?: boolean;
-  showManageButtons?: boolean;
-}
-
-/**
- * Función auxiliar para determinar qué texto de precio mostrar
- * basado en los tipos de entrada disponibles.
- */
-function getEventPriceDisplay(ticketTypes: TicketTypeInfo[]): string {
-  if (!ticketTypes || ticketTypes.length === 0) {
-    return "No disponible";
-  }
-
-  // Se calcula el precio final para cada tipo de entrada, incluyendo la comisión.
-  const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const currency = ticketTypes[0]?.currency || "CLP";
-
-  // Si todos los tickets son gratuitos.
-  if (minPrice === 0 && maxPrice === 0) {
-    return "Gratis";
-  }
-
-  // Si solo hay un precio (o todos tienen el mismo precio).
-  if (minPrice === maxPrice) {
-    return formatPrice(minPrice, currency);
-  }
-
-  // Si hay entradas gratuitas y de pago.
-  if (minPrice === 0) {
-    return `Desde Gratis`;
-  }
-
-  // Si hay un rango de precios.
-  return `Desde ${formatPrice(minPrice, currency)}`;
+  showQuickActions?: boolean;
+  variant?: "default" | "compact" | "featured";
 }
 
 export default function EventCard({
   event,
-  showOrganizerInfo = false,
+  showQuickActions = false,
+  variant = "default",
 }: EventCardProps) {
   const startDate = new Date(event.startDate);
   const now = new Date();
   const isPast = startDate < now;
+  const isToday = startDate.toDateString() === now.toDateString();
 
+  // Calcular precios y disponibilidad
+  const prices = event.ticketTypes.map((t) => t.price);
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
   const totalCapacity = event.ticketTypes.reduce(
-    (sum, type) => sum + (type.capacity || 0),
+    (sum, t) => sum + t.capacity,
     0
   );
   const availableTickets = totalCapacity - event._count.tickets;
   const isSoldOut = availableTickets <= 0;
 
-  // Llama a la nueva función para obtener el texto del precio.
-  const displayPrice = getEventPriceDisplay(event.ticketTypes);
+  const priceDisplay = (() => {
+    if (minPrice === 0 && maxPrice === 0) return "Gratis";
+    if (minPrice === maxPrice) {
+      return formatPrice(minPrice, event.ticketTypes[0]?.currency || "CLP");
+    }
+    if (minPrice === 0) return "Desde Gratis";
+    return `Desde ${formatPrice(minPrice, event.ticketTypes[0]?.currency || "CLP")}`;
+  })();
 
   const organizerName = event.organizer.firstName
     ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
     : event.organizer.email.split("@")[0];
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString("es-ES", { month: "short" }),
-      time: date.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      weekday: date.toLocaleDateString("es-ES", { weekday: "long" }),
+  const formatEventDate = () => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     };
+    return startDate.toLocaleDateString("es-ES", options);
   };
 
-  const dateInfo = formatDate(event.startDate);
+  const getStatusBadge = () => {
+    if (isPast) return <Badge variant="secondary">Finalizado</Badge>;
+    if (isSoldOut) return <Badge variant="destructive">Agotado</Badge>;
+    if (isToday) return <Badge className="bg-green-500">Hoy</Badge>;
+    if (availableTickets <= 10)
+      return <Badge variant="outline">Últimos tickets</Badge>;
+    return null;
+  };
 
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative">
-        <div className="relative h-48 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-700">
-          {event.imageUrl ? (
+  if (variant === "compact") {
+    return (
+      <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+        <Link href={`/events/${event.id}`}>
+          <div className="flex">
+            <div className="relative w-24 h-24 flex-shrink-0">
+              <Image
+                src={event.imageUrl || "/default-event.png"}
+                alt={event.title}
+                fill
+                className="object-cover"
+              />
+            </div>
+            <CardContent className="flex-1 p-4">
+              <div className="space-y-2">
+                <div className="flex items-start justify-between">
+                  <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+                    {event.title}
+                  </h3>
+                  {getStatusBadge()}
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatEventDate()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="truncate">{event.location}</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="text-xs">
+                    {event.category.name}
+                  </Badge>
+                  <span className="font-semibold text-sm text-primary">
+                    {priceDisplay}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </div>
+        </Link>
+      </Card>
+    );
+  }
+
+  if (variant === "featured") {
+    return (
+      <Card className="group hover:shadow-2xl transition-all duration-300 overflow-hidden bg-gradient-to-br from-background to-muted/50">
+        <div className="relative">
+          <div className="relative h-64 overflow-hidden">
             <Image
-              src={event.imageUrl}
+              src={event.imageUrl || "/default-event.png"}
               alt={event.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <Calendar className="h-16 w-16 text-muted-foreground" />
-            </div>
-          )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-          <div className="absolute top-4 left-4">
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-2 shadow-lg text-center min-w-[60px]">
-              <div className="text-2xl font-bold text-primary">
-                {dateInfo.day}
+            {/* Status badge overlay */}
+            <div className="absolute top-4 left-4">{getStatusBadge()}</div>
+
+            {/* Quick actions */}
+            {showQuickActions && (
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-2">
+                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                    <Heart className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                    <Share2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="text-xs uppercase text-muted-foreground">
-                {dateInfo.month}
+            )}
+
+            {/* Price overlay */}
+            <div className="absolute bottom-4 right-4">
+              <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
+                <span className="font-bold text-primary">{priceDisplay}</span>
               </div>
             </div>
           </div>
 
-          <div className="absolute top-4 right-4 flex flex-col gap-2">
-            {!event.isPublished && <Badge variant="secondary">Borrador</Badge>}
-            {isPast && (
-              <Badge variant="outline" className="bg-gray-100 dark:bg-gray-800">
-                Finalizado
-              </Badge>
-            )}
-            {isSoldOut && !isPast && (
-              <Badge variant="destructive">Agotado</Badge>
-            )}
-            {availableTickets <= 10 && availableTickets > 0 && !isPast && (
-              <Badge
-                variant="outline"
-                className="bg-orange-100 text-orange-700 border-orange-300"
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div>
+                <Badge variant="outline" className="mb-2">
+                  {event.category.name}
+                </Badge>
+                <Link href={`/events/${event.id}`}>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                    {event.title}
+                  </h3>
+                </Link>
+                <p className="text-muted-foreground text-sm line-clamp-2">
+                  {event.description ||
+                    "Evento organizado por " + organizerName}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span>{formatEventDate()}</span>
+                  {isToday && <Badge className="bg-green-500 ml-2">Hoy</Badge>}
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="truncate">{event.location}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span>
+                    {isSoldOut
+                      ? "Agotado"
+                      : `${availableTickets} tickets disponibles`}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter className="px-6 pb-6 pt-0">
+            <Link href={`/events/${event.id}`} className="w-full">
+              <Button
+                className="w-full"
+                disabled={isPast || isSoldOut}
+                size="lg"
               >
-                Últimos tickets
-              </Badge>
-            )}
+                {isPast
+                  ? "Evento finalizado"
+                  : isSoldOut
+                    ? "Agotado"
+                    : "Ver detalles"}
+                <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </CardFooter>
+        </div>
+      </Card>
+    );
+  }
+
+  // Default variant
+  return (
+    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+      <div className="relative">
+        <div className="relative h-48 overflow-hidden">
+          <Image
+            src={event.imageUrl || "/default-event.png"}
+            alt={event.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+          {/* Status badge */}
+          <div className="absolute top-3 left-3">{getStatusBadge()}</div>
+
+          {/* Price */}
+          <div className="absolute bottom-3 right-3">
+            <div className="bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
+              <span className="font-semibold text-sm text-primary">
+                {priceDisplay}
+              </span>
+            </div>
           </div>
         </div>
 
-        <CardContent className="p-4 space-y-3">
-          <Badge variant="outline" className="w-fit">
-            {event.category.name}
-          </Badge>
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
-            {event.title}
-          </h3>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>
-                {dateInfo.weekday}, {dateInfo.time}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              <span className="line-clamp-1">{event.location}</span>
-            </div>
-            {showOrganizerInfo && (
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span>Organizado por {organizerName}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
+        <CardContent className="p-4">
+          <div className="space-y-3">
             <div>
-              <div className="text-lg font-bold">{displayPrice}</div>
-              {displayPrice !== "Gratis" &&
-                displayPrice !== "No disponible" && (
-                  <div className="text-xs text-muted-foreground">
-                    Precio final
-                  </div>
-                )}
-            </div>
-            <div className="text-right text-sm">
-              {!isPast && (
-                <>
-                  <div className="font-medium">
-                    {availableTickets > 0
-                      ? `${availableTickets} disponibles`
-                      : "0 disponibles"}
-                  </div>
-                  <div className="text-muted-foreground">
-                    de {totalCapacity} tickets
-                  </div>
-                </>
-              )}
-              {isPast && (
-                <div className="text-muted-foreground">
-                  {event._count.tickets} asistentes
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button asChild className="w-full" disabled={isSoldOut && !isPast}>
+              <Badge variant="outline" className="mb-2 text-xs">
+                {event.category.name}
+              </Badge>
               <Link href={`/events/${event.id}`}>
-                {isPast
-                  ? "Ver detalles"
-                  : isSoldOut
-                    ? "Agotado"
-                    : "Comprar Tickets"}
+                <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                  {event.title}
+                </h3>
               </Link>
-            </Button>
+              <p className="text-muted-foreground text-sm line-clamp-2">
+                Por {organizerName}
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>{formatEventDate()}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span className="truncate">{event.location}</span>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>
+                  {isSoldOut ? "Agotado" : `${availableTickets} disponibles`}
+                </span>
+              </div>
+            </div>
           </div>
         </CardContent>
+
+        <CardFooter className="p-4 pt-0">
+          <Link href={`/events/${event.id}`} className="w-full">
+            <Button
+              className="w-full"
+              variant={isPast || isSoldOut ? "secondary" : "default"}
+              disabled={isPast || isSoldOut}
+            >
+              {isPast
+                ? "Evento finalizado"
+                : isSoldOut
+                  ? "Agotado"
+                  : "Ver evento"}
+            </Button>
+          </Link>
+        </CardFooter>
       </div>
     </Card>
   );

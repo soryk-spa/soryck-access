@@ -112,6 +112,7 @@ export default async function EventPage({ params }: EventPageProps) {
   }
 
   // Serializamos los datos para pasarlos de forma segura a un componente de cliente.
+  // Convertimos null a undefined para las propiedades opcionales
   const serializedEvent = {
     ...event,
     description: event.description ?? undefined,
@@ -123,13 +124,27 @@ export default async function EventPage({ params }: EventPageProps) {
     organizer: {
       ...event.organizer,
       imageUrl: event.organizer.imageUrl ?? undefined,
+      firstName: event.organizer.firstName ?? undefined,
+      lastName: event.organizer.lastName ?? undefined,
     },
     ticketTypes: event.ticketTypes.map((tt) => ({
       ...tt,
+      description: tt.description ?? undefined,
       createdAt: tt.createdAt.toISOString(),
       updatedAt: tt.updatedAt.toISOString(),
     })),
   };
+
+  // Serializar usuario para evitar problemas de tipos
+  const serializedUser = user
+    ? {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      }
+    : null;
 
   let userTicketsCount = 0;
   if (user) {
@@ -145,7 +160,7 @@ export default async function EventPage({ params }: EventPageProps) {
   return (
     <EventDetailView
       event={serializedEvent}
-      user={user}
+      user={serializedUser}
       userTicketsCount={userTicketsCount}
     />
   );

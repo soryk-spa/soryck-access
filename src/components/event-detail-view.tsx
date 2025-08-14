@@ -1,68 +1,68 @@
-"use client";
+"use client"
 import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  Share2,
+  Heart,
+  ExternalLink,
   Ticket,
+  Mail,
+  Edit,
+  Eye,
+  Settings,
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
 
-interface TicketType {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  currency: string;
-  capacity: number;
-  _count: { tickets: number };
-}
-
-interface EventDetail {
-  id: string;
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate?: string;
-  location: string;
-  imageUrl?: string;
-  isPublished: boolean;
-  category: { id: string; name: string };
-  organizer: {
+// Define the props type for EventDetailView
+type EventDetailViewProps = {
+  event: {
     id: string;
-    firstName: string | null;
-    lastName: string | null;
-    email: string;
+    title: string;
+    description?: string;
+    startDate: string;
+    endDate?: string;
+    location: string;
     imageUrl?: string;
+    isPublished: boolean;
+    category: { name: string };
+    organizer: {
+      id: string;
+      firstName?: string;
+      lastName?: string;
+      email: string;
+      imageUrl?: string;
+    };
+    ticketTypes: Array<{
+      id: string;
+      name: string;
+      description?: string;
+      price: number;
+      currency: string;
+      capacity: number;
+      _count: { tickets: number };
+    }>;
+    _count: {
+      tickets: number;
+      orders: number;
+    };
   };
-  _count: { tickets: number; orders: number };
-  ticketTypes: TicketType[];
-}
-
-interface EventDetailViewProps {
-  event: EventDetail;
   user?: {
     id: string;
-    email: string;
-    firstName: string | null;
-    lastName: string | null;
     role: string;
+    email: string;
   } | null;
   userTicketsCount: number;
-}
-
-function getEventPriceDisplay(ticketTypes: TicketType[]): string {
-  if (!ticketTypes || ticketTypes.length === 0) return "No disponible";
-  const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-
-  if (minPrice === 0 && maxPrice === 0) return "Gratis";
-  if (minPrice === maxPrice)
-    return formatPrice(minPrice, ticketTypes[0].currency);
-  if (minPrice === 0) return `Desde Gratis`;
-  return `Desde ${formatPrice(minPrice, ticketTypes[0].currency)}`;
-}
+};
 
 export default function EventDetailView({
   event,
@@ -72,7 +72,10 @@ export default function EventDetailView({
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
 
   const startDate = new Date(event.startDate);
+  const endDate = event.endDate ? new Date(event.endDate) : null;
   const isPast = startDate < new Date();
+  const isOwner = user && event.organizer.id === user.id;
+  const isAdmin = user && user.role === "ADMIN";
 
   const totalCapacity = event.ticketTypes.reduce(
     (sum, type) => sum + type.capacity,
@@ -83,16 +86,138 @@ export default function EventDetailView({
 
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
+  // Helper to display event price range or "Gratis"
+  function getEventPriceDisplay(ticketTypes: EventDetailViewProps["event"]["ticketTypes"]) {
+    if (!ticketTypes.length) return "No disponible";
+    const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const currency = ticketTypes[0].currency;
+    if (min === 0 && max === 0) return "Gratis";
+    if (min === max) return formatPrice(min, currency);
+    return `Desde ${formatPrice(min, currency)}`;
+  }
+  const organizerName = event.organizer.firstName
+    ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
+    : event.organizer.email.split("@")[0];
+
+  const formatEventDate = (date: Date) => {
+    return date.toLocaleDateString("es-ES", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* ... (Sección de imagen y cabecera sin cambios, ya usa `displayPrice`) ... */}
+      <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <div className="relative mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-background to-muted/50">
+          <div className="grid lg:grid-cols-2 gap-8 items-center p-8">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Badge variant="outline" className="text-sm">
+                    {event.category.name}
+                  </Badge>
+                  {!event.isPublished && (
+                    <Badge variant="secondary">Borrador</Badge>
+                  )}
+                  {isPast && <Badge variant="destructive">Finalizado</Badge>}
+                  {isSoldOut && !isPast && (
+                    <Badge variant="destructive">Agotado</Badge>
+                  )}
+                </div>
+
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
+                  {event.title}
+                </h1>
+
+                <div className="space-y-3 text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-primary" />
+                    <span className="text-lg">
+                      {formatEventDate(startDate)}
+                    </span>
+                  </div>
+                  {endDate && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-primary" />
+                      <span>Hasta {formatEventDate(endDate)}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    <span className="text-lg">{event.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" />
+                    <span>
+                      {isSoldOut
+                        ? "Agotado"
+                        : `${availableTickets} tickets disponibles`}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 pt-4">
+                  <div className="text-3xl font-bold text-primary">
+                    {displayPrice}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="icon">
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative">
+              {event.imageUrl && (
+                <div className="relative h-80 lg:h-96 rounded-xl overflow-hidden shadow-2xl">
+                  <Image
+                    src={event.imageUrl}
+                    alt={event.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            {/* ... (Cards de Detalles, Descripción y Organizador sin cambios) ... */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Descripción */}
+            {event.description && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ExternalLink className="h-5 w-5" />
+                    Sobre este evento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose prose-gray max-w-none">
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {event.description}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* --- Nueva Card para mostrar los tipos de entrada --- */}
+            {/* Tipos de entrada */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -111,91 +236,296 @@ export default function EventDetailView({
                   return (
                     <div
                       key={ticketType.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
-                      <div>
-                        <p className="font-semibold">{ticketType.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {ticketType.description}
+                      <div className="space-y-1">
+                        <p className="font-semibold text-lg">
+                          {ticketType.name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {isTypeSoldOut
-                            ? "Agotado"
-                            : `${availableForType} disponibles`}
-                        </p>
+                        {ticketType.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {ticketType.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>
+                            {isTypeSoldOut
+                              ? "Agotado"
+                              : `${availableForType} disponibles`}
+                          </span>
+                          <span>•</span>
+                          <span>de {ticketType.capacity} totales</span>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg text-primary">
+                        <p className="font-bold text-2xl text-primary">
                           {formatPrice(typePrice, ticketType.currency)}
                         </p>
+                        {isTypeSoldOut && (
+                          <Badge variant="destructive" className="mt-1">
+                            Agotado
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   );
                 })}
               </CardContent>
             </Card>
+
+            {/* Organizador */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Organizador
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage
+                      src={event.organizer.imageUrl}
+                      alt={organizerName}
+                    />
+                    <AvatarFallback className="text-lg font-semibold">
+                      {organizerName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">{organizerName}</h3>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span>{event.organizer.email}</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Organizador de eventos en SorykPass
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
+          {/* Sidebar */}
           <div className="space-y-6">
+            {/* Panel de compra */}
             <Card className="sticky top-6">
               <CardHeader>
-                <CardTitle className="text-center">Comprar Entradas</CardTitle>
+                <CardTitle className="text-center">
+                  {isPast ? "Evento finalizado" : "Comprar Entradas"}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center p-4 bg-muted rounded-lg">
-                  <div className="text-3xl font-bold text-primary mb-1">
+              <CardContent className="space-y-6">
+                <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border">
+                  <div className="text-4xl font-bold text-primary mb-2">
                     {displayPrice}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     {displayPrice.startsWith("Desde")
                       ? "Precios desde"
-                      : "Precio final"}
+                      : "Precio final con comisiones"}
                   </div>
                 </div>
 
-                {/* ... (Lógica de botones y disponibilidad sin cambios) ... */}
-                {isPast || isSoldOut ? (
-                  <Button disabled className="w-full" size="lg">
-                    {isPast ? "Evento finalizado" : "Agotado"}
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setShowPurchaseForm(true)}
-                    className="w-full"
-                    size="lg"
-                  >
-                    Comprar Entradas
-                  </Button>
-                )}
+                {/* Acciones según estado y permisos */}
+                <div className="space-y-3">
+                  {(isOwner || isAdmin) && (
+                    <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm font-medium">
+                        Panel de organizador:
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`/events/${event.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-1" />
+                            Editar
+                          </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href={`/dashboard/events/${event.id}`}>
+                            <Settings className="h-4 w-4 mr-1" />
+                            Gestión
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isPast ? (
+                    <Button disabled className="w-full" size="lg">
+                      <Clock className="h-4 w-4 mr-2" />
+                      Evento finalizado
+                    </Button>
+                  ) : isSoldOut ? (
+                    <Button disabled className="w-full" size="lg">
+                      <Ticket className="h-4 w-4 mr-2" />
+                      Agotado
+                    </Button>
+                  ) : user ? (
+                    <div className="space-y-2">
+                      <Button
+                        onClick={() => setShowPurchaseForm(true)}
+                        className="w-full"
+                        size="lg"
+                      >
+                        <Ticket className="h-4 w-4 mr-2" />
+                        Comprar Entradas
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button asChild className="w-full" size="lg">
+                      <Link href="/sign-in">
+                        <Ticket className="h-4 w-4 mr-2" />
+                        Iniciar sesión para comprar
+                      </Link>
+                    </Button>
+                  )}
+
+                  {user && userTicketsCount > 0 && (
+                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Ya tienes {userTicketsCount} ticket
+                        {userTicketsCount > 1 ? "s" : ""} para este evento
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        asChild
+                      >
+                        <a href="/tickets">
+                          <Eye className="h-4 w-4 mr-1" />
+                          Ver mis tickets
+                        </a>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
-            {/* ... (Otras cards laterales sin cambios) ... */}
+
+            {/* Información adicional */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Información del evento</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Categoría:</span>
+                    <Badge variant="outline">{event.category.name}</Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Capacidad total:
+                    </span>
+                    <span className="font-medium">
+                      {totalCapacity} personas
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Tickets vendidos:
+                    </span>
+                    <span className="font-medium">{event._count.tickets}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Órdenes realizadas:
+                    </span>
+                    <span className="font-medium">{event._count.orders}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Estado:</span>
+                    <Badge
+                      variant={
+                        isPast
+                          ? "destructive"
+                          : event.isPublished
+                            ? "default"
+                            : "secondary"
+                      }
+                    >
+                      {isPast
+                        ? "Finalizado"
+                        : event.isPublished
+                          ? "Publicado"
+                          : "Borrador"}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Garantías */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Garantías SorykPass</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Ticket digital instantáneo</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Código QR único e intransferible</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Validación en tiempo real</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Soporte 24/7</span>
+                  </div>
+                  {!displayPrice.includes("Gratis") && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>Reembolsos hasta 24h antes</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* --- Modal de Compra --- */}
+        {/* Modal de compra */}
         {showPurchaseForm && user && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-background rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Comprar Entradas</h2>
+                  <h2 className="text-3xl font-bold">Comprar Entradas</h2>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowPurchaseForm(false)}
+                    className="h-10 w-10"
                   >
                     ✕
                   </Button>
                 </div>
-                {/* Pasamos el evento completo al formulario de compra */}
                 <TicketPurchaseForm
                   event={{
                     ...event,
+                    organizer: {
+                      ...event.organizer,
+                      firstName: event.organizer.firstName ?? null,
+                      lastName: event.organizer.lastName ?? null,
+                    },
+                    // Mantener compatibilidad con el formulario existente
                     price: event.ticketTypes[0]?.price ?? 0,
-                    currency: event.ticketTypes[0]?.currency ?? "EUR",
-                    isFree: event.ticketTypes.every(t => t.price === 0),
-                    capacity: event.ticketTypes.reduce((sum, t) => sum + t.capacity, 0),
+                    currency: event.ticketTypes[0]?.currency ?? "CLP",
+                    isFree: event.ticketTypes.every((t) => t.price === 0),
+                    capacity: totalCapacity,
+                    ticketTypes: event.ticketTypes.map((t) => ({
+                      ...t,
+                      description: t.description ?? null,
+                    })),
                   }}
                   userTicketsCount={userTicketsCount}
                 />

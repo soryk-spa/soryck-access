@@ -8,8 +8,10 @@ import {
 } from "@/lib/commission";
 
 interface PaymentData {
-  eventId: string;
+  ticketTypeId: string;  // ✅ Asegúrate de que sea ticketTypeId
   quantity: number;
+  // Legacy support - estos campos son opcionales para compatibilidad
+  eventId?: string;
 }
 
 interface PaymentResponse {
