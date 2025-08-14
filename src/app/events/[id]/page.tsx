@@ -4,13 +4,12 @@ import { getCurrentUser } from "@/lib/auth";
 import EventDetailView from "@/components/event-detail-view";
 import type { Metadata } from "next";
 
-// Interfaz corregida
+// ✅ CORRECCIÓN: Interface actualizada para Next.js 15
 interface EventPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>; // ← Promise añadida aquí
 }
 
 async function getEvent(id: string) {
-  // ... (el contenido de la función no cambia)
   try {
     const event = await prisma.event.findUnique({
       where: { id },
@@ -48,20 +47,16 @@ async function getEvent(id: string) {
         },
       },
     });
-
     if (!event) {
       return null;
     }
-
     const user = await getCurrentUser();
     const isPublic = event.isPublished;
     const isOwner = user && event.organizerId === user.id;
     const isAdmin = user && user.role === "ADMIN";
-
     if (!isPublic && !isOwner && !isAdmin) {
       return null;
     }
-
     return event;
   } catch (error) {
     console.error("Error fetching event:", error);
@@ -72,7 +67,7 @@ async function getEvent(id: string) {
 export async function generateMetadata({
   params,
 }: EventPageProps): Promise<Metadata> {
-  const { id } = params; // Corregido
+  const { id } = await params; // ← Await añadido aquí
   const event = await getEvent(id);
 
   if (!event) {
@@ -105,7 +100,7 @@ export async function generateMetadata({
 }
 
 export default async function EventPage({ params }: EventPageProps) {
-  const { id } = params; // Corregido
+  const { id } = await params; // ← Await añadido aquí
   const event = await getEvent(id);
   const user = await getCurrentUser();
 
