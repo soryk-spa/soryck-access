@@ -25,7 +25,7 @@ import {
   User,
   Loader2,
 } from "lucide-react";
-import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
+import { formatDate, formatTime } from "@/lib/date-utils"; // Importación actualizada
 
 const QRCodeCanvas = dynamic(
   () => import("qrcode.react").then((mod) => mod.QRCodeCanvas),

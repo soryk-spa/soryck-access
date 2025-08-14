@@ -1,16 +1,18 @@
+// src/app/events/[id]/edit/page.tsx
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { canAccessEvent } from "@/lib/auth";
 import EditEventForm from "@/components/edit-event-form";
 import type { Metadata } from "next";
+// ✅ IMPORTAR LAS NUEVAS UTILIDADES DE FECHA
+import { formatToChileDatetimeLocal } from "@/lib/date-utils";
 
-// ✅ CORRECCIÓN: params ahora es Promise en Next.js 15
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params; // ← Await añadido aquí
+  const { id } = await params;
 
   try {
     const event = await prisma.event.findUnique({
@@ -30,15 +32,6 @@ export async function generateMetadata({
     title: "Editar Evento | SorykPass",
     description: "Edita los detalles de tu evento",
   };
-}
-
-function formatForDateTimeLocal(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 async function getEventForEdit(id: string) {
@@ -76,13 +69,12 @@ async function getCategories() {
   });
 }
 
-// ✅ CORRECCIÓN: params ahora es Promise en Next.js 15
 export default async function EditEventPage({
   params,
 }: {
-  params: Promise<{ id: string }>; // ← Promise añadida aquí
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // ← Await añadido aquí
+  const { id } = await params;
 
   const result = await getEventForEdit(id);
   if (!result) {
@@ -91,10 +83,11 @@ export default async function EditEventPage({
   const { event, user } = result;
   const categories = await getCategories();
 
+  // ✅ SERIALIZACIÓN CORRECTA CON LAS NUEVAS UTILIDADES
   const serializedEvent = {
     ...event,
-    startDate: formatForDateTimeLocal(event.startDate),
-    endDate: event.endDate ? formatForDateTimeLocal(event.endDate) : null,
+    startDate: formatToChileDatetimeLocal(event.startDate),
+    endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : null,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
     ticketTypes: event.ticketTypes.map((tt) => ({

@@ -31,6 +31,15 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
+// ✅ IMPORTAR LAS NUEVAS UTILIDADES DE FECHA
+import {
+  parseChileDatetime,
+  formatToChileDatetimeLocal,
+  toChileISOString,
+  isFutureDate,
+  isValidDateRange,
+  formatDisplayDateTime,
+} from "@/lib/date-utils";
 
 interface Category {
   id: string;
@@ -62,34 +71,6 @@ interface EventFormProps {
   mode: "create" | "edit";
 }
 
-// Función simple para formatear fecha ISO a datetime-local
-const formatForDateTimeLocal = (isoString: string): string => {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
-
-// Función definitiva para convertir datetime-local a ISO manteniendo hora local
-const parseFromDateTimeLocal = (datetimeLocal: string): string => {
-  if (!datetimeLocal) return "";
-
-  // Dividir fecha y hora
-  const [datePart, timePart] = datetimeLocal.split("T");
-  const [year, month, day] = datePart.split("-").map(Number);
-  const [hour, minute] = timePart.split(":").map(Number);
-
-  // Crear fecha usando componentes locales (sin conversión UTC)
-  const localDate = new Date(year, month - 1, day, hour, minute);
-
-  // Convertir a ISO manteniendo la hora local como UTC
-  return localDate.toISOString();
-};
-
 export default function CreateEventForm({
   categories,
   initialData,
@@ -102,11 +83,12 @@ export default function CreateEventForm({
     title: initialData?.title || "",
     description: initialData?.description || "",
     location: initialData?.location || "",
+    // ✅ USAR LA FUNCIÓN CORRECTA PARA FORMATEAR FECHAS
     startDate: initialData?.startDate
-      ? formatForDateTimeLocal(initialData.startDate)
+      ? formatToChileDatetimeLocal(initialData.startDate)
       : "",
     endDate: initialData?.endDate
-      ? formatForDateTimeLocal(initialData.endDate)
+      ? formatToChileDatetimeLocal(initialData.endDate)
       : "",
     categoryId: initialData?.categoryId || "",
     imageUrl: initialData?.imageUrl || "",
@@ -135,13 +117,11 @@ export default function CreateEventForm({
     const newTicketTypes = [...ticketTypes];
 
     if (field === "name") {
-      // Para el nombre, mantener como string
       newTicketTypes[index] = {
         ...newTicketTypes[index],
         [field]: value as string,
       };
     } else {
-      // Para campos numéricos (price, capacity, ticketsGenerated)
       const numericValue =
         typeof value === "string" ? parseInt(value, 10) || 0 : value;
       newTicketTypes[index] = {
@@ -183,27 +163,57 @@ export default function CreateEventForm({
     }
 
     try {
+      // ✅ VALIDACIONES DE FECHA MEJORADAS
+      if (!formData.startDate) {
+        toast.error("La fecha de inicio es requerida.");
+        setLoading(false);
+        return;
+      }
+
+      const startDate = parseChileDatetime(formData.startDate);
+
+      if (!isFutureDate(startDate)) {
+        toast.error("La fecha de inicio debe ser en el futuro.");
+        setLoading(false);
+        return;
+      }
+
+      let endDate: Date | null = null;
+      if (formData.endDate) {
+        endDate = parseChileDatetime(formData.endDate);
+
+        if (!isValidDateRange(startDate, endDate)) {
+          toast.error(
+            "La fecha de fin debe ser posterior a la fecha de inicio."
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
       const url =
         mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
-      // ✅ CORRECCIÓN: Usar parseFromDateTimeLocal para mantener la hora local
+      // ✅ PREPARAR DATOS CON FECHAS CORRECTAS
       const body = {
         ...formData,
-        startDate: parseFromDateTimeLocal(formData.startDate),
-        endDate: formData.endDate
-          ? parseFromDateTimeLocal(formData.endDate)
-          : null,
+        startDate: toChileISOString(startDate),
+        endDate: endDate ? toChileISOString(endDate) : null,
         ticketTypes,
       };
 
-      console.log("📤 Enviando datos:", JSON.stringify(body, null, 2));
+      console.log(
+        "📤 Enviando datos con fechas correctas:",
+        JSON.stringify(body, null, 2)
+      );
 
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+
       const data = await response.json();
 
       if (response.ok) {
@@ -218,7 +228,11 @@ export default function CreateEventForm({
       }
     } catch (error) {
       console.error("❌ Error:", error);
-      toast.error("Error de conexión");
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Error de conexión");
+      }
     } finally {
       setLoading(false);
     }
@@ -337,6 +351,10 @@ export default function CreateEventForm({
                       }
                       required
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Hora de Chile (se ajusta automáticamente por horario de
+                      verano)
+                    </p>
                   </div>
                   <div>
                     <Label htmlFor="endDate">
@@ -350,6 +368,9 @@ export default function CreateEventForm({
                         handleInputChange("endDate", e.target.value)
                       }
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Hora de Chile
+                    </p>
                   </div>
                 </div>
                 <div>
@@ -516,10 +537,9 @@ export default function CreateEventForm({
                     <Calendar className="h-4 w-4 mt-1 flex-shrink-0" />
                     <span>
                       {formData.startDate
-                        ? new Date(formData.startDate).toLocaleString("es-ES", {
-                            dateStyle: "long",
-                            timeStyle: "short",
-                          })
+                        ? formatDisplayDateTime(
+                            parseChileDatetime(formData.startDate)
+                          )
                         : "Fecha y hora"}
                     </span>
                   </div>
@@ -578,8 +598,8 @@ export default function CreateEventForm({
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Una vez creado, podrás publicar tu evento, ver estadísticas y
-                más desde su panel de gestión.
+                Las fechas se guardan automáticamente en la zona horaria de
+                Chile, incluyendo el ajuste por horario de verano.
               </AlertDescription>
             </Alert>
           </div>

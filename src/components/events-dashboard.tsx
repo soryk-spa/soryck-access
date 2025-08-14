@@ -24,7 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
+import { formatDate, formatTime } from "@/lib/date-utils"; // Importación actualizada
 
 interface Event {
   id: string;

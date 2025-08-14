@@ -5,7 +5,7 @@ import { render } from "@react-email/render";
 import { generateTicketQR } from "@/lib/qr";
 import { saveMultipleQRs } from "@/lib/qr-storage";
 import { User, Event, Order, Ticket } from "@prisma/client";
-import { formatFullDateTime } from "@/lib/date";
+import { formatFullDateTime } from "@/lib/date-utils";
 
 if (!process.env.RESEND_API_KEY) {
   console.warn(

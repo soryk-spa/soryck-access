@@ -18,6 +18,14 @@ import {
 import { Loader2, Save, Trash2, Ticket, PlusCircle } from "lucide-react";
 import { UserRole } from "@prisma/client";
 import { toast } from "sonner";
+// ✅ IMPORTAR LAS NUEVAS UTILIDADES DE FECHA
+import {
+  parseChileDatetime,
+  formatToChileDatetimeLocal,
+  toChileISOString,
+  isFutureDate,
+  isValidDateRange,
+} from "@/lib/date-utils";
 
 interface Category {
   id: string;
@@ -76,8 +84,9 @@ export default function EditEventForm({
     title: event.title,
     description: event.description || "",
     location: event.location,
-    startDate: event.startDate,
-    endDate: event.endDate || "",
+    // ✅ USAR LA FUNCIÓN CORRECTA PARA FORMATEAR FECHAS
+    startDate: formatToChileDatetimeLocal(event.startDate),
+    endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : "",
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
   });
@@ -156,24 +165,55 @@ export default function EditEventForm({
       return;
     }
 
-    // Enviamos el string del input 'datetime-local' directamente a la API
-    const requestBody = {
-      ...formData,
-      startDate: formData.startDate,
-      endDate: formData.endDate || null,
-      ticketTypes: ticketTypes.map((ticket) => ({
-        id: ticket.id.startsWith("new-") ? undefined : ticket.id,
-        name: ticket.name,
-        description: null,
-        price: Number(ticket.price),
-        capacity: Number(ticket.capacity),
-        ticketsGenerated: Number(ticket.ticketsGenerated),
-      })),
-    };
-
-    console.log("📤 Enviando datos:", JSON.stringify(requestBody, null, 2));
-
     try {
+      // ✅ VALIDACIONES DE FECHA MEJORADAS
+      if (!formData.startDate) {
+        toast.error("La fecha de inicio es requerida.");
+        setLoading(false);
+        return;
+      }
+
+      const startDate = parseChileDatetime(formData.startDate);
+
+      if (!isFutureDate(startDate)) {
+        toast.error("La fecha de inicio debe ser en el futuro.");
+        setLoading(false);
+        return;
+      }
+
+      let endDate: Date | null = null;
+      if (formData.endDate) {
+        endDate = parseChileDatetime(formData.endDate);
+
+        if (!isValidDateRange(startDate, endDate)) {
+          toast.error(
+            "La fecha de fin debe ser posterior a la fecha de inicio."
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
+      // ✅ PREPARAR DATOS CON FECHAS CORRECTAS
+      const requestBody = {
+        ...formData,
+        startDate: toChileISOString(startDate),
+        endDate: endDate ? toChileISOString(endDate) : null,
+        ticketTypes: ticketTypes.map((ticket) => ({
+          id: ticket.id.startsWith("new-") ? undefined : ticket.id,
+          name: ticket.name,
+          description: null,
+          price: Number(ticket.price),
+          capacity: Number(ticket.capacity),
+          ticketsGenerated: Number(ticket.ticketsGenerated),
+        })),
+      };
+
+      console.log(
+        "📤 Enviando datos con fechas correctas:",
+        JSON.stringify(requestBody, null, 2)
+      );
+
       const response = await fetch(`/api/events/${event.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -192,9 +232,11 @@ export default function EditEventForm({
       }
     } catch (error) {
       console.error("❌ Error en la solicitud:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Ocurrió un error inesperado."
-      );
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Ocurrió un error inesperado.");
+      }
     } finally {
       setLoading(false);
     }
@@ -294,6 +336,10 @@ export default function EditEventForm({
                     }
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Hora de Chile (se ajusta automáticamente por horario de
+                    verano)
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="endDate">Fin (opcional)</Label>
@@ -305,6 +351,9 @@ export default function EditEventForm({
                       handleInputChange("endDate", e.target.value)
                     }
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Hora de Chile
+                  </p>
                 </div>
               </div>
               <div>

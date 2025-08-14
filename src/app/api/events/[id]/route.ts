@@ -1,11 +1,12 @@
+// src/app/api/events/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent, getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-// Esquema para tipos de entrada en edición
+// ✅ VALIDACIÓN MEJORADA DE FECHAS
 const ticketTypeEditSchema = z.object({
-  id: z.string().optional(), // Para tipos existentes
+  id: z.string().optional(),
   name: z.string().min(1, 'El nombre del tipo de entrada es requerido').max(100),
   description: z.string().optional().nullable(),
   price: z.number().min(0, 'El precio no puede ser negativo'),
@@ -17,98 +18,118 @@ const updateEventSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(100, 'El título es demasiado largo'),
   description: z.string().optional().nullable(),
   location: z.string().min(1, 'La ubicación es requerida').max(200, 'La ubicación es demasiado larga'),
-  startDate: z.string(), // Aceptamos el string del formulario
+  startDate: z.string().refine((dateStr) => {
+    try {
+      const date = new Date(dateStr);
+      return !isNaN(date.getTime()) && date > new Date();
+    } catch {
+      return false;
+    }
+  }, 'La fecha de inicio debe ser válida y en el futuro'),
   endDate: z.string().optional().nullable(),
   categoryId: z.string().min(1, 'La categoría es requerida'),
   imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
   ticketTypes: z.array(ticketTypeEditSchema).min(1, 'Se requiere al menos un tipo de entrada.').optional(),
-})
-
-// ... (La función GET se mantiene igual)
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-  ) {
+}).refine((data) => {
+  if (data.endDate) {
     try {
-      const { id } = await params
-      
-      const event = await prisma.event.findUnique({
-        where: { id },
-        include: {
-          category: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          organizer: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
-          ticketTypes: {
-            include: {
-              _count: {
-                select: {
-                  tickets: true
-                }
-              }
-            }
-          },
-          _count: {
-            select: {
-              tickets: true,
-              orders: true
-            }
-          }
-        }
-      })
-  
-      if (!event) {
-        return NextResponse.json(
-          { error: 'Evento no encontrado' },
-          { status: 404 }
-        )
-      }
-  
-      const user = await getCurrentUser()
-      const isPublic = event.isPublished
-      const isOwner = user && event.organizerId === user.id
-      const isAdmin = user && user.role === 'ADMIN'
-  
-      if (!isPublic && !isOwner && !isAdmin) {
-        return NextResponse.json(
-          { error: 'No tienes permisos para ver este evento' },
-          { status: 403 }
-        )
-      }
-  
-      // Serializar fechas
-      const serializedEvent = {
-        ...event,
-        startDate: event.startDate.toISOString(),
-        endDate: event.endDate?.toISOString() || null,
-        createdAt: event.createdAt.toISOString(),
-        updatedAt: event.updatedAt.toISOString(),
-        ticketTypes: event.ticketTypes.map(tt => ({
-          ...tt,
-          createdAt: tt.createdAt.toISOString(),
-          updatedAt: tt.updatedAt.toISOString(),
-        }))
-      }
-  
-      return NextResponse.json({ event: serializedEvent })
-    } catch (error) {
-      console.error('Error fetching event:', error)
-      return NextResponse.json(
-        { error: 'Error interno del servidor' },
-        { status: 500 }
-      )
+      const startDate = new Date(data.startDate);
+      const endDate = new Date(data.endDate);
+      return endDate > startDate;
+    } catch {
+      return false;
     }
   }
+  return true;
+}, {
+  message: 'La fecha de fin debe ser posterior a la fecha de inicio',
+  path: ['endDate']
+});
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    
+    const event = await prisma.event.findUnique({
+      where: { id },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        organizer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        ticketTypes: {
+          include: {
+            _count: {
+              select: {
+                tickets: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            tickets: true,
+            orders: true
+          }
+        }
+      }
+    })
+
+    if (!event) {
+      return NextResponse.json(
+        { error: 'Evento no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    const user = await getCurrentUser()
+    const isPublic = event.isPublished
+    const isOwner = user && event.organizerId === user.id
+    const isAdmin = user && user.role === 'ADMIN'
+
+    if (!isPublic && !isOwner && !isAdmin) {
+      return NextResponse.json(
+        { error: 'No tienes permisos para ver este evento' },
+        { status: 403 }
+      )
+    }
+
+    // ✅ SERIALIZACIÓN CORRECTA DE FECHAS
+    const serializedEvent = {
+      ...event,
+      startDate: event.startDate.toISOString(),
+      endDate: event.endDate?.toISOString() || null,
+      createdAt: event.createdAt.toISOString(),
+      updatedAt: event.updatedAt.toISOString(),
+      ticketTypes: event.ticketTypes.map(tt => ({
+        ...tt,
+        createdAt: tt.createdAt.toISOString(),
+        updatedAt: tt.updatedAt.toISOString(),
+      }))
+    }
+
+    return NextResponse.json({ event: serializedEvent })
+  } catch (error) {
+    console.error('Error fetching event:', error)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
+  }
+}
 
 export async function PUT(
   request: NextRequest,
@@ -126,9 +147,12 @@ export async function PUT(
     }
 
     const body = await request.json();
+    console.log('📥 Datos recibidos en API:', JSON.stringify(body, null, 2));
+    
     const validation = updateEventSchema.safeParse(body);
 
     if (!validation.success) {
+      console.error('❌ Validación fallida:', validation.error.issues);
       return NextResponse.json(
         {
           error: "Datos inválidos",
@@ -140,22 +164,30 @@ export async function PUT(
 
     const { ticketTypes, ...eventData } = validation.data;
 
-    // *** INICIO DE LA CORRECCIÓN DE ZONA HORARIA ***
-    // El string del input 'datetime-local' no tiene timezone.
-    // Le añadimos el offset de Chile (CLT, UTC-4) para que new Date() lo interprete correctamente.
-    // NOTA: Esto no maneja el horario de verano (CLST, UTC-3) automáticamente. Para eso se necesitaría una librería.
-    const CHILE_OFFSET = "-04:00";
-    const startDate = new Date(eventData.startDate + CHILE_OFFSET);
-    const endDate = eventData.endDate ? new Date(eventData.endDate + CHILE_OFFSET) : null;
+    // ✅ CONVERSIÓN CORRECTA DE FECHAS
+    // Las fechas ya vienen en formato ISO desde el frontend
+    const startDate = new Date(eventData.startDate);
+    const endDate = eventData.endDate ? new Date(eventData.endDate) : null;
     
-    // Validamos las fechas después de convertirlas
+    console.log('📅 Fechas procesadas:', {
+      startDate: startDate.toISOString(),
+      endDate: endDate?.toISOString() || null,
+      startDateLocal: startDate.toLocaleString('es-CL', { timeZone: 'America/Santiago' }),
+      endDateLocal: endDate?.toLocaleString('es-CL', { timeZone: 'America/Santiago' }) || null
+    });
+
+    // Validaciones adicionales
+    if (isNaN(startDate.getTime())) {
+      return NextResponse.json({ error: "Fecha de inicio inválida" }, { status: 400 });
+    }
+
     if (startDate <= new Date()) {
       return NextResponse.json({ error: "La fecha de inicio debe ser en el futuro" }, { status: 400 });
     }
-    if (endDate && endDate <= startDate) {
+
+    if (endDate && (isNaN(endDate.getTime()) || endDate <= startDate)) {
       return NextResponse.json({ error: "La fecha de fin debe ser posterior a la de inicio" }, { status: 400 });
     }
-    // *** FIN DE LA CORRECCIÓN ***
 
     const category = await prisma.category.findUnique({
       where: { id: eventData.categoryId },
@@ -177,14 +209,15 @@ export async function PUT(
       }
 
       await prisma.$transaction(async (tx) => {
+        // ✅ ACTUALIZAR EVENTO CON FECHAS CORRECTAS
         await tx.event.update({
           where: { id },
           data: {
             title: eventData.title,
             description: eventData.description,
             location: eventData.location,
-            startDate: startDate, // Usamos la fecha corregida
-            endDate: endDate,     // Usamos la fecha corregida
+            startDate: startDate, // Ya es un objeto Date válido
+            endDate: endDate,     // Ya es un objeto Date válido o null
             categoryId: eventData.categoryId,
             capacity: totalCapacity,
             isFree: ticketTypes.every(tt => tt.price === 0),
@@ -254,13 +287,15 @@ export async function PUT(
       }
     });
 
+    console.log('✅ Evento actualizado exitosamente');
+
     return NextResponse.json({
       message: 'Evento actualizado exitosamente',
       event: finalEvent
     });
 
   } catch (error) {
-    console.error('Error updating event:', error);
+    console.error('❌ Error updating event:', error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
@@ -268,48 +303,45 @@ export async function PUT(
   }
 }
 
-
-// ... (La función DELETE se mantiene igual)
-
 export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-  ) {
-    try {
-      const { id } = await params
-      const { canAccess } = await canAccessEvent(id)
-      
-      if (!canAccess) {
-        return NextResponse.json(
-          { error: 'No tienes permisos para eliminar este evento' },
-          { status: 403 }
-        )
-      }
-  
-      const ticketsCount = await prisma.ticket.count({
-        where: { eventId: id }
-      })
-  
-      if (ticketsCount > 0) {
-        return NextResponse.json(
-          { error: `No se puede eliminar el evento porque tiene ${ticketsCount} ticket(s) vendido(s)` },
-          { status: 400 }
-        )
-      }
-  
-      await prisma.event.delete({
-        where: { id }
-      })
-  
-      return NextResponse.json({
-        message: 'Evento eliminado exitosamente'
-      })
-  
-    } catch (error) {
-      console.error('Error deleting event:', error)
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params
+    const { canAccess } = await canAccessEvent(id)
+    
+    if (!canAccess) {
       return NextResponse.json(
-        { error: 'Error interno del servidor' },
-        { status: 500 }
+        { error: 'No tienes permisos para eliminar este evento' },
+        { status: 403 }
       )
     }
+
+    const ticketsCount = await prisma.ticket.count({
+      where: { eventId: id }
+    })
+
+    if (ticketsCount > 0) {
+      return NextResponse.json(
+        { error: `No se puede eliminar el evento porque tiene ${ticketsCount} ticket(s) vendido(s)` },
+        { status: 400 }
+      )
+    }
+
+    await prisma.event.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({
+      message: 'Evento eliminado exitosamente'
+    })
+
+  } catch (error) {
+    console.error('Error deleting event:', error)
+    return NextResponse.json(
+      { error: 'Error interno del servidor' },
+      { status: 500 }
+    )
   }
+}

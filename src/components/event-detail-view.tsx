@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
-import { formatFullDateTime } from "@/lib/date"; // Importación actualizada
+import { formatFullDateTime } from "@/lib/date-utils"; // Importación actualizada
 
 // Define the props type for EventDetailView
 type EventDetailViewProps = {
