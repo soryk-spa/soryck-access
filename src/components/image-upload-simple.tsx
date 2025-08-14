@@ -67,7 +67,7 @@ export default function SimpleImageUpload({
           setUploading(true);
         }}
         appearance={{
-          button: "bg-primary hover:bg-primary/90 text-primary-foreground",
+          button: "bg-primary hover:bg-primary/90 text-primary-foreground p-2 dark:bg-primary/80 dark:text-primary-foreground dark:hover:bg-primary/70",
           allowedContent: "text-muted-foreground text-sm",
         }}
         content={{

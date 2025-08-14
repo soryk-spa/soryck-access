@@ -235,7 +235,9 @@ export default function EditEventForm({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="title">Título del evento *</Label>
+                <Label htmlFor="title" className="mb-2">
+                  Título del evento *
+                </Label>
                 <Input
                   id="title"
                   type="text"
@@ -245,7 +247,9 @@ export default function EditEventForm({
                 />
               </div>
               <div>
-                <Label htmlFor="description">Descripción</Label>
+                <Label htmlFor="description" className="mb-2">
+                  Descripción
+                </Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -256,7 +260,9 @@ export default function EditEventForm({
                 />
               </div>
               <div>
-                <Label htmlFor="category">Categoría *</Label>
+                <Label htmlFor="category" className="mb-2">
+                  Categoría *
+                </Label>
                 <Select
                   value={formData.categoryId}
                   onValueChange={(value) =>
@@ -289,7 +295,9 @@ export default function EditEventForm({
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="startDate">Inicio *</Label>
+                  <Label htmlFor="startDate" className="mb-2">
+                    Inicio *
+                  </Label>
                   <Input
                     id="startDate"
                     type="datetime-local"
@@ -301,7 +309,9 @@ export default function EditEventForm({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="endDate">Fin (opcional)</Label>
+                  <Label htmlFor="endDate" className="mb-2">
+                    Fin (opcional)
+                  </Label>
                   <Input
                     id="endDate"
                     type="datetime-local"
@@ -313,7 +323,9 @@ export default function EditEventForm({
                 </div>
               </div>
               <div>
-                <Label htmlFor="location">Ubicación *</Label>
+                <Label htmlFor="location" className="mb-2">
+                  Ubicación *
+                </Label>
                 <Input
                   id="location"
                   type="text"
@@ -359,7 +371,7 @@ export default function EditEventForm({
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`ticketName-${index}`}>
+                      <Label htmlFor={`ticketName-${index}`} className="mb-2">
                         Nombre del Ticket *
                       </Label>
                       <Input
@@ -374,7 +386,7 @@ export default function EditEventForm({
                       />
                     </div>
                     <div>
-                      <Label htmlFor={`ticketPrice-${index}`}>
+                      <Label htmlFor={`ticketPrice-${index}`} className="mb-2">
                         Precio (CLP) *
                       </Label>
                       <Input
@@ -392,7 +404,10 @@ export default function EditEventForm({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor={`ticketCapacity-${index}`}>
+                      <Label
+                        htmlFor={`ticketCapacity-${index}`}
+                        className="mb-2"
+                      >
                         Cantidad Disponible *
                       </Label>
                       <Input
@@ -418,7 +433,10 @@ export default function EditEventForm({
                       )}
                     </div>
                     <div>
-                      <Label htmlFor={`ticketsGenerated-${index}`}>
+                      <Label
+                        htmlFor={`ticketsGenerated-${index}`}
+                        className="mb-2"
+                      >
                         Entradas por Venta *
                       </Label>
                       <Input
