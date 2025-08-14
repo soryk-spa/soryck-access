@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter} from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -86,7 +86,7 @@ interface Filters {
   isFree: string;
   sortBy: string;
   sortOrder: string;
-  page: string;
+  page?: string; // ✅ Agregar page como opcional
 }
 
 interface PublicEventsListProps {
@@ -103,6 +103,7 @@ export default function PublicEventsList({
   initialFilters,
 }: PublicEventsListProps) {
   const router = useRouter();
+
 
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [pagination, setPagination] = useState<Pagination>(initialPagination);
@@ -161,7 +162,7 @@ export default function PublicEventsList({
   };
 
   const clearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters: Filters = {
       search: "",
       categoryId: "",
       location: "",
@@ -172,6 +173,7 @@ export default function PublicEventsList({
       isFree: "all",
       sortBy: "startDate",
       sortOrder: "asc",
+      page: "1", // ✅ Incluir page en los filtros limpiados
     };
     updateFilters(clearedFilters);
   };
@@ -180,10 +182,14 @@ export default function PublicEventsList({
     updateFilters({ page: page.toString() }, false);
   };
 
-  const hasActiveFilters = Object.values(filters).some((value, index) => {
-    const keys = Object.keys(filters);
-    const key = keys[index];
-    return value && value !== "all" && key !== "sortBy" && key !== "sortOrder";
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    return (
+      value &&
+      value !== "all" &&
+      key !== "sortBy" &&
+      key !== "sortOrder" &&
+      key !== "page"
+    ); // ✅ Excluir page de los filtros activos
   });
 
   return (

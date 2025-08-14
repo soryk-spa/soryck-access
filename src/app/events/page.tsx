@@ -231,6 +231,7 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
     isFree: params.isFree || "all",
     sortBy: params.sortBy || "startDate",
     sortOrder: params.sortOrder || "asc",
+    page: params.page || "1", // ✅ Agregar esta línea
   };
 
   return (
