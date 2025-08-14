@@ -1,10 +1,12 @@
-// src/lib/date.ts - ACTUALIZADO
+// src/lib/date.ts - REEMPLAZA EL CONTENIDO EXISTENTE
 /**
  * Utilidades de fecha mejoradas que manejan correctamente la zona horaria de Chile
+ * Mantiene compatibilidad con los componentes existentes
  */
 
 /**
  * Formatea una fecha completa con día, fecha y hora
+ * Mejorado para manejar correctamente la zona horaria de Chile
  */
 export const formatFullDateTime = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -22,6 +24,7 @@ export const formatFullDateTime = (date: Date | string): string => {
 
 /**
  * Formatea solo la fecha (sin hora)
+ * Mejorado para manejar correctamente la zona horaria de Chile
  */
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -37,6 +40,7 @@ export const formatDate = (date: Date | string): string => {
 
 /**
  * Formatea solo la hora
+ * Mejorado para manejar correctamente la zona horaria de Chile
  */
 export const formatTime = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
