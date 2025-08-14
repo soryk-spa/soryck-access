@@ -8,27 +8,24 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  clerkId      String   @unique
-  email        String   @unique
-  firstName    String?
-  lastName     String?
-  imageUrl     String?
-  role         UserRole @default(CLIENT)
-  producerName String?
-  bio          String?
-  websiteUrl   String?
-  twitterUrl   String?
-  instagramUrl String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  organizedEvents Event[]       @relation("EventOrganizer")
-  tickets         Ticket[]
-  orders          Order[]
-  roleRequests    RoleRequest[]
-
+  id               String         @id @default(cuid())
+  clerkId          String         @unique
+  email            String         @unique
+  firstName        String?
+  lastName         String?
+  imageUrl         String?
+  role             UserRole       @default(CLIENT)
+  producerName     String?
+  bio              String?
+  websiteUrl       String?
+  twitterUrl       String?
+  instagramUrl     String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  organizedEvents  Event[]        @relation("EventOrganizer")
+  tickets          Ticket[]
+  orders           Order[]
+  roleRequests     RoleRequest[]
   assignedEvents   EventScanner[] @relation("ScannerEvents")
   assignedScanners EventScanner[] @relation("AssignedBy")
 
@@ -41,8 +38,7 @@ model Category {
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  events Event[]
+  events      Event[]
 
   @@map("categories")
 }
@@ -56,41 +52,39 @@ model EventScanner {
   isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-
-  event    Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  scanner  User  @relation("ScannerEvents", fields: [scannerId], references: [id], onDelete: Cascade)
-  assigner User  @relation("AssignedBy", fields: [assignedBy], references: [id], onDelete: Cascade)
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanner    User     @relation("ScannerEvents", fields: [scannerId], references: [id], onDelete: Cascade)
+  assigner   User     @relation("AssignedBy", fields: [assignedBy], references: [id], onDelete: Cascade)
 
   @@unique([eventId, scannerId])
   @@map("event_scanners")
 }
 
 model Event {
-  id               String    @id @default(cuid())
+  id               String         @id @default(cuid())
   title            String
   description      String?
   imageUrl         String?
   location         String
   startDate        DateTime
   endDate          DateTime?
-  price            Float     @default(0)
-  currency         String    @default("CLP")
+  price            Float          @default(0)
+  currency         String         @default("CLP")
   capacity         Int
-  isPublished      Boolean   @default(false)
-  isFree           Boolean   @default(false)
+  isPublished      Boolean        @default(false)
+  isFree           Boolean        @default(false)
   totalRevenue     Float?
   totalCommissions Float?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  organizerId String
-  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  tickets     Ticket[]
-  orders      Order[]
-
-  scanners EventScanner[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  organizerId      String
+  organizer        User           @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  categoryId       String
+  category         Category       @relation(fields: [categoryId], references: [id])
+  tickets          Ticket[]
+  orders           Order[]
+  ticketTypes      TicketType[]
+  scanners         EventScanner[]
 
   @@map("events")
 }
@@ -104,14 +98,34 @@ model Ticket {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
-  eventId String
-  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  userId  String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  eventId      String
+  event        Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId      String
+  order        Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  ticketTypeId String?
+  ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
 
   @@map("tickets")
+}
+
+model TicketType {
+  id               String           @id @default(cuid())
+  name             String
+  description      String?
+  price            Float
+  currency         String           @default("CLP")
+  capacity         Int
+  ticketsGenerated Int              @default(1)
+  status           TicketTypeStatus @default(AVAILABLE)
+  eventId          String
+  event            Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets          Ticket[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("ticket_types")
 }
 
 model Payment {
@@ -135,26 +149,24 @@ model Payment {
 }
 
 model Order {
-  id               String      @id @default(cuid())
-  orderNumber      String      @unique
+  id               String       @id @default(cuid())
+  orderNumber      String       @unique
   totalAmount      Float
   baseAmount       Float?
   commissionAmount Float?
-  currency         String      @default("CLP")
+  currency         String       @default("CLP")
   quantity         Int
-  status           OrderStatus @default(PENDING)
-  paymentIntentId  String?     @unique
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-
-  userId  String
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventId String
-  event   Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  tickets Ticket[]
-
-  payment    Payment?
-  Commission Commission[]
+  status           OrderStatus  @default(PENDING)
+  paymentIntentId  String?      @unique
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId          String
+  event            Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tickets          Ticket[]
+  payment          Payment?
+  Commission       Commission[]
 
   @@map("orders")
 }
@@ -176,17 +188,15 @@ model RoleRequest {
 }
 
 model Commission {
-  id      String @id @default(cuid())
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
+  id         String         @id @default(cuid())
+  orderId    String
+  order      Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   type       CommissionType @default(PLATFORM_FEE)
   baseAmount Float
   rate       Float
   amount     Float
   currency   String         @default("CLP")
-
-  status String @default("PENDING")
+  status     String         @default("PENDING")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -205,6 +215,12 @@ enum RoleRequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum TicketTypeStatus {
+  AVAILABLE
+  SOLD_OUT
+  HIDDEN
 }
 
 enum TicketStatus {

@@ -1,7 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,32 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Calendar,
-  MapPin,
-  Users,
-  DollarSign,
   Loader2,
-  AlertTriangle,
   Save,
-  ArrowLeft,
-  Eye,
-  EyeOff,
   Trash2,
-  Info,
-  Clock,
-  CheckCircle,
-  ImageIcon,
+  Ticket,
+  PlusCircle,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
+import { toast } from "sonner";
 
 interface Category {
   id: string;
@@ -51,10 +32,18 @@ interface Category {
 
 interface User {
   id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
   role: UserRole;
+}
+
+interface TicketType {
+  id: string;
+  name: string;
+  price: number;
+  capacity: number;
+  ticketsGenerated: number;
+  _count: {
+    tickets: number;
+  };
 }
 
 interface Event {
@@ -65,27 +54,12 @@ interface Event {
   location: string;
   startDate: string;
   endDate: string | null;
-  price: number;
-  currency: string;
-  capacity: number;
   isPublished: boolean;
-  isFree: boolean;
   createdAt: string;
   updatedAt: string;
-  category: {
-    id: string;
-    name: string;
-  };
-  organizer: {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    email: string;
-  };
-  _count: {
-    tickets: number;
-    orders: number;
-  };
+  category: { id: string; name: string };
+  _count: { tickets: number };
+  ticketTypes: TicketType[];
 }
 
 interface EditEventFormProps {
@@ -100,287 +74,138 @@ export default function EditEventForm({
 }: EditEventFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [publishLoading, setPublishLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState<string[]>([]);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  const getDateTimeValues = (dateString: string | null) => {
-    if (!dateString) return { date: "", time: "" };
-    const date = new Date(dateString);
-    const dateStr = date.toISOString().split("T")[0];
-    const timeStr = date.toTimeString().slice(0, 5);
-    return { date: dateStr, time: timeStr };
-  };
-
-  const startDateTime = getDateTimeValues(event.startDate);
-  const endDateTime = getDateTimeValues(event.endDate);
 
   const [formData, setFormData] = useState({
     title: event.title,
     description: event.description || "",
     location: event.location,
-    startDate: startDateTime.date,
-    startTime: startDateTime.time,
-    endDate: endDateTime.date,
-    endTime: endDateTime.time,
+    startDate: new Date(event.startDate).toISOString().slice(0, 16),
+    endDate: event.endDate
+      ? new Date(event.endDate).toISOString().slice(0, 16)
+      : "",
     categoryId: event.category.id,
-    capacity: event.capacity,
-    price: event.price,
-    isFree: event.isFree,
     imageUrl: event.imageUrl || "",
   });
 
-  const combineDateTime = (date: string, time: string) => {
-    if (!date) return "";
-    if (!time) return `${date}T00:00:00`;
-    return `${date}T${time}:00`;
+  const [ticketTypes, setTicketTypes] = useState<TicketType[]>(
+    event.ticketTypes
+  );
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const hasTicketsSold = event._count.tickets > 0;
+  const handleTicketTypeChange = (
+    index: number,
+    field: keyof Omit<TicketType, "id" | "_count" | "createdAt" | "updatedAt">,
+    value: string | number
+  ) => {
+    const newTicketTypes = [...ticketTypes];
+    // Explicitly handle the type for each field
+    if (field === "name") {
+      newTicketTypes[index][field] = value as string;
+    } else if (field === "price" || field === "capacity" || field === "ticketsGenerated") {
+      newTicketTypes[index][field] = typeof value === "string" ? Number(value) : value;
+    }
+    setTicketTypes(newTicketTypes);
+  };
 
-  const handleSubmit = async () => {
+  const addTicketType = () => {
+    const tempId = `new-${Date.now()}`;
+    setTicketTypes([
+      ...ticketTypes,
+      {
+        id: tempId,
+        name: "",
+        price: 0,
+        capacity: 50,
+        ticketsGenerated: 1,
+        _count: { tickets: 0 },
+      },
+    ]);
+  };
+
+  const removeTicketType = (index: number) => {
+    if (ticketTypes.length <= 1) {
+      toast.error("Debes tener al menos un tipo de entrada.");
+      return;
+    }
+    const ticketToRemove = ticketTypes[index];
+    if (ticketToRemove._count.tickets > 0) {
+      toast.error(
+        "No puedes eliminar un tipo de entrada que ya tiene tickets vendidos."
+      );
+      return;
+    }
+    setTicketTypes(ticketTypes.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-    setFormErrors([]);
+
+    const body = {
+      ...formData,
+      startDate: new Date(formData.startDate).toISOString(),
+      endDate: formData.endDate
+        ? new Date(formData.endDate).toISOString()
+        : null,
+      ticketTypes: ticketTypes.map((ticket) => ({
+        ...ticket,
+        id: ticket.id.startsWith("new-") ? undefined : ticket.id,
+      })),
+    };
 
     try {
-      const startDateTimeString = combineDateTime(
-        formData.startDate,
-        formData.startTime
-      );
-      const endDateTimeString = formData.endDate
-        ? combineDateTime(formData.endDate, formData.endTime)
-        : undefined;
-
-      const startDateISO = startDateTimeString
-        ? new Date(startDateTimeString).toISOString()
-        : undefined;
-      const endDateISO = endDateTimeString
-        ? new Date(endDateTimeString).toISOString()
-        : undefined;
-
-      const eventData = {
-        title: formData.title,
-        description: formData.description || undefined,
-        location: formData.location,
-        startDate: startDateISO,
-        endDate: endDateISO,
-        categoryId: formData.categoryId,
-        capacity: formData.capacity,
-        price: formData.price,
-        isFree: formData.isFree,
-        imageUrl: formData.imageUrl || undefined,
-      };
-
       const response = await fetch(`/api/events/${event.id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-
-      const result = await response.json();
-
-      interface ErrorDetail {
-        message: string;
-        [key: string]: unknown;
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Evento actualizado con éxito!");
+        router.push(`/events/${event.id}`);
+        router.refresh();
+      } else {
+        throw new Error(data.error || "No se pudo actualizar el evento.");
       }
-
-      if (!response.ok) {
-        if (result.details) {
-          setFormErrors(result.details.map((err: ErrorDetail) => err.message));
-        } else {
-          setFormErrors([result.error || "Error al actualizar el evento"]);
-        }
-        return;
-      }
-
-      router.push(`/events/${event.id}`);
     } catch (error) {
-      console.error("Error updating event:", error);
-      setFormErrors(["Error de conexión"]);
+      toast.error(
+        error instanceof Error ? error.message : "Ocurrió un error inesperado."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePublishToggle = async () => {
-    setPublishLoading(true);
-
-    try {
-      const response = await fetch(`/api/events/${event.id}/publish`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          isPublished: !event.isPublished,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setFormErrors([
-          result.error || "Error al cambiar estado de publicación",
-        ]);
-        return;
-      }
-
-      router.refresh();
-    } catch (error) {
-      console.error("Error toggling publish status:", error);
-      setFormErrors(["Error de conexión"]);
-    } finally {
-      setPublishLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setDeleteLoading(true);
-
-    try {
-      const response = await fetch(`/api/events/${event.id}`, {
-        method: "DELETE",
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setFormErrors([result.error || "Error al eliminar el evento"]);
-        setDeleteLoading(false);
-        return;
-      }
-      router.push("/dashboard/events");
-    } catch (error) {
-      console.error("Error deleting event:", error);
-      setFormErrors(["Error de conexión"]);
-      setDeleteLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (formData.price === 0) {
-      setFormData((prev) => ({ ...prev, isFree: true }));
-    } else if (formData.price > 0) {
-      setFormData((prev) => ({ ...prev, isFree: false }));
-    }
-  }, [formData.price]);
-
   function handleImageChange(imageUrl: string): void {
     setFormData((prev) => ({ ...prev, imageUrl }));
   }
 
+  const totalCapacity = ticketTypes.reduce(
+    (sum, type) => sum + type.capacity * type.ticketsGenerated,
+    0
+  );
+
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/events/${event.id}`}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver al Evento
-            </Link>
-          </Button>
-
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Editar Evento
-            </h1>
-            <p className="text-muted-foreground flex items-center gap-2 mt-1">
-              <Calendar className="h-4 w-4" />
-              Creado: {new Date(event.createdAt).toLocaleDateString()}
-              <Clock className="h-4 w-4 ml-2" />
-              Actualizado: {new Date(event.updatedAt).toLocaleDateString()}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Editar Evento</h1>
         </div>
-
         <div className="flex items-center space-x-3">
           <Badge variant={event.isPublished ? "default" : "secondary"}>
-            {event.isPublished ? (
-              <>
-                <Eye className="w-3 h-3 mr-1" />
-                Publicado
-              </>
-            ) : (
-              <>
-                <EyeOff className="w-3 h-3 mr-1" />
-                Borrador
-              </>
-            )}
+            {event.isPublished ? "Publicado" : "Borrador"}
           </Badge>
-
-          <Button
-            variant={event.isPublished ? "outline" : "default"}
-            onClick={handlePublishToggle}
-            disabled={publishLoading}
-            className={
-              event.isPublished
-                ? ""
-                : "bg-gradient-to-r from-[#0053CC] to-[#01CBFE]"
-            }
-          >
-            {publishLoading && (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            )}
-            {event.isPublished ? (
-              <>
-                <EyeOff className="w-4 h-4 mr-2" />
-                Despublicar
-              </>
-            ) : (
-              <>
-                <Eye className="w-4 h-4 mr-2" />
-                Publicar
-              </>
-            )}
-          </Button>
         </div>
       </div>
 
-      {hasTicketsSold && (
-        <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200">
-              <AlertTriangle className="h-4 w-4" />
-              <div>
-                <p className="font-medium">Evento con tickets vendidos</p>
-                <p className="text-sm">
-                  Este evento tiene {event._count.tickets} ticket(s) vendidos.
-                  Ten cuidado al hacer cambios importantes como fecha, ubicación
-                  o capacidad.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {formErrors.length > 0 && (
-        <Card className="border-destructive/20 bg-destructive/10">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-destructive text-sm mb-2">
-              <AlertTriangle className="h-4 w-4" />
-              <span>Por favor corrige los siguientes errores:</span>
-            </div>
-            <ul className="text-sm text-destructive space-y-1">
-              {formErrors.map((error, index) => (
-                <li key={index}>• {error}</li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Información Básica
-              </CardTitle>
+              <CardTitle>Información Básica</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -388,391 +213,243 @@ export default function EditEventForm({
                 <Input
                   id="title"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Ej: Concierto de Rock en Vivo"
-                  maxLength={100}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                  required
                 />
               </div>
-
               <div>
                 <Label htmlFor="description">Descripción</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
                   onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
+                    handleInputChange("description", e.target.value)
                   }
-                  placeholder="Describe tu evento, qué pueden esperar los asistentes..."
                   rows={4}
-                  maxLength={500}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {formData.description.length}/500 caracteres
-                </p>
               </div>
-
               <div>
                 <Label htmlFor="category">Categoría *</Label>
                 <Select
                   value={formData.categoryId}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, categoryId: value })
+                    handleInputChange("categoryId", value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecciona una categoría" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-3">
-                <Label htmlFor="imageUrl">Imagen del evento (opcional)</Label>
-                <ImageUpload
-                  currentImageUrl={formData.imageUrl}
-                  onImageChange={handleImageChange}
-                />
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>• Los eventos con imágenes obtienen 40% más clicks</p>
-                  <p>• Formatos permitidos: PNG, JPG, WebP (máx 4MB)</p>
-                  <p>• Se recomienda una proporción 16:9 o 3:2</p>
-                </div>
-
-                {formData.imageUrl ? (
-                  <div className="flex items-center gap-2 text-sm text-green-600">
-                    <CheckCircle className="h-4 w-4" />
-                    Imagen cargada y lista para usar
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <ImageIcon className="h-4 w-4" />
-                    Sin imagen - se usará una imagen por defecto
-                  </div>
-                )}
-              </div>
+              <ImageUpload
+                currentImageUrl={formData.imageUrl}
+                onImageChange={handleImageChange}
+              />
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Ubicación y Fechas
-              </CardTitle>
+              <CardTitle>Fecha y Ubicación</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startDate">Inicio *</Label>
+                  <Input
+                    id="startDate"
+                    type="datetime-local"
+                    value={formData.startDate}
+                    onChange={(e) =>
+                      handleInputChange("startDate", e.target.value)
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endDate">Fin (opcional)</Label>
+                  <Input
+                    id="endDate"
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={(e) =>
+                      handleInputChange("endDate", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
               <div>
                 <Label htmlFor="location">Ubicación *</Label>
                 <Input
                   id="location"
                   value={formData.location}
                   onChange={(e) =>
-                    setFormData({ ...formData, location: e.target.value })
+                    handleInputChange("location", e.target.value)
                   }
-                  placeholder="Ej: Teatro Municipal, Valdivia"
-                  maxLength={200}
+                  required
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="startDate">Fecha de inicio *</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startDate: e.target.value })
-                    }
-                    min={
-                      hasTicketsSold
-                        ? undefined
-                        : new Date().toISOString().split("T")[0]
-                    }
-                  />
-                  {hasTicketsSold && (
-                    <p className="text-xs text-yellow-600 mt-1">
-                      ⚠️ Cuidado: hay tickets vendidos
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="startTime">Hora de inicio</Label>
-                  <Input
-                    id="startTime"
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startTime: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="endDate">Fecha de fin (opcional)</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endDate: e.target.value })
-                    }
-                    min={
-                      formData.startDate ||
-                      new Date().toISOString().split("T")[0]
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="endTime">Hora de fin</Label>
-                  <Input
-                    id="endTime"
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endTime: e.target.value })
-                    }
-                    disabled={!formData.endDate}
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Capacidad
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="capacity">Capacidad máxima *</Label>
-                  <Input
-                    id="capacity"
-                    type="number"
-                    min={hasTicketsSold ? event._count.tickets : 1}
-                    max="100000"
-                    value={formData.capacity}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        capacity: parseInt(e.target.value) || 1,
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {hasTicketsSold ? (
-                      <span className="text-yellow-600">
-                        ⚠️ Mínimo {event._count.tickets} (tickets vendidos)
-                      </span>
-                    ) : (
-                      "Número máximo de asistentes"
-                    )}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Precio
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="price">Precio por ticket (CLP) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    min="0"
-                    max="1000000"
-                    step="1"
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        price: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.isFree
-                      ? "✅ Evento gratuito"
-                      : `💰 Precio: ${formData.price.toLocaleString(
-                          "es-CL"
-                        )} CLP`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Sidebar con acciones */}
-        <div className="space-y-6">
-          {/* Vista previa del evento */}
           <Card>
             <CardHeader>
-              <CardTitle>Vista Previa</CardTitle>
+              <CardTitle className="flex justify-between items-center">
+                <span>
+                  <Ticket className="inline mr-2 h-5 w-5" />
+                  Tipos de Entrada
+                </span>
+                <Badge variant="secondary">
+                  Capacidad Total: {totalCapacity}
+                </Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-center">
-                <h3 className="font-bold text-lg">
-                  {formData.title || "Título del evento"}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {formData.location || "Ubicación"}
-                </p>
-                <p className="text-lg font-bold text-[#0053CC] mt-2">
-                  {formData.isFree
-                    ? "Gratis"
-                    : `${formData.price.toLocaleString("es-CL")} CLP`}
-                </p>
-              </div>
-
-              <div className="text-xs text-muted-foreground space-y-1">
-                <p>
-                  📅 {formData.startDate || "Sin fecha"}{" "}
-                  {formData.startTime || "00:00"}
-                </p>
-                <p>👥 {formData.capacity} personas máximo</p>
-                <p>🎫 {event._count.tickets} tickets vendidos</p>
-              </div>
-
-              <Button asChild size="sm" className="w-full" variant="outline">
-                <Link href={`/events/${event.id}`}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  Ver Evento Completo
-                </Link>
+              {ticketTypes.map((ticket, index) => (
+                <div
+                  key={ticket.id}
+                  className="space-y-4 border p-4 rounded-lg relative"
+                >
+                  {ticketTypes.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-7 w-7"
+                      onClick={() => removeTicketType(index)}
+                      disabled={ticket._count.tickets > 0}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`ticketName-${index}`}>
+                        Nombre del Ticket *
+                      </Label>
+                      <Input
+                        id={`ticketName-${index}`}
+                        value={ticket.name}
+                        onChange={(e) =>
+                          handleTicketTypeChange(index, "name", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`ticketPrice-${index}`}>
+                        Precio (CLP) *
+                      </Label>
+                      <Input
+                        id={`ticketPrice-${index}`}
+                        type="number"
+                        value={ticket.price}
+                        onChange={(e) =>
+                          handleTicketTypeChange(index, "price", e.target.value)
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`ticketCapacity-${index}`}>
+                        Cantidad Disponible *
+                      </Label>
+                      <Input
+                        id={`ticketCapacity-${index}`}
+                        type="number"
+                        value={ticket.capacity}
+                        min={ticket._count.tickets}
+                        onChange={(e) =>
+                          handleTicketTypeChange(
+                            index,
+                            "capacity",
+                            e.target.value
+                          )
+                        }
+                        required
+                      />
+                      {ticket._count.tickets > 0 && (
+                        <p className="text-xs text-yellow-600 mt-1">
+                          ⚠️ {ticket._count.tickets} vendidos. Mínimo{" "}
+                          {ticket._count.tickets}.
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor={`ticketsGenerated-${index}`}>
+                        Entradas por Venta *
+                      </Label>
+                      <Input
+                        id={`ticketsGenerated-${index}`}
+                        type="number"
+                        value={ticket.ticketsGenerated}
+                        onChange={(e) =>
+                          handleTicketTypeChange(
+                            index,
+                            "ticketsGenerated",
+                            e.target.value
+                          )
+                        }
+                        required
+                        disabled={ticket._count.tickets > 0}
+                      />
+                      {ticket._count.tickets > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          No se puede cambiar.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={addTicketType}
+              >
+                <PlusCircle className="w-4 h-4 mr-2" /> Añadir tipo de entrada
               </Button>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Estadísticas */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Estadísticas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Tickets vendidos:
-                </span>
-                <span className="font-medium">{event._count.tickets}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">Órdenes:</span>
-                <span className="font-medium">{event._count.orders}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Disponibles:
-                </span>
-                <span className="font-medium">
-                  {event.capacity - event._count.tickets}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Ocupación:
-                </span>
-                <span className="font-medium">
-                  {Math.round((event._count.tickets / event.capacity) * 100)}%
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Acciones */}
+        <div className="lg:sticky top-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Acciones</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button
-                onClick={handleSubmit}
-                disabled={
-                  loading ||
-                  !formData.title ||
-                  !formData.location ||
-                  !formData.startDate ||
-                  !formData.categoryId
-                }
-                className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE]"
-              >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                <Save className="w-4 h-4 mr-2" />
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
                 Guardar Cambios
               </Button>
-
-              <Dialog
-                open={showDeleteDialog}
-                onOpenChange={setShowDeleteDialog}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => router.back()}
+                disabled={loading}
               >
-                <DialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    disabled={hasTicketsSold}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Eliminar Evento
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>¿Eliminar evento?</DialogTitle>
-                    <DialogDescription>
-                      Esta acción no se puede deshacer. El evento &quot;
-                      {event.title}&quot; será eliminado permanentemente.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowDeleteDialog(false)}
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={deleteLoading}
-                    >
-                      {deleteLoading && (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      )}
-                      Eliminar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {hasTicketsSold && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <Info className="h-3 w-3" />
-                    <span>No se puede eliminar: hay tickets vendidos</span>
-                  </div>
-                </div>
-              )}
+                Cancelar
+              </Button>
             </CardContent>
           </Card>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

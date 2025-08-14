@@ -6,6 +6,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 
+/**
+ * Interfaz para los tipos de entrada que se esperan del backend.
+ * Solo necesitamos el precio y la moneda para la lógica de visualización.
+ */
+interface TicketTypeInfo {
+  price: number;
+  currency: string;
+  capacity: number; // Incluido para futuros cálculos de capacidad total
+}
+
+/**
+ * Interfaz actualizada para las props del EventCard.
+ * Ahora espera un array `ticketTypes` en lugar de `price` y `isFree`.
+ */
 interface EventCardProps {
   event: {
     id: string;
@@ -14,10 +28,6 @@ interface EventCardProps {
     startDate: string;
     endDate?: string;
     location: string;
-    price: number;
-    currency: string;
-    isFree: boolean;
-    capacity: number;
     imageUrl?: string;
     isPublished: boolean;
     category: {
@@ -34,25 +44,63 @@ interface EventCardProps {
       tickets: number;
       orders: number;
     };
+    ticketTypes: TicketTypeInfo[]; // <-- CAMBIO CLAVE
   };
   showOrganizerInfo?: boolean;
   showManageButtons?: boolean;
 }
 
+/**
+ * Función auxiliar para determinar qué texto de precio mostrar
+ * basado en los tipos de entrada disponibles.
+ */
+function getEventPriceDisplay(ticketTypes: TicketTypeInfo[]): string {
+  if (!ticketTypes || ticketTypes.length === 0) {
+    return "No disponible";
+  }
+
+  // Se calcula el precio final para cada tipo de entrada, incluyendo la comisión.
+  const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+  const currency = ticketTypes[0]?.currency || "CLP";
+
+  // Si todos los tickets son gratuitos.
+  if (minPrice === 0 && maxPrice === 0) {
+    return "Gratis";
+  }
+
+  // Si solo hay un precio (o todos tienen el mismo precio).
+  if (minPrice === maxPrice) {
+    return formatPrice(minPrice, currency);
+  }
+
+  // Si hay entradas gratuitas y de pago.
+  if (minPrice === 0) {
+    return `Desde Gratis`;
+  }
+
+  // Si hay un rango de precios.
+  return `Desde ${formatPrice(minPrice, currency)}`;
+}
+
 export default function EventCard({
   event,
   showOrganizerInfo = false,
-  showManageButtons = false,
 }: EventCardProps) {
   const startDate = new Date(event.startDate);
   const now = new Date();
-  const isUpcoming = startDate > now;
   const isPast = startDate < now;
-  const availableTickets = event.capacity - event._count.tickets;
+
+  const totalCapacity = event.ticketTypes.reduce(
+    (sum, type) => sum + (type.capacity || 0),
+    0
+  );
+  const availableTickets = totalCapacity - event._count.tickets;
   const isSoldOut = availableTickets <= 0;
 
-  const finalPrice = event.isFree ? 0 : calculateTotalPrice(event.price);
-  const displayPrice = formatPrice(finalPrice, event.currency);
+  // Llama a la nueva función para obtener el texto del precio.
+  const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
   const organizerName = event.organizer.firstName
     ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
@@ -108,10 +156,10 @@ export default function EventCard({
                 Finalizado
               </Badge>
             )}
-            {isSoldOut && isUpcoming && (
+            {isSoldOut && !isPast && (
               <Badge variant="destructive">Agotado</Badge>
             )}
-            {availableTickets <= 10 && availableTickets > 0 && isUpcoming && (
+            {availableTickets <= 10 && availableTickets > 0 && !isPast && (
               <Badge
                 variant="outline"
                 className="bg-orange-100 text-orange-700 border-orange-300"
@@ -126,17 +174,9 @@ export default function EventCard({
           <Badge variant="outline" className="w-fit">
             {event.category.name}
           </Badge>
-
           <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
             {event.title}
           </h3>
-
-          {event.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {event.description}
-            </p>
-          )}
-
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
@@ -144,12 +184,10 @@ export default function EventCard({
                 {dateInfo.weekday}, {dateInfo.time}
               </span>
             </div>
-
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span className="line-clamp-1">{event.location}</span>
             </div>
-
             {showOrganizerInfo && (
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
@@ -161,21 +199,23 @@ export default function EventCard({
           <div className="flex items-center justify-between pt-2">
             <div>
               <div className="text-lg font-bold">{displayPrice}</div>
-              {!event.isFree && (
-                <div className="text-xs text-muted-foreground">
-                  Precio final
-                </div>
-              )}
+              {displayPrice !== "Gratis" &&
+                displayPrice !== "No disponible" && (
+                  <div className="text-xs text-muted-foreground">
+                    Precio final
+                  </div>
+                )}
             </div>
-
             <div className="text-right text-sm">
-              {isUpcoming && (
+              {!isPast && (
                 <>
                   <div className="font-medium">
-                    {availableTickets} disponibles
+                    {availableTickets > 0
+                      ? `${availableTickets} disponibles`
+                      : "0 disponibles"}
                   </div>
                   <div className="text-muted-foreground">
-                    de {event.capacity} tickets
+                    de {totalCapacity} tickets
                   </div>
                 </>
               )}
@@ -188,46 +228,16 @@ export default function EventCard({
           </div>
 
           <div className="flex gap-2 pt-2">
-            {showManageButtons ? (
-              <>
-                <Button asChild variant="outline" className="flex-1">
-                  <Link href={`/events/${event.id}/edit`}>Editar</Link>
-                </Button>
-                <Button asChild className="flex-1">
-                  <Link href={`/events/${event.id}`}>Ver</Link>
-                </Button>
-              </>
-            ) : (
-              <Button
-                asChild
-                className="w-full"
-                disabled={isSoldOut && isUpcoming}
-              >
-                <Link href={`/events/${event.id}`}>
-                  {isPast
-                    ? "Ver detalles"
-                    : isSoldOut
+            <Button asChild className="w-full" disabled={isSoldOut && !isPast}>
+              <Link href={`/events/${event.id}`}>
+                {isPast
+                  ? "Ver detalles"
+                  : isSoldOut
                     ? "Agotado"
-                    : event.isFree
-                    ? "Registrarse gratis"
-                    : `Comprar desde ${displayPrice}`}
-                </Link>
-              </Button>
-            )}
+                    : "Comprar Tickets"}
+              </Link>
+            </Button>
           </div>
-
-          {showManageButtons && (
-            <div className="grid grid-cols-2 gap-4 pt-2 text-xs text-muted-foreground border-t">
-              <div>
-                <span className="font-medium">{event._count.orders}</span>{" "}
-                órdenes
-              </div>
-              <div>
-                <span className="font-medium">{event._count.tickets}</span>{" "}
-                tickets vendidos
-              </div>
-            </div>
-          )}
         </CardContent>
       </div>
     </Card>
