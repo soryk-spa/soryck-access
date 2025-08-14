@@ -65,9 +65,17 @@ interface EditEventFormProps {
   user: User;
 }
 
-// Función helper para convertir string datetime-local a Date sin cambio de timezone
-const parseLocalDateTime = (dateTimeString: string): Date => {
-  return new Date(dateTimeString);
+
+const parseFromDateTimeLocal = (datetimeLocal: string): string => {
+  if (!datetimeLocal) return "";
+
+  const fullDateTime =
+    datetimeLocal.includes(":") && datetimeLocal.split(":").length === 2
+      ? `${datetimeLocal}:00`
+      : datetimeLocal;
+
+  const date = new Date(fullDateTime);
+  return date.toISOString();
 };
 
 export default function EditEventForm({
@@ -81,8 +89,8 @@ export default function EditEventForm({
     title: event.title,
     description: event.description || "",
     location: event.location,
-    startDate: event.startDate, // Ya viene formateado desde la página
-    endDate: event.endDate || "", // Ya viene formateado desde la página
+    startDate: event.startDate,
+    endDate: event.endDate || "",
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
   });
@@ -103,14 +111,12 @@ export default function EditEventForm({
     const newTicketTypes = [...ticketTypes];
 
     if (field === "name") {
-      // Para el nombre, mantener como string
       newTicketTypes[index][field] = value as string;
     } else if (
       field === "price" ||
       field === "capacity" ||
       field === "ticketsGenerated"
     ) {
-      // Para campos numéricos
       newTicketTypes[index][field] =
         typeof value === "string" ? Number(value) : value;
     }
@@ -152,7 +158,6 @@ export default function EditEventForm({
     e.preventDefault();
     setLoading(true);
 
-    // ✅ VALIDACIÓN: Verificar que todos los tipos de entrada sean válidos
     const invalidTicketTypes = ticketTypes.filter(
       (ticket) =>
         !ticket.name || ticket.capacity <= 0 || ticket.ticketsGenerated <= 0
@@ -164,18 +169,16 @@ export default function EditEventForm({
       return;
     }
 
-    // ✅ PREPARAR DATOS: Estructura correcta para el API
     const requestBody = {
       ...formData,
-      startDate: parseLocalDateTime(formData.startDate).toISOString(),
+      startDate: parseFromDateTimeLocal(formData.startDate),
       endDate: formData.endDate
-        ? parseLocalDateTime(formData.endDate).toISOString()
+        ? parseFromDateTimeLocal(formData.endDate)
         : null,
-      // ✅ TIPOS DE ENTRADA: Incluir solo campos necesarios
       ticketTypes: ticketTypes.map((ticket) => ({
-        id: ticket.id.startsWith("new-") ? undefined : ticket.id, // No enviar IDs temporales
+        id: ticket.id.startsWith("new-") ? undefined : ticket.id,
         name: ticket.name,
-        description: null, // Agregar si necesitas descripción
+        description: null,
         price: Number(ticket.price),
         capacity: Number(ticket.capacity),
         ticketsGenerated: Number(ticket.ticketsGenerated),

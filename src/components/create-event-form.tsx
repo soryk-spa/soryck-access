@@ -62,20 +62,29 @@ interface EventFormProps {
   mode: "create" | "edit";
 }
 
-// Función helper para convertir Date a formato datetime-local
-const formatDateTimeLocal = (date: Date): string => {
+// Función simple para formatear fecha ISO a datetime-local
+const formatForDateTimeLocal = (isoString: string): string => {
+  const date = new Date(isoString);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
+
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 };
 
-// Función helper para convertir string datetime-local a Date sin cambio de timezone
-const parseLocalDateTime = (dateTimeString: string): Date => {
-  // datetime-local ya está en hora local, solo necesitamos parsearlo
-  return new Date(dateTimeString);
+// Función simple para convertir datetime-local a ISO
+const parseFromDateTimeLocal = (datetimeLocal: string): string => {
+  if (!datetimeLocal) return "";
+
+  const fullDateTime =
+    datetimeLocal.includes(":") && datetimeLocal.split(":").length === 2
+      ? `${datetimeLocal}:00`
+      : datetimeLocal;
+
+  const date = new Date(fullDateTime);
+  return date.toISOString();
 };
 
 export default function CreateEventForm({
@@ -91,10 +100,10 @@ export default function CreateEventForm({
     description: initialData?.description || "",
     location: initialData?.location || "",
     startDate: initialData?.startDate
-      ? formatDateTimeLocal(new Date(initialData.startDate))
+      ? formatForDateTimeLocal(initialData.startDate)
       : "",
     endDate: initialData?.endDate
-      ? formatDateTimeLocal(new Date(initialData.endDate))
+      ? formatForDateTimeLocal(initialData.endDate)
       : "",
     categoryId: initialData?.categoryId || "",
     imageUrl: initialData?.imageUrl || "",
@@ -175,12 +184,12 @@ export default function CreateEventForm({
         mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
 
-      // ✅ CORRECCIÓN: Usar parseLocalDateTime para mantener la hora local
+      // ✅ CORRECCIÓN: Usar parseFromDateTimeLocal para mantener la hora local
       const body = {
         ...formData,
-        startDate: parseLocalDateTime(formData.startDate).toISOString(),
+        startDate: parseFromDateTimeLocal(formData.startDate),
         endDate: formData.endDate
-          ? parseLocalDateTime(formData.endDate).toISOString()
+          ? parseFromDateTimeLocal(formData.endDate)
           : null,
         ticketTypes,
       };
