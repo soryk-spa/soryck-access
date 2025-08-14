@@ -62,6 +62,22 @@ interface EventFormProps {
   mode: "create" | "edit";
 }
 
+// Función helper para convertir Date a formato datetime-local
+const formatDateTimeLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Función helper para convertir string datetime-local a Date sin cambio de timezone
+const parseLocalDateTime = (dateTimeString: string): Date => {
+  // datetime-local ya está en hora local, solo necesitamos parsearlo
+  return new Date(dateTimeString);
+};
+
 export default function CreateEventForm({
   categories,
   initialData,
@@ -74,8 +90,12 @@ export default function CreateEventForm({
     title: initialData?.title || "",
     description: initialData?.description || "",
     location: initialData?.location || "",
-    startDate: initialData?.startDate || "",
-    endDate: initialData?.endDate || "",
+    startDate: initialData?.startDate
+      ? formatDateTimeLocal(new Date(initialData.startDate))
+      : "",
+    endDate: initialData?.endDate
+      ? formatDateTimeLocal(new Date(initialData.endDate))
+      : "",
     categoryId: initialData?.categoryId || "",
     imageUrl: initialData?.imageUrl || "",
   });
@@ -154,7 +174,18 @@ export default function CreateEventForm({
       const url =
         mode === "create" ? "/api/events" : `/api/events/${initialData?.id}`;
       const method = mode === "create" ? "POST" : "PUT";
-      const body = { ...formData, ticketTypes };
+
+      // ✅ CORRECCIÓN: Usar parseLocalDateTime para mantener la hora local
+      const body = {
+        ...formData,
+        startDate: parseLocalDateTime(formData.startDate).toISOString(),
+        endDate: formData.endDate
+          ? parseLocalDateTime(formData.endDate).toISOString()
+          : null,
+        ticketTypes,
+      };
+
+      console.log("📤 Enviando datos:", JSON.stringify(body, null, 2));
 
       const response = await fetch(url, {
         method,
@@ -173,7 +204,8 @@ export default function CreateEventForm({
       } else {
         toast.error(data.error || "Error al procesar la solicitud");
       }
-    } catch {
+    } catch (error) {
+      console.error("❌ Error:", error);
       toast.error("Error de conexión");
     } finally {
       setLoading(false);
@@ -212,9 +244,7 @@ export default function CreateEventForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="title" className="mb-2">
-                    Título del evento *
-                  </Label>
+                  <Label htmlFor="title">Título del evento *</Label>
                   <Input
                     id="title"
                     type="text"
@@ -225,9 +255,7 @@ export default function CreateEventForm({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="description" className="mb-2">
-                    Descripción
-                  </Label>
+                  <Label htmlFor="description">Descripción</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
@@ -239,9 +267,7 @@ export default function CreateEventForm({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="category" className="mb-2">
-                    Categoría *
-                  </Label>
+                  <Label htmlFor="category">Categoría *</Label>
                   <Select
                     value={formData.categoryId}
                     onValueChange={(value) =>
@@ -289,9 +315,7 @@ export default function CreateEventForm({
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="startDate" className="mb-2">
-                      Fecha y hora de inicio *
-                    </Label>
+                    <Label htmlFor="startDate">Fecha y hora de inicio *</Label>
                     <Input
                       id="startDate"
                       type="datetime-local"
@@ -303,7 +327,7 @@ export default function CreateEventForm({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="endDate" className="mb-2">
+                    <Label htmlFor="endDate">
                       Fecha y hora de fin (opcional)
                     </Label>
                     <Input
@@ -317,9 +341,7 @@ export default function CreateEventForm({
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="location" className="mb-2">
-                    Ubicación *
-                  </Label>
+                  <Label htmlFor="location">Ubicación *</Label>
                   <Input
                     id="location"
                     type="text"
@@ -365,7 +387,7 @@ export default function CreateEventForm({
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor={`ticketName-${index}`} className="mb-2">
+                        <Label htmlFor={`ticketName-${index}`}>
                           Nombre del Ticket *
                         </Label>
                         <Input
@@ -384,10 +406,7 @@ export default function CreateEventForm({
                         />
                       </div>
                       <div>
-                        <Label
-                          htmlFor={`ticketPrice-${index}`}
-                          className="mb-2"
-                        >
+                        <Label htmlFor={`ticketPrice-${index}`}>
                           Precio (CLP) *
                         </Label>
                         <Input
@@ -409,10 +428,7 @@ export default function CreateEventForm({
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label
-                          htmlFor={`ticketCapacity-${index}`}
-                          className="mb-2"
-                        >
+                        <Label htmlFor={`ticketCapacity-${index}`}>
                           Cantidad de Lotes *
                         </Label>
                         <Input
@@ -432,10 +448,7 @@ export default function CreateEventForm({
                         />
                       </div>
                       <div>
-                        <Label
-                          htmlFor={`ticketsGenerated-${index}`}
-                          className="mb-2"
-                        >
+                        <Label htmlFor={`ticketsGenerated-${index}`}>
                           Entradas por Lote *
                         </Label>
                         <Input
