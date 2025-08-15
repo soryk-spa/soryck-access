@@ -126,7 +126,7 @@ export default function EventDetailView({
       } else {
         toast.error(data.error || "Error al actualizar el evento");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error de red al intentar actualizar el evento.");
     } finally {
       setLoadingPublish(false);
@@ -145,7 +145,9 @@ export default function EventDetailView({
                   <Badge variant="outline" className="text-sm">
                     {event.category.name}
                   </Badge>
-                  {!isPublished && <Badge variant="secondary">Borrador</Badge>}
+                  {!isPublished && (
+                    <Badge variant="secondary">Borrador</Badge>
+                  )}
                   {isPast && <Badge variant="destructive">Finalizado</Badge>}
                   {isSoldOut && !isPast && (
                     <Badge variant="destructive">Agotado</Badge>
@@ -482,15 +484,15 @@ export default function EventDetailView({
                         isPast
                           ? "destructive"
                           : isPublished
-                            ? "default"
-                            : "secondary"
+                          ? "default"
+                          : "secondary"
                       }
                     >
                       {isPast
                         ? "Finalizado"
                         : isPublished
-                          ? "Publicado"
-                          : "Borrador"}
+                        ? "Publicado"
+                        : "Borrador"}
                     </Badge>
                   </div>
                 </div>
