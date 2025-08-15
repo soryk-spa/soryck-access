@@ -111,12 +111,14 @@ export default function EventCard({
       <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
         <Link href={`/events/${event.id}`}>
           <div className="flex">
-            <div className="relative w-24 h-24 flex-shrink-0">
+            {/* ✅ MEJORADO: Contenedor cuadrado para imagen vertical */}
+            <div className="relative w-24 h-24 flex-shrink-0 bg-muted rounded-l-lg overflow-hidden">
               <Image
                 src={event.imageUrl || "/default-event.png"}
                 alt={event.title}
                 fill
-                className="object-cover"
+                className="object-cover object-center"
+                sizes="96px"
               />
             </div>
             <CardContent className="flex-1 p-4">
@@ -157,12 +159,15 @@ export default function EventCard({
     return (
       <Card className="group hover:shadow-2xl transition-all duration-300 overflow-hidden bg-gradient-to-br from-background to-muted/50">
         <div className="relative">
-          <div className="relative h-64 overflow-hidden">
+          {/* ✅ MEJORADO: Altura más alta para imágenes verticales */}
+          <div className="relative h-80 overflow-hidden bg-muted">
             <Image
               src={event.imageUrl || "/default-event.png"}
               alt={event.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
@@ -173,10 +178,18 @@ export default function EventCard({
             {showQuickActions && (
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex gap-2">
-                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 backdrop-blur-sm"
+                  >
                     <Heart className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="secondary" className="h-8 w-8">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 backdrop-blur-sm"
+                  >
                     <Share2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -185,7 +198,7 @@ export default function EventCard({
 
             {/* Price overlay */}
             <div className="absolute bottom-4 right-4">
-              <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-1">
+              <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
                 <span className="font-bold text-primary">{priceDisplay}</span>
               </div>
             </div>
@@ -253,81 +266,106 @@ export default function EventCard({
     );
   }
 
-  // Default variant
+  // ✅ MEJORADO: Variante por defecto optimizada para imágenes verticales
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden bg-white dark:bg-card">
       <div className="relative">
-        <div className="relative h-48 overflow-hidden">
+        {/* ✅ CONTENEDOR DE IMAGEN OPTIMIZADO */}
+        <div className="relative h-56 overflow-hidden bg-muted">
           <Image
             src={event.imageUrl || "/default-event.png"}
             alt={event.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+          {/* ✅ GRADIENTE SUTIL PARA MEJOR LEGIBILIDAD */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
           {/* Status badge */}
-          <div className="absolute top-3 left-3">{getStatusBadge()}</div>
+          <div className="absolute top-3 left-3 z-10">{getStatusBadge()}</div>
 
-          {/* Price */}
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-white/90 backdrop-blur-sm rounded-md px-2 py-1">
-              <span className="font-semibold text-sm text-primary">
+          {/* ✅ PRECIO CON MEJOR DISEÑO */}
+          <div className="absolute bottom-3 right-3 z-10">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
+              <span className="font-bold text-sm text-primary">
                 {priceDisplay}
               </span>
             </div>
           </div>
+
+          {/* ✅ OVERLAY DE HOVER PARA MEJOR UX */}
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
         </div>
 
-        <CardContent className="p-4">
+        <CardContent className="p-5">
           <div className="space-y-3">
             <div>
-              <Badge variant="outline" className="mb-2 text-xs">
-                {event.category.name}
-              </Badge>
+              <div className="flex items-center justify-between mb-2">
+                <Badge variant="outline" className="text-xs">
+                  {event.category.name}
+                </Badge>
+                {/* ✅ INDICADOR DE DISPONIBILIDAD */}
+                {!isPast && !isSoldOut && availableTickets <= 10 && (
+                  <span className="text-xs text-orange-600 font-medium">
+                    ¡Últimos {availableTickets}!
+                  </span>
+                )}
+              </div>
+
               <Link href={`/events/${event.id}`}>
-                <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                <h3 className="font-semibold text-lg mb-1 group-hover:text-primary transition-colors line-clamp-2 leading-tight">
                   {event.title}
                 </h3>
               </Link>
-              <p className="text-muted-foreground text-sm line-clamp-2">
+
+              <p className="text-muted-foreground text-sm line-clamp-1">
                 Por {organizerName}
               </p>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
+                <Clock className="h-4 w-4 flex-shrink-0" />
                 <span>{formatEventDate()}</span>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                <span className="truncate">{event.location}</span>
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span className="line-clamp-1">{event.location}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4" />
+                <Users className="h-4 w-4 flex-shrink-0" />
                 <span>
-                  {isSoldOut ? "Agotado" : `${availableTickets} disponibles`}
+                  {isSoldOut ? (
+                    <span className="text-red-600 font-medium">Agotado</span>
+                  ) : (
+                    `${availableTickets} disponibles`
+                  )}
                 </span>
               </div>
             </div>
           </div>
         </CardContent>
 
-        <CardFooter className="p-4 pt-0">
+        <CardFooter className="p-5 pt-0">
           <Link href={`/events/${event.id}`} className="w-full">
             <Button
               className="w-full"
               variant={isPast || isSoldOut ? "secondary" : "default"}
               disabled={isPast || isSoldOut}
+              size="default"
             >
               {isPast
                 ? "Evento finalizado"
                 : isSoldOut
                   ? "Agotado"
                   : "Ver evento"}
+              {!isPast && !isSoldOut && (
+                <ExternalLink className="ml-2 h-4 w-4" />
+              )}
             </Button>
           </Link>
         </CardFooter>

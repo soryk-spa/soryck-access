@@ -19,10 +19,13 @@ import {
   Edit,
   Eye,
   Settings,
+  EyeOff,
+  Loader2,
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
 import { formatFullDateTime } from "@/lib/date"; // Importación actualizada
+import { toast } from "sonner";
 
 // Define the props type for EventDetailView
 type EventDetailViewProps = {
@@ -71,6 +74,8 @@ export default function EventDetailView({
   userTicketsCount,
 }: EventDetailViewProps) {
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [isPublished, setIsPublished] = useState(event.isPublished);
+  const [loadingPublish, setLoadingPublish] = useState(false);
 
   const startDate = new Date(event.startDate);
   const endDate = event.endDate ? new Date(event.endDate) : null;
@@ -104,6 +109,30 @@ export default function EventDetailView({
     ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
     : event.organizer.email.split("@")[0];
 
+  const handlePublishToggle = async () => {
+    setLoadingPublish(true);
+    try {
+      const response = await fetch(`/api/events/${event.id}/publish`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isPublished: !isPublished }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setIsPublished(!isPublished);
+        toast.success(data.message);
+      } else {
+        toast.error(data.error || "Error al actualizar el evento");
+      }
+    } catch (error) {
+      toast.error("Error de red al intentar actualizar el evento.");
+    } finally {
+      setLoadingPublish(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-7xl mx-auto">
@@ -116,9 +145,7 @@ export default function EventDetailView({
                   <Badge variant="outline" className="text-sm">
                     {event.category.name}
                   </Badge>
-                  {!event.isPublished && (
-                    <Badge variant="secondary">Borrador</Badge>
-                  )}
+                  {!isPublished && <Badge variant="secondary">Borrador</Badge>}
                   {isPast && <Badge variant="destructive">Finalizado</Badge>}
                   {isSoldOut && !isPast && (
                     <Badge variant="destructive">Agotado</Badge>
@@ -340,6 +367,26 @@ export default function EventDetailView({
                             Gestión
                           </a>
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePublishToggle}
+                          disabled={loadingPublish}
+                        >
+                          {loadingPublish ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : isPublished ? (
+                            <>
+                              <EyeOff className="h-4 w-4 mr-1" />
+                              Borrador
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="h-4 w-4 mr-1" />
+                              Publicar
+                            </>
+                          )}
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -434,14 +481,14 @@ export default function EventDetailView({
                       variant={
                         isPast
                           ? "destructive"
-                          : event.isPublished
+                          : isPublished
                             ? "default"
                             : "secondary"
                       }
                     >
                       {isPast
                         ? "Finalizado"
-                        : event.isPublished
+                        : isPublished
                           ? "Publicado"
                           : "Borrador"}
                     </Badge>
