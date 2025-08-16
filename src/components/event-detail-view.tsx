@@ -21,10 +21,22 @@ import {
   Settings,
   EyeOff,
   Loader2,
+  Shield,
+  CheckCircle,
+  Star,
+  Copy,
+  Globe,
+  Twitter,
+  Phone,
+  X,
+  Sparkles,
+  TrendingUp,
+  Award,
+  Zap,
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
-import { formatFullDateTime } from "@/lib/date"; // Importación actualizada
+import { formatFullDateTime } from "@/lib/date";
 import { toast } from "sonner";
 
 // Define the props type for EventDetailView
@@ -76,6 +88,7 @@ export default function EventDetailView({
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
   const [isPublished, setIsPublished] = useState(event.isPublished);
   const [loadingPublish, setLoadingPublish] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   const startDate = new Date(event.startDate);
   const endDate = event.endDate ? new Date(event.endDate) : null;
@@ -89,6 +102,9 @@ export default function EventDetailView({
   );
   const availableTickets = totalCapacity - event._count.tickets;
   const isSoldOut = availableTickets <= 0;
+  const salesPercentage = Math.round(
+    (event._count.tickets / totalCapacity) * 100
+  );
 
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
@@ -105,6 +121,7 @@ export default function EventDetailView({
     if (min === max) return formatPrice(min, currency);
     return `Desde ${formatPrice(min, currency)}`;
   }
+
   const organizerName = event.organizer.firstName
     ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
     : event.organizer.email.split("@")[0];
@@ -133,448 +150,817 @@ export default function EventDetailView({
     }
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: event.title,
+          text: `¡Mira este evento increíble! ${event.title}`,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.log("Error sharing:", error);
+      }
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("¡Enlace copiado al portapapeles!");
+    }
+  };
+
+  const handleFavorite = () => {
+    setIsFavorited(!isFavorited);
+    toast.success(
+      isFavorited ? "Eliminado de favoritos" : "Agregado a favoritos"
+    );
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Hero Section */}
-        <div className="relative mb-8 rounded-2xl overflow-hidden bg-gradient-to-r from-background to-muted/50">
-          <div className="grid lg:grid-cols-2 gap-8 items-center p-8">
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="text-sm">
+    <div className="min-h-screen bg-background">
+      {/* Enhanced Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="space-y-8">
+                {/* Status Badges */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <Badge
+                    variant="outline"
+                    className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0 px-4 py-2"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
                     {event.category.name}
                   </Badge>
+
                   {!isPublished && (
-                    <Badge variant="secondary">Borrador</Badge>
+                    <Badge variant="secondary" className="px-4 py-2">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Borrador
+                    </Badge>
                   )}
-                  {isPast && <Badge variant="destructive">Finalizado</Badge>}
+
+                  {isPast && (
+                    <Badge variant="destructive" className="px-4 py-2">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Finalizado
+                    </Badge>
+                  )}
+
                   {isSoldOut && !isPast && (
-                    <Badge variant="destructive">Agotado</Badge>
+                    <Badge className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] text-white border-0 px-4 py-2">
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Agotado
+                    </Badge>
+                  )}
+
+                  {salesPercentage > 80 && !isSoldOut && (
+                    <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0 px-4 py-2">
+                      <Zap className="w-4 h-4 mr-2" />
+                      ¡Últimas entradas!
+                    </Badge>
                   )}
                 </div>
 
-                <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">
-                  {event.title}
-                </h1>
+                {/* Title */}
+                <div className="space-y-4">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                    {event.title}
+                  </h1>
 
-                <div className="space-y-3 text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    <span className="text-lg">
-                      {formatFullDateTime(startDate)}
-                    </span>
-                  </div>
-                  {endDate && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      <span>Hasta {formatFullDateTime(endDate)}</span>
+                  {/* Quick Info */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 text-lg">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
+                        <Calendar className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {formatFullDateTime(startDate)}
+                        </p>
+                        {endDate && (
+                          <p className="text-sm text-muted-foreground">
+                            Hasta {formatFullDateTime(endDate)}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-primary" />
-                    <span className="text-lg">{event.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    <span>
-                      {isSoldOut
-                        ? "Agotado"
-                        : `${availableTickets} tickets disponibles`}
-                    </span>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4 pt-4">
-                  <div className="text-3xl font-bold text-primary">
-                    {displayPrice}
+                    <div className="flex items-center gap-3 text-lg">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-xl flex items-center justify-center">
+                        <MapPin className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {event.location}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Ubicación del evento
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-lg">
+                      <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                        <Users className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {isSoldOut
+                            ? "Agotado"
+                            : `${availableTickets} disponibles`}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          de {totalCapacity} entradas totales
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <Share2 className="h-4 w-4" />
-                    </Button>
+
+                  {/* Price and Actions */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-6">
+                    <div className="space-y-2">
+                      <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                        {displayPrice}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {displayPrice.startsWith("Desde")
+                          ? "Precios desde"
+                          : "Precio final incluye comisiones"}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleFavorite}
+                        className="border-2 hover:border-[#0053CC] transition-colors"
+                      >
+                        <Heart
+                          className={`h-5 w-5 ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+                        />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={handleShare}
+                        className="border-2 hover:border-[#0053CC] transition-colors"
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="relative">
-              {event.imageUrl && (
-                <div className="relative h-80 lg:h-96 rounded-xl overflow-hidden shadow-2xl">
-                  <Image
-                    src={event.imageUrl}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-              )}
+              {/* Event Image */}
+              <div className="relative">
+                {event.imageUrl ? (
+                  <div className="relative h-80 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="absolute -inset-4 bg-gradient-to-r from-[#0053CC] via-[#01CBFE] to-[#CC66CC] rounded-2xl opacity-20 blur-xl"></div>
+                    <Image
+                      src={event.imageUrl}
+                      alt={event.title}
+                      fill
+                      className="object-cover rounded-2xl relative z-10"
+                      priority
+                    />
+                  </div>
+                ) : (
+                  <div className="h-80 lg:h-[500px] rounded-2xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                      <Calendar className="h-16 w-16 mx-auto text-muted-foreground" />
+                      <p className="text-muted-foreground font-medium">
+                        Imagen del evento
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Progress indicator for ticket sales */}
+                {!isPast && (
+                  <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-sm rounded-xl p-4">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="font-medium">Entradas vendidas</span>
+                      <span className="font-bold">{salesPercentage}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${salesPercentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            {/* Descripción */}
-            {event.description && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ExternalLink className="h-5 w-5" />
-                    Sobre este evento
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-gray max-w-none">
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {event.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+        {/* Decorative elements */}
+        <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-2xl"></div>
+        <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
+      </section>
 
-            {/* Tipos de entrada */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Ticket className="h-5 w-5" />
-                  Entradas Disponibles
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {event.ticketTypes.map((ticketType) => {
-                  const typePrice = calculateTotalPrice(ticketType.price);
-                  const ticketsSoldForType = ticketType._count.tickets;
-                  const availableForType =
-                    ticketType.capacity - ticketsSoldForType;
-                  const isTypeSoldOut = availableForType <= 0;
-
-                  return (
-                    <div
-                      key={ticketType.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="space-y-1">
-                        <p className="font-semibold text-lg">
-                          {ticketType.name}
-                        </p>
-                        {ticketType.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {ticketType.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>
-                            {isTypeSoldOut
-                              ? "Agotado"
-                              : `${availableForType} disponibles`}
-                          </span>
-                          <span>•</span>
-                          <span>de {ticketType.capacity} totales</span>
+      {/* Main Content */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Main Content */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Description */}
+                {event.description && (
+                  <Card className="border-0 shadow-lg">
+                    <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                      <CardTitle className="flex items-center gap-3 text-xl">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                          <ExternalLink className="h-5 w-5 text-white" />
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-2xl text-primary">
-                          {formatPrice(typePrice, ticketType.currency)}
+                        Sobre este evento
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-8">
+                      <div className="prose prose-gray max-w-none">
+                        <p className="text-muted-foreground leading-relaxed text-lg whitespace-pre-wrap">
+                          {event.description}
                         </p>
-                        {isTypeSoldOut && (
-                          <Badge variant="destructive" className="mt-1">
-                            Agotado
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Ticket Types */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="w-10 h-10 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-lg flex items-center justify-center">
+                        <Ticket className="h-5 w-5 text-white" />
+                      </div>
+                      Entradas Disponibles
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="space-y-6">
+                      {event.ticketTypes.map((ticketType, index) => {
+                        const typePrice = calculateTotalPrice(ticketType.price);
+                        const ticketsSoldForType = ticketType._count.tickets;
+                        const availableForType =
+                          ticketType.capacity - ticketsSoldForType;
+                        const isTypeSoldOut = availableForType <= 0;
+                        const typePercentage = Math.round(
+                          (ticketsSoldForType / ticketType.capacity) * 100
+                        );
+
+                        return (
+                          <div
+                            key={ticketType.id}
+                            className="relative p-6 border-2 rounded-xl hover:border-[#0053CC] transition-all duration-300 hover:shadow-lg group"
+                          >
+                            {/* Ticket type header */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="space-y-2 flex-1">
+                                <div className="flex items-center gap-3">
+                                  <h3 className="font-bold text-xl group-hover:text-[#0053CC] transition-colors">
+                                    {ticketType.name}
+                                  </h3>
+                                  {index === 0 && (
+                                    <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0">
+                                      <Star className="w-3 h-3 mr-1" />
+                                      Popular
+                                    </Badge>
+                                  )}
+                                </div>
+
+                                {ticketType.description && (
+                                  <p className="text-muted-foreground">
+                                    {ticketType.description}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="text-right space-y-1">
+                                <p className="text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                                  {formatPrice(typePrice, ticketType.currency)}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  por entrada
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Availability info */}
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground">
+                                  Disponibilidad
+                                </span>
+                                <span
+                                  className={`font-medium ${isTypeSoldOut ? "text-destructive" : "text-green-600"}`}
+                                >
+                                  {isTypeSoldOut
+                                    ? "Agotado"
+                                    : `${availableForType} disponibles`}
+                                </span>
+                              </div>
+
+                              {/* Progress bar */}
+                              <div className="space-y-2">
+                                <div className="w-full bg-muted rounded-full h-2">
+                                  <div
+                                    className={`h-2 rounded-full transition-all duration-300 ${
+                                      typePercentage > 80
+                                        ? "bg-gradient-to-r from-[#FE4F00] to-[#CC66CC]"
+                                        : "bg-gradient-to-r from-[#0053CC] to-[#01CBFE]"
+                                    }`}
+                                    style={{ width: `${typePercentage}%` }}
+                                  ></div>
+                                </div>
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>{ticketsSoldForType} vendidas</span>
+                                  <span>{ticketType.capacity} totales</span>
+                                </div>
+                              </div>
+
+                              {isTypeSoldOut && (
+                                <Badge
+                                  variant="destructive"
+                                  className="w-full justify-center py-2"
+                                >
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Agotado
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Organizer Info */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                    <CardTitle className="flex items-center gap-3 text-xl">
+                      <div className="w-10 h-10 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-lg flex items-center justify-center">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      Organizador
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <div className="flex items-start gap-6">
+                      <Avatar className="h-20 w-20 border-4 border-gradient-to-r from-[#0053CC] to-[#01CBFE]">
+                        <AvatarImage
+                          src={event.organizer.imageUrl}
+                          alt={organizerName}
+                        />
+                        <AvatarFallback className="text-2xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white">
+                          {organizerName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+
+                      <div className="flex-1 space-y-3">
+                        <div>
+                          <h3 className="text-2xl font-bold">
+                            {organizerName}
+                          </h3>
+                          <p className="text-muted-foreground">
+                            Organizador de eventos
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="h-4 w-4" />
+                          <span>{event.organizer.email}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs">
+                            <Award className="w-3 h-3 mr-1" />
+                            Verificado
                           </Badge>
-                        )}
+                          <Badge variant="outline" className="text-xs">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Confiable
+                          </Badge>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="hover:border-[#0053CC] transition-colors"
+                        >
+                          <Link href={`/organizer/${event.organizer.id}`}>
+                            <Globe className="h-4 w-4 mr-2" />
+                            Ver perfil del organizador
+                          </Link>
+                        </Button>
                       </div>
                     </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Organizador */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Organizador
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src={event.organizer.imageUrl}
-                      alt={organizerName}
-                    />
-                    <AvatarFallback className="text-lg font-semibold">
-                      {organizerName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-semibold">{organizerName}</h3>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <span>{event.organizer.email}</span>
+              {/* Sidebar */}
+              <div className="space-y-6">
+                {/* Purchase Panel */}
+                <Card className="sticky top-6 border-0 shadow-xl">
+                  <CardHeader className="bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10">
+                    <CardTitle className="text-center text-2xl">
+                      {isPast ? "Evento finalizado" : "Reserva tu lugar"}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                    {/* Price Display */}
+                    <div className="text-center p-6 bg-gradient-to-br from-[#0053CC]/5 to-[#01CBFE]/5 rounded-xl border-2 border-[#0053CC]/20">
+                      <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent mb-2">
+                        {displayPrice}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {displayPrice.startsWith("Desde")
+                          ? "Precios desde"
+                          : "Precio final con comisiones"}
+                      </div>
+                      {!displayPrice.includes("Gratis") && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Incluye 6% de comisión de la plataforma
+                        </p>
+                      )}
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Organizador de eventos en SorykPass
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Panel de compra */}
-            <Card className="sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-center">
-                  {isPast ? "Evento finalizado" : "Comprar Entradas"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border">
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    {displayPrice}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {displayPrice.startsWith("Desde")
-                      ? "Precios desde"
-                      : "Precio final con comisiones"}
-                  </div>
-                </div>
-
-                {/* Acciones según estado y permisos */}
-                <div className="space-y-3">
-                  {(isOwner || isAdmin) && (
-                    <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
-                      <p className="text-sm font-medium">
-                        Panel de organizador:
-                      </p>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/events/${event.id}/edit`}>
-                            <Edit className="h-4 w-4 mr-1" />
-                            Editar
-                          </a>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={`/dashboard/events/${event.id}`}>
-                            <Settings className="h-4 w-4 mr-1" />
-                            Gestión
-                          </a>
-                        </Button>
+                    {/* Organizer Actions */}
+                    {(isOwner || isAdmin) && (
+                      <div className="space-y-4 p-4 bg-gradient-to-r from-muted/30 to-transparent rounded-xl border">
+                        <div className="flex items-center gap-2">
+                          <Settings className="h-5 w-5 text-[#0053CC]" />
+                          <span className="font-semibold">
+                            Panel de organizador
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="border-2 hover:border-[#0053CC]"
+                          >
+                            <Link href={`/events/${event.id}/edit`}>
+                              <Edit className="h-4 w-4 mr-1" />
+                              Editar
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="border-2 hover:border-[#0053CC]"
+                          >
+                            <Link href={`/dashboard/events/${event.id}`}>
+                              <Settings className="h-4 w-4 mr-1" />
+                              Gestión
+                            </Link>
+                          </Button>
+                        </div>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={handlePublishToggle}
                           disabled={loadingPublish}
+                          className="w-full border-2 hover:border-[#0053CC]"
                         >
                           {loadingPublish ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           ) : isPublished ? (
                             <>
-                              <EyeOff className="h-4 w-4 mr-1" />
-                              Borrador
+                              <EyeOff className="h-4 w-4 mr-2" />
+                              Despublicar
                             </>
                           ) : (
                             <>
-                              <Eye className="h-4 w-4 mr-1" />
+                              <Eye className="h-4 w-4 mr-2" />
                               Publicar
                             </>
                           )}
                         </Button>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {isPast ? (
-                    <Button disabled className="w-full" size="lg">
-                      <Clock className="h-4 w-4 mr-2" />
-                      Evento finalizado
-                    </Button>
-                  ) : isSoldOut ? (
-                    <Button disabled className="w-full" size="lg">
-                      <Ticket className="h-4 w-4 mr-2" />
-                      Agotado
-                    </Button>
-                  ) : user ? (
-                    <div className="space-y-2">
-                      <Button
-                        onClick={() => setShowPurchaseForm(true)}
-                        className="w-full"
-                        size="lg"
-                      >
-                        <Ticket className="h-4 w-4 mr-2" />
-                        Comprar Entradas
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button asChild className="w-full" size="lg">
-                      <Link href="/sign-in">
-                        <Ticket className="h-4 w-4 mr-2" />
-                        Iniciar sesión para comprar
-                      </Link>
-                    </Button>
-                  )}
+                    {/* Purchase Actions */}
+                    <div className="space-y-4">
+                      {isPast ? (
+                        <Button disabled className="w-full" size="lg">
+                          <Clock className="h-5 w-5 mr-2" />
+                          Evento finalizado
+                        </Button>
+                      ) : isSoldOut ? (
+                        <Button disabled className="w-full" size="lg">
+                          <Ticket className="h-5 w-5 mr-2" />
+                          Entradas agotadas
+                        </Button>
+                      ) : user ? (
+                        <Button
+                          onClick={() => setShowPurchaseForm(true)}
+                          className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
+                          size="lg"
+                        >
+                          <Ticket className="h-5 w-5 mr-2" />
+                          Comprar Entradas
+                        </Button>
+                      ) : (
+                        <Button
+                          asChild
+                          className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
+                          size="lg"
+                        >
+                          <Link href="/sign-in">
+                            <Ticket className="h-5 w-5 mr-2" />
+                            Iniciar sesión para comprar
+                          </Link>
+                        </Button>
+                      )}
 
-                  {user && userTicketsCount > 0 && (
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <div className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Ya tienes {userTicketsCount} ticket
-                        {userTicketsCount > 1 ? "s" : ""} para este evento
+                      {user && userTicketsCount > 0 && (
+                        <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl border-2 border-green-200 dark:border-green-800">
+                          <div className="flex items-center justify-center gap-2 text-green-700 dark:text-green-300 font-medium mb-2">
+                            <CheckCircle className="h-5 w-5" />
+                            <span>¡Ya tienes entradas!</span>
+                          </div>
+                          <p className="text-sm text-green-600 dark:text-green-400 mb-3">
+                            Tienes {userTicketsCount} entrada
+                            {userTicketsCount > 1 ? "s" : ""} para este evento
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="border-green-300 hover:border-green-400 text-green-700 hover:text-green-800"
+                          >
+                            <Link href="/tickets">
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver mis tickets
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Event Info */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                    <CardTitle className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-lg flex items-center justify-center">
+                        <Calendar className="h-4 w-4 text-white" />
                       </div>
+                      Información del evento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
+                        <span className="text-muted-foreground">Categoría</span>
+                        <Badge
+                          variant="outline"
+                          className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0"
+                        >
+                          {event.category.name}
+                        </Badge>
+                      </div>
+
+                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
+                        <span className="text-muted-foreground">
+                          Capacidad total
+                        </span>
+                        <span className="font-semibold">
+                          {totalCapacity.toLocaleString()} personas
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
+                        <span className="text-muted-foreground">
+                          Entradas vendidas
+                        </span>
+                        <div className="text-right">
+                          <span className="font-semibold">
+                            {event._count.tickets.toLocaleString()}
+                          </span>
+                          <div className="text-xs text-muted-foreground">
+                            {salesPercentage}% del total
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
+                        <span className="text-muted-foreground">
+                          Órdenes realizadas
+                        </span>
+                        <span className="font-semibold">
+                          {event._count.orders.toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-muted-foreground">Estado</span>
+                        <Badge
+                          variant={
+                            isPast
+                              ? "destructive"
+                              : isPublished
+                                ? "default"
+                                : "secondary"
+                          }
+                          className={
+                            isPublished && !isPast
+                              ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-0"
+                              : ""
+                          }
+                        >
+                          {isPast
+                            ? "Finalizado"
+                            : isPublished
+                              ? "Publicado"
+                              : "Borrador"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* SorykPass Guarantees */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                    <CardTitle className="flex items-center gap-3 text-lg">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded-lg flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-white" />
+                      </div>
+                      Garantías SorykPass
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full"></div>
+                        <span className="text-sm">
+                          Ticket digital instantáneo
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-full"></div>
+                        <span className="text-sm">
+                          Código QR único e intransferible
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-full"></div>
+                        <span className="text-sm">
+                          Validación en tiempo real
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#CC66CC] to-[#01CBFE] rounded-full"></div>
+                        <span className="text-sm">Soporte técnico 24/7</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full"></div>
+                        <span className="text-sm">
+                          Transacciones 100% seguras
+                        </span>
+                      </div>
+                      {!displayPrice.includes("Gratis") && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-2 h-2 bg-gradient-to-r from-[#FE4F00] to-[#FDBD00] rounded-full"></div>
+                          <span className="text-sm">
+                            Reembolsos hasta 24h antes del evento
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-6 p-4 bg-gradient-to-r from-[#0053CC]/5 to-[#01CBFE]/5 rounded-lg border border-[#0053CC]/20">
+                      <div className="flex items-center gap-2 text-sm font-medium text-[#0053CC] mb-2">
+                        <Sparkles className="h-4 w-4" />
+                        Compra protegida
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Tu compra está protegida por las políticas de seguridad
+                        de SorykPass. Compra con confianza y disfruta tu evento.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
+                    <CardTitle className="flex items-center gap-3 text-lg">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#FDBD00] to-[#CC66CC] rounded-lg flex items-center justify-center">
+                        <Share2 className="h-4 w-4 text-white" />
+                      </div>
+                      Compartir evento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
                       <Button
                         variant="outline"
-                        size="sm"
-                        className="mt-2"
+                        className="w-full justify-start border-2 hover:border-[#0053CC] transition-colors"
+                        onClick={handleShare}
+                      >
+                        <Copy className="h-4 w-4 mr-3" />
+                        Copiar enlace
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start border-2 hover:border-[#0053CC] transition-colors"
                         asChild
                       >
-                        <a href="/tickets">
-                          <Eye className="h-4 w-4 mr-1" />
-                          Ver mis tickets
+                        <a
+                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(window.location?.href || "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Twitter className="h-4 w-4 mr-3" />
+                          Compartir en Twitter
+                        </a>
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start border-2 hover:border-[#0053CC] transition-colors"
+                        asChild
+                      >
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${window.location?.href || ""}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Phone className="h-4 w-4 mr-3" />
+                          Compartir por WhatsApp
                         </a>
                       </Button>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Información adicional */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Información del evento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Categoría:</span>
-                    <Badge variant="outline">{event.category.name}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Capacidad total:
-                    </span>
-                    <span className="font-medium">
-                      {totalCapacity} personas
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Tickets vendidos:
-                    </span>
-                    <span className="font-medium">{event._count.tickets}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Órdenes realizadas:
-                    </span>
-                    <span className="font-medium">{event._count.orders}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Estado:</span>
-                    <Badge
-                      variant={
-                        isPast
-                          ? "destructive"
-                          : isPublished
-                          ? "default"
-                          : "secondary"
-                      }
-                    >
-                      {isPast
-                        ? "Finalizado"
-                        : isPublished
-                        ? "Publicado"
-                        : "Borrador"}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Garantías */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">Garantías SorykPass</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Ticket digital instantáneo</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Código QR único e intransferible</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Validación en tiempo real</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Soporte 24/7</span>
-                  </div>
-                  {!displayPrice.includes("Gratis") && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>Reembolsos hasta 24h antes</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        {/* Modal de compra */}
-        {showPurchaseForm && user && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-background rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-3xl font-bold">Comprar Entradas</h2>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowPurchaseForm(false)}
-                    className="h-10 w-10"
-                  >
-                    ✕
-                  </Button>
-                </div>
-                <TicketPurchaseForm
-                  event={{
-                    ...event,
-                    organizer: {
-                      ...event.organizer,
-                      firstName: event.organizer.firstName ?? null,
-                      lastName: event.organizer.lastName ?? null,
-                    },
-                    // Mantener compatibilidad con el formulario existente
-                    price: event.ticketTypes[0]?.price ?? 0,
-                    currency: event.ticketTypes[0]?.currency ?? "CLP",
-                    isFree: event.ticketTypes.every((t) => t.price === 0),
-                    capacity: totalCapacity,
-                    ticketTypes: event.ticketTypes.map((t) => ({
-                      ...t,
-                      description: t.description ?? null,
-                    })),
-                  }}
-                  userTicketsCount={userTicketsCount}
-                />
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
+
+      {/* Enhanced Purchase Modal */}
+      {showPurchaseForm && user && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-background rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm p-6 border-b z-10">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                    Comprar Entradas
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {event.title} • {formatFullDateTime(startDate)}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPurchaseForm(false)}
+                  className="h-12 w-12 rounded-full hover:bg-muted"
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <TicketPurchaseForm
+                event={{
+                  ...event,
+                  organizer: {
+                    ...event.organizer,
+                    firstName: event.organizer.firstName ?? null,
+                    lastName: event.organizer.lastName ?? null,
+                  },
+                  price: event.ticketTypes[0]?.price ?? 0,
+                  currency: event.ticketTypes[0]?.currency ?? "CLP",
+                  isFree: event.ticketTypes.every((t) => t.price === 0),
+                  capacity: totalCapacity,
+                  ticketTypes: event.ticketTypes.map((t) => ({
+                    ...t,
+                    description: t.description ?? null,
+                  })),
+                }}
+                userTicketsCount={userTicketsCount}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

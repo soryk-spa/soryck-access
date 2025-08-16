@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,16 +16,21 @@ import {
 import {
   Calendar,
   MapPin,
-  Ticket,
   QrCode,
   Download,
   Share2,
   AlertCircle,
   CheckCircle2,
-  User,
   Loader2,
+  Clock,
+  Building,
+  Hash,
+  Eye,
+  Sparkles,
+  Star,
+  Zap,
 } from "lucide-react";
-import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
+import { formatDate, formatTime } from "@/lib/date";
 
 const QRCodeCanvas = dynamic(
   () => import("qrcode.react").then((mod) => mod.QRCodeCanvas),
@@ -57,6 +62,8 @@ interface TicketCardProps {
       price: number;
       currency: string;
       isFree: boolean;
+      formattedDate: string;
+      formattedTime: string;
       organizer: {
         firstName: string | null;
         lastName: string | null;
@@ -98,30 +105,38 @@ export default function TicketCard({ ticket }: TicketCardProps) {
     if (ticket.status === "CANCELLED") {
       return {
         label: "Cancelado",
-        color: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
+        color: "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300",
+        bgColor: "bg-red-50 dark:bg-red-950/20",
         icon: AlertCircle,
+        iconColor: "text-red-600",
       };
     }
     if (ticket.status === "REFUNDED") {
       return {
         label: "Reembolsado",
-        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+        color: "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+        bgColor: "bg-blue-50 dark:bg-blue-950/20",
         icon: AlertCircle,
+        iconColor: "text-blue-600",
       };
     }
     if (ticket.isUsed) {
       return {
         label: "Usado",
         color:
-          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+          "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300",
+        bgColor: "bg-green-50 dark:bg-green-950/20",
         icon: CheckCircle2,
+        iconColor: "text-green-600",
       };
     }
     return {
       label: "Válido",
       color:
-        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300",
-      icon: Ticket,
+        "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300",
+      bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
+      icon: Sparkles,
+      iconColor: "text-emerald-600",
     };
   };
 
@@ -183,159 +198,255 @@ export default function TicketCard({ ticket }: TicketCardProps) {
   const isEventPast = new Date(ticket.event.startDate) < new Date();
   const canUseTicket =
     ticket.status === "ACTIVE" && !ticket.isUsed && !isEventPast;
+  const isToday =
+    new Date(ticket.event.startDate).toDateString() ===
+    new Date().toDateString();
+  const isTomorrow =
+    new Date(ticket.event.startDate).toDateString() ===
+    new Date(Date.now() + 86400000).toDateString();
 
   // URL para el QR code
   const qrCodeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
 
+  const getEventTimeStatus = () => {
+    if (isToday) return { label: "Hoy", color: "text-orange-600", icon: Zap };
+    if (isTomorrow)
+      return { label: "Mañana", color: "text-blue-600", icon: Clock };
+    return null;
+  };
+
+  const timeStatus = getEventTimeStatus();
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-300">
-      <div className="relative h-48">
+    <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02]">
+      {/* Header Image Section */}
+      <div className="relative h-56 overflow-hidden">
         {ticket.event.imageUrl ? (
           <Image
             src={ticket.event.imageUrl}
             alt={ticket.event.title}
             fill
-            className="object-cover"
+            className="object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#01CBFE]/20 to-[#0053CC]/20 flex items-center justify-center">
-            <Calendar className="h-16 w-16 text-[#0053CC]/50" />
+          <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 flex items-center justify-center relative overflow-hidden">
+            <Calendar className="h-24 w-24 text-white/30 absolute" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
         )}
 
-        <div className="absolute top-4 right-4">
-          <Badge className={statusInfo.color}>
+        {/* Overlay gradiente */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+        {/* Status Badge */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Badge
+            className={`${statusInfo.color} border-0 backdrop-blur-sm bg-white/20 text-white shadow-lg`}
+          >
             <StatusIcon className="h-3 w-3 mr-1" />
             {statusInfo.label}
           </Badge>
+          {timeStatus && (
+            <Badge className="bg-orange-500 text-white border-0 shadow-lg">
+              <timeStatus.icon className="h-3 w-3 mr-1" />
+              {timeStatus.label}
+            </Badge>
+          )}
         </div>
 
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="bg-white/95 backdrop-blur rounded-lg p-3">
-            <h3 className="font-bold text-lg text-[#0053CC] line-clamp-1">
+        {/* Event Info Overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-2xl p-4 shadow-xl border border-white/20">
+            <h3 className="font-bold text-xl text-gray-900 dark:text-white line-clamp-2 mb-2">
               {ticket.event.title}
             </h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-              <Calendar className="h-4 w-4" />
-              <span>
-                {formatDate(ticket.event.startDate)} •{" "}
-                {formatTime(ticket.event.startDate)}
-              </span>
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4 text-blue-500" />
+                <span className="font-medium">
+                  {ticket.event.formattedDate}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4 text-purple-500" />
+                <span>{ticket.event.formattedTime}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <CardHeader className="pb-3">
+      {/* Card Content */}
+      <CardContent className="p-6 space-y-6">
+        {/* Ticket Info Header */}
         <div className="flex items-center justify-between">
-          <CardTitle className="text-base">
-            Ticket #{ticket.qrCode.slice(-8)}
-          </CardTitle>
-          <span className="text-sm font-medium">
-            {ticket.event.isFree
-              ? "Gratis"
-              : formatPrice(ticket.event.price, ticket.event.currency)}
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+              <Hash className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white">
+                Ticket #{ticket.qrCode.slice(-8)}
+              </p>
+              <p className="text-xs text-gray-500">
+                Orden: {ticket.order.orderNumber}
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <span
+              className={`text-lg font-bold ${ticket.event.isFree ? "text-green-600" : "text-blue-600"}`}
+            >
+              {ticket.event.isFree
+                ? "Gratis"
+                : formatPrice(ticket.order.totalAmount, ticket.order.currency)}
+            </span>
+            {!ticket.event.isFree && (
+              <p className="text-xs text-gray-500">
+                {formatPrice(ticket.event.price, ticket.event.currency)} +
+                comisión
+              </p>
+            )}
+          </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MapPin className="h-4 w-4" />
-            <span className="line-clamp-1">{ticket.event.location}</span>
+        {/* Event Details */}
+        <div className="grid grid-cols-1 gap-4">
+          <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <MapPin className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-gray-900 dark:text-white text-sm">
+                Ubicación
+              </p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm break-words">
+                {ticket.event.location}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="h-4 w-4" />
-            <span>Organizado por {getOrganizerName()}</span>
+          <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+            <Building className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="font-medium text-gray-900 dark:text-white text-sm">
+                Organizador
+              </p>
+              <p className="text-gray-600 dark:text-gray-300 text-sm">
+                {getOrganizerName()}
+              </p>
+            </div>
           </div>
 
           {ticket.isUsed && ticket.usedAt && (
-            <div className="flex items-center gap-2 text-sm text-green-600">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>
-                Usado el {formatDate(ticket.usedAt)} a las{" "}
-                {formatTime(ticket.usedAt)}
-              </span>
+            <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500">
+              <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+              <div>
+                <p className="font-medium text-green-700 dark:text-green-400 text-sm">
+                  Ticket utilizado
+                </p>
+                <p className="text-green-600 dark:text-green-300 text-xs">
+                  {formatDate(ticket.usedAt)} a las {formatTime(ticket.usedAt)}
+                </p>
+              </div>
             </div>
           )}
         </div>
 
-        <div className="flex gap-2">
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
           <Dialog open={showQR} onOpenChange={setShowQR}>
             <DialogTrigger asChild>
               <Button
                 onClick={handleShowQR}
-                className="flex-1"
+                className={`flex-1 ${
+                  canUseTicket
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    : "bg-gray-500"
+                } text-white shadow-lg`}
                 disabled={!canUseTicket}
               >
                 <QrCode className="h-4 w-4 mr-2" />
-                Ver QR
+                {canUseTicket ? "Mostrar QR" : "QR No Disponible"}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="text-center">Tu Ticket</DialogTitle>
-                <DialogDescription className="text-center">
-                  Presenta este código QR en el evento
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader className="text-center space-y-3">
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Tu Ticket Digital
+                </DialogTitle>
+                <DialogDescription className="text-base">
+                  Presenta este código QR en la entrada del evento
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4">
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg">
+              <div className="space-y-6">
+                {/* Event Info */}
+                <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl">
+                  <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-2">
                     {ticket.event.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(ticket.event.startDate)} •{" "}
-                    {formatTime(ticket.event.startDate)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {ticket.event.location}
-                  </p>
-                </div>
-
-                <div className="flex justify-center p-4 bg-white rounded-lg border-2 border-dashed border-[#0053CC]/20">
-                  {loading ? (
-                    <div className="w-64 h-64 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0053CC]"></div>
+                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center justify-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>
+                        {ticket.event.formattedDate} •{" "}
+                        {ticket.event.formattedTime}
+                      </span>
                     </div>
-                  ) : qrImage ? (
-                    <Image
-                      src={qrImage}
-                      alt="QR Code"
-                      width={256}
-                      height={256}
-                      className="rounded-lg"
-                    />
-                  ) : (
-                    // Usar el QR code generado dinámicamente como fallback
-                    <QRCodeCanvas
-                      value={qrCodeUrl}
-                      size={256}
-                      bgColor="#ffffff"
-                      fgColor="#000000"
-                      level="L"
-                      includeMargin={true}
-                    />
-                  )}
+                    <div className="flex items-center justify-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{ticket.event.location}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-center">
-                  <p className="text-xs text-muted-foreground mb-2">
+                {/* QR Code */}
+                <div className="flex justify-center">
+                  <div className="p-6 bg-white rounded-2xl shadow-2xl border-4 border-dashed border-blue-200">
+                    {loading ? (
+                      <div className="w-64 h-64 flex items-center justify-center">
+                        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+                      </div>
+                    ) : qrImage ? (
+                      <Image
+                        src={qrImage}
+                        alt="QR Code"
+                        width={256}
+                        height={256}
+                        className="rounded-xl"
+                      />
+                    ) : (
+                      <QRCodeCanvas
+                        value={qrCodeUrl}
+                        size={256}
+                        bgColor="#ffffff"
+                        fgColor="#000000"
+                        level="L"
+                        includeMargin={true}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Ticket Details */}
+                <div className="text-center space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <p className="text-sm font-mono text-gray-600 dark:text-gray-400">
                     Código: {ticket.qrCode}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Comprado el {formatDate(ticket.order.createdAt)}
+                  <p className="text-xs text-gray-500">
+                    Ticket adquirido el {formatDate(ticket.order.createdAt)}
                   </p>
+                  <div className="flex items-center justify-center gap-1 text-xs text-blue-600">
+                    <Star className="h-3 w-3" />
+                    <span>Válido por una entrada</span>
+                  </div>
                 </div>
 
-                <div className="flex gap-2">
+                {/* Action Buttons */}
+                <div className="flex gap-3">
                   <Button
                     onClick={handleDownload}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-blue-200 hover:bg-blue-50"
                     disabled={!qrImage}
                   >
                     <Download className="h-4 w-4 mr-2" />
@@ -344,7 +455,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                   <Button
                     onClick={handleShare}
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-purple-200 hover:bg-purple-50"
                     disabled={!qrImage}
                   >
                     <Share2 className="h-4 w-4 mr-2" />
@@ -354,6 +465,17 @@ export default function TicketCard({ ticket }: TicketCardProps) {
               </div>
             </DialogContent>
           </Dialog>
+
+          <Button
+            variant="outline"
+            className="border-gray-300 hover:bg-gray-50"
+            asChild
+          >
+            <a href={`/events/${ticket.event.id}`}>
+              <Eye className="h-4 w-4 mr-2" />
+              Ver Evento
+            </a>
+          </Button>
         </div>
       </CardContent>
     </Card>

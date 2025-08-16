@@ -3,6 +3,16 @@ import { prisma } from "@/lib/prisma";
 import PublicEventsList from "@/components/public-events-list";
 import type { Metadata } from "next";
 import { Prisma } from "@prisma/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Sparkles,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 
 interface EventsPageProps {
   searchParams: Promise<{
@@ -75,7 +85,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
     whereClause.location = { contains: location, mode: "insensitive" };
   }
 
-  // La lógica de `isFree` y precios ahora se aplica a los `ticketTypes` anidados.
   if (isFree === "true") {
     whereClause.ticketTypes = { some: { price: { equals: 0 } } };
   } else if (isFree === "false") {
@@ -138,7 +147,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
         _count: {
           select: { tickets: true, orders: true },
         },
-        // ✅ CAMBIO CLAVE: Incluimos los tipos de entrada en la consulta.
         ticketTypes: {
           select: {
             price: true,
@@ -146,7 +154,7 @@ async function getPublicEvents(filters: PublicEventFilters) {
             capacity: true,
           },
           orderBy: {
-            price: "asc", // Ordenamos para obtener fácilmente el precio mínimo.
+            price: "asc",
           },
         },
       },
@@ -167,7 +175,6 @@ async function getPublicEvents(filters: PublicEventFilters) {
     limit,
   };
 
-  // Aseguramos que los datos serializados incluyan los `ticketTypes`.
   const serializedEvents = events.map((event) => ({
     ...event,
     startDate: event.startDate.toISOString(),
@@ -188,20 +195,57 @@ async function getCategories() {
   });
 }
 
+async function getEventStats() {
+  const [totalEvents, upcomingEvents, categoriesCount] = await Promise.all([
+    prisma.event.count({
+      where: { isPublished: true },
+    }),
+    prisma.event.count({
+      where: {
+        isPublished: true,
+        startDate: { gte: new Date() },
+      },
+    }),
+    prisma.category.count(),
+  ]);
+
+  return {
+    totalEvents,
+    upcomingEvents,
+    categoriesCount,
+  };
+}
+
 function EventsPageSkeleton() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="h-8 bg-muted rounded w-64 mx-auto mb-4"></div>
-          <div className="h-4 bg-muted rounded w-96 mx-auto"></div>
+      <div className="space-y-8">
+        {/* Header skeleton */}
+        <div className="text-center space-y-4">
+          <div className="h-12 bg-muted rounded w-96 mx-auto animate-pulse"></div>
+          <div className="h-6 bg-muted rounded w-[600px] mx-auto animate-pulse"></div>
         </div>
 
-        <div className="h-32 bg-muted rounded"></div>
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-32 bg-muted rounded-xl animate-pulse"
+            ></div>
+          ))}
+        </div>
 
+        {/* Filters skeleton */}
+        <div className="h-32 bg-muted rounded-xl animate-pulse"></div>
+
+        {/* Events grid skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-96 bg-muted rounded animate-pulse"></div>
+            <div
+              key={i}
+              className="h-96 bg-muted rounded-xl animate-pulse"
+            ></div>
           ))}
         </div>
       </div>
@@ -212,12 +256,12 @@ function EventsPageSkeleton() {
 async function EventsPageContent({ searchParams }: EventsPageProps) {
   const params = await searchParams;
 
-  const [{ events, pagination }, categories] = await Promise.all([
+  const [{ events, pagination }, categories, stats] = await Promise.all([
     getPublicEvents(params),
     getCategories(),
+    getEventStats(),
   ]);
 
-  // ✅ CORRECCIÓN: Incluir page en initialFilters
   const initialFilters = {
     search: params.search || "",
     categoryId: params.categoryId || "",
@@ -229,26 +273,151 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
     isFree: params.isFree || "all",
     sortBy: params.sortBy || "startDate",
     sortOrder: params.sortOrder || "asc",
-    page: params.page || "1", // ✅ Agregar página
+    page: params.page || "1",
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-foreground mb-4">
-          Descubre Eventos Increíbles
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Encuentra los mejores eventos cerca de ti. Conciertos, conferencias,
-          deportes y mucho más.
-        </p>
-      </div>
-      <PublicEventsList
-        initialEvents={events}
-        initialPagination={pagination}
-        categories={categories}
-        initialFilters={initialFilters}
-      />
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center space-y-6 max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-background/80 backdrop-blur-sm border rounded-full px-4 py-2 mb-4">
+              <Sparkles className="w-4 h-4 text-[#0053CC]" />
+              <span className="text-sm font-medium text-[#0053CC]">
+                Descubre experiencias únicas
+              </span>
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+              Encuentra tu próximo
+              <span className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                {" "}
+                evento favorito
+              </span>
+            </h1>
+
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Desde conciertos íntimos hasta festivales masivos, conferencias
+              inspiradoras y experiencias gastronómicas. Tu próxima aventura te
+              está esperando.
+            </p>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
+                      <Calendar className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold">
+                        {stats.upcomingEvents}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Eventos próximos
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-xl flex items-center justify-center">
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold">
+                        {stats.categoriesCount}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Categorías
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                      <TrendingUp className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-3xl font-bold">{stats.totalEvents}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total eventos
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative elements */}
+        <div className="absolute top-20 right-20 w-24 h-24 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-xl"></div>
+        <div className="absolute bottom-20 left-20 w-32 h-32 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
+      </section>
+
+      {/* Quick Categories */}
+      <section className="py-8 border-b bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#0053CC]" />
+              Explora por categoría
+            </h2>
+            <Badge variant="outline" className="text-xs">
+              {categories.length} categorías disponibles
+            </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {categories.slice(0, 8).map((category) => (
+              <Badge
+                key={category.id}
+                variant="outline"
+                className="cursor-pointer hover:bg-[#0053CC] hover:text-white transition-colors px-4 py-2 text-sm"
+              >
+                {category.name}
+              </Badge>
+            ))}
+            {categories.length > 8 && (
+              <Badge variant="outline" className="text-muted-foreground">
+                +{categories.length - 8} más
+              </Badge>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-[#0053CC]" />
+              <h2 className="text-2xl font-bold">Eventos disponibles</h2>
+            </div>
+            <Badge variant="secondary" className="text-sm">
+              {pagination.totalCount} resultados
+            </Badge>
+          </div>
+
+          <PublicEventsList
+            initialEvents={events}
+            initialPagination={pagination}
+            categories={categories}
+            initialFilters={initialFilters}
+          />
+        </div>
+      </section>
     </div>
   );
 }
@@ -268,15 +437,15 @@ export async function generateMetadata({
   const search = params.search;
   const categoryId = params.categoryId;
 
-  let title = "Eventos | SorykPass";
+  let title = "Descubre Eventos Increíbles | SorykPass";
   let description =
-    "Descubre eventos increíbles cerca de ti. Conciertos, conferencias, deportes y más en SorykPass.";
+    "Encuentra los mejores eventos cerca de ti. Conciertos, conferencias, deportes, gastronomía y más experiencias únicas en SorykPass.";
   const keywords =
-    "eventos, tickets, conciertos, conferencias, deportes, cultura, chile";
+    "eventos, tickets, conciertos, conferencias, deportes, cultura, gastronomía, experiencias, chile";
 
   if (search) {
     title = `Eventos: ${search} | SorykPass`;
-    description = `Encuentra eventos relacionados con ${search} en SorykPass`;
+    description = `Descubre eventos relacionados con ${search}. Compra tickets de forma segura en SorykPass.`;
   }
 
   if (categoryId) {
@@ -287,7 +456,7 @@ export async function generateMetadata({
       });
       if (category) {
         title = `Eventos de ${category.name} | SorykPass`;
-        description = `Descubre los mejores eventos de ${category.name} en SorykPass`;
+        description = `Explora los mejores eventos de ${category.name}. Tickets seguros y experiencias únicas en SorykPass.`;
       }
     } catch (error) {
       console.error("Error fetching category for metadata:", error);
@@ -302,11 +471,20 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
+      images: [
+        {
+          url: "/og-events.jpg",
+          width: 1200,
+          height: 630,
+          alt: "Descubre eventos increíbles en SorykPass",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: ["/og-events.jpg"],
     },
   };
 }
