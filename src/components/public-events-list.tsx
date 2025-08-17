@@ -64,7 +64,7 @@ interface Event {
     tickets: number;
     orders: number;
   };
-  ticketTypes: TicketType[];
+  ticketTypes?: TicketType[];
 }
 
 interface Category {
@@ -732,7 +732,10 @@ export default function PublicEventsList({
           {events.map((event) => (
             <EventCard
               key={event.id}
-              event={event}
+              event={{
+                ...event,
+                ticketTypes: event.ticketTypes ?? [],
+              }}
               variant={viewMode === "list" ? "compact" : "default"}
               showQuickActions={true}
             />

@@ -183,6 +183,7 @@ async function getPublicEvents(filters: PublicEventFilters) {
     updatedAt: event.updatedAt.toISOString(),
     description: event.description ?? "",
     imageUrl: event.imageUrl === null ? undefined : event.imageUrl,
+    ticketTypes: event.ticketTypes || [],
   }));
 
   return { events: serializedEvents, pagination };
@@ -397,7 +398,6 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
         </div>
       </section>
 
-      {/* Main Content */}
       <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
