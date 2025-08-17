@@ -16,7 +16,6 @@ import {
   Shield,
   Settings,
   BarChart3,
-  Clock,
   Star,
   Zap,
   Award,
@@ -29,7 +28,6 @@ import {
   Globe,
   Mail,
   RefreshCw,
-  Database,
   Sparkles,
   Target,
   Layers,
@@ -64,7 +62,6 @@ type EventWithDetails = {
   totalRevenue?: number;
 };
 
-// Componente reutilizable para estadísticas modernas
 const ModernStatCard = ({
   title,
   value,
@@ -164,7 +161,6 @@ const ModernStatCard = ({
   );
 };
 
-// Componente para acciones rápidas del admin
 const AdminActionCard = ({
   title,
   description,
@@ -346,7 +342,6 @@ export default async function AdminPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Hero Section */}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-blue-600 to-purple-800 p-8 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/90 to-blue-600/90"></div>
           <div className="absolute top-4 right-4 opacity-20">
@@ -393,13 +388,6 @@ export default async function AdminPage() {
                     day: "numeric",
                   })}
                 </p>
-                <div className="flex items-center gap-1 text-purple-200 text-sm mt-1">
-                  <Clock className="h-4 w-4" />
-                  {new Date().toLocaleTimeString("es-CL", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </div>
               </div>
             </div>
           </div>
@@ -586,17 +574,22 @@ export default async function AdminPage() {
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <AdminActionCard
+                title="Solicitudes de Rol"
+                description="Revisar y gestionar cambios de rol de usuarios"
+                icon={UserCheck}
+                href="/admin/role-requests"
+                variant="primary"
+                badge={
+                  pendingRoleRequests > 0
+                    ? pendingRoleRequests.toString()
+                    : undefined
+                }
+              />
+              <AdminActionCard
                 title="Gestionar Categorías"
                 description="Crear, editar y organizar categorías de eventos"
                 icon={Layers}
                 href="/admin/categories"
-                variant="primary"
-              />
-              <AdminActionCard
-                title="Sincronizar Usuarios"
-                description="Actualizar datos de usuarios desde Clerk"
-                icon={RefreshCw}
-                href="/admin/sync-users"
                 variant="secondary"
               />
               <AdminActionCard
@@ -607,16 +600,16 @@ export default async function AdminPage() {
                 variant="success"
               />
               <AdminActionCard
+                title="Sincronizar Usuarios"
+                description="Actualizar datos de usuarios desde Clerk"
+                icon={RefreshCw}
+                href="/admin/sync-users"
+              />
+              <AdminActionCard
                 title="Gestionar Eventos"
                 description="Supervisar y moderar todos los eventos"
                 icon={Calendar}
                 href="/admin/events"
-              />
-              <AdminActionCard
-                title="Base de Datos"
-                description="Herramientas avanzadas de administración"
-                icon={Database}
-                href="/admin/database"
               />
               <AdminActionCard
                 title="Configuración Sistema"
