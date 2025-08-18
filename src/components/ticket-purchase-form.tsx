@@ -21,10 +21,17 @@ import {
   AlertCircle,
   Ticket,
   CheckCircle,
+  Tag,
+  X,
+  Loader2,
+  Percent,
+  DollarSign,
+  Gift,
 } from "lucide-react";
 import { usePayment } from "@/hooks/use-payment";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import PriceDisplay from "@/components/price-display";
+import { toast } from "sonner";
 
 interface TicketType {
   id: string;
@@ -55,12 +62,6 @@ interface Event {
   _count: {
     tickets: number;
   };
-  // Para compatibilidad con la interfaz existente
-  price?: number;
-  currency?: string;
-  isFree?: boolean;
-  capacity?: number;
-  // Nuevos campos para tipos de entrada
   ticketTypes?: TicketType[];
 }
 
@@ -75,33 +76,44 @@ export default function TicketPurchaseForm({
 }: TicketPurchaseFormProps) {
   const [selectedTicketType, setSelectedTicketType] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
-  const [showPriceBreakdown] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+
+  // Promo code states
+  const [promoCode, setPromoCode] = useState("");
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<{
+    code: string;
+    name: string;
+    discountAmount: number;
+    finalAmount: number;
+    percentage: number;
+    type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
+  } | null>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
 
   const { processPayment, loading, error } = usePayment();
 
-  // Usar ticketTypes si están disponibles, sino usar los valores legacy
   const ticketTypes = event.ticketTypes || [
     {
       id: "legacy",
       name: "Entrada General",
       description: null,
-      price: event.price || 0,
-      currency: event.currency || "CLP",
-      capacity: event.capacity || 0,
+      price: 0,
+      currency: "CLP",
+      capacity: 0,
       _count: { tickets: event._count.tickets },
     },
   ];
 
   const selectedType = ticketTypes.find((t) => t.id === selectedTicketType);
-  const totalPrice = selectedType
-    ? calculateTotalPrice(selectedType.price) * quantity
-    : 0;
-  const isFree = selectedType
-    ? selectedType.price === 0
-    : event.isFree || false;
 
-  // Establecer el primer tipo disponible como seleccionado por defecto
+  const baseAmount = selectedType ? selectedType.price * quantity : 0;
+  const discountAmount = appliedPromo?.discountAmount || 0;
+  const finalAmount = appliedPromo?.finalAmount || baseAmount;
+
+  const totalPrice = calculateTotalPrice(finalAmount);
+  const isFree = finalAmount === 0;
+
   useState(() => {
     const firstAvailable = ticketTypes.find(
       (t) => t.capacity - t._count.tickets > 0
@@ -131,7 +143,67 @@ export default function TicketPurchaseForm({
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity >= 1 && newQuantity <= maxQuantityAllowed) {
       setQuantity(newQuantity);
+      if (appliedPromo) {
+        validatePromoCode(promoCode, newQuantity);
+      }
     }
+  };
+
+  const validatePromoCode = async (code: string, qty: number = quantity) => {
+    if (!code.trim() || !selectedType) return;
+
+    setIsValidatingPromo(true);
+    setPromoError(null);
+
+    try {
+      const response = await fetch("/api/promo-codes/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: code.trim().toUpperCase(),
+          ticketTypeId: selectedType.id,
+          quantity: qty,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setPromoError(data.error || "Error al validar el código");
+        setAppliedPromo(null);
+        return;
+      }
+
+      const promoData = {
+        code: data.promoCode.code,
+        name: data.promoCode.name,
+        type: data.promoCode.type,
+        discountAmount: data.discount.amount,
+        finalAmount: data.discount.finalAmount,
+        percentage: data.discount.percentage,
+      };
+
+      setAppliedPromo(promoData);
+      setPromoError(null);
+      toast.success(
+        `¡Código aplicado! Ahorras $${promoData.discountAmount.toLocaleString("es-CL")}`
+      );
+    } catch (error) {
+      console.error("Error validating promo code:", error);
+      setPromoError("Error al validar el código promocional");
+      setAppliedPromo(null);
+    } finally {
+      setIsValidatingPromo(false);
+    }
+  };
+
+  const removePromoCode = () => {
+    setAppliedPromo(null);
+    setPromoCode("");
+    setPromoError(null);
+    toast.info("Código promocional removido");
   };
 
   const handlePurchase = async () => {
@@ -148,6 +220,7 @@ export default function TicketPurchaseForm({
     await processPayment({
       ticketTypeId: selectedType.id,
       quantity,
+      promoCode: appliedPromo?.code, // Incluir código promocional
     });
   };
 
@@ -162,6 +235,33 @@ export default function TicketPurchaseForm({
       minute: "2-digit",
     };
     return start.toLocaleDateString("es-ES", options);
+  };
+
+  const getDiscountIcon = (type: string) => {
+    switch (type) {
+      case "PERCENTAGE":
+        return <Percent className="h-4 w-4" />;
+      case "FIXED_AMOUNT":
+        return <DollarSign className="h-4 w-4" />;
+      case "FREE":
+        return <Gift className="h-4 w-4" />;
+      default:
+        return <Tag className="h-4 w-4" />;
+    }
+  };
+
+  const formatDiscount = (promo: typeof appliedPromo) => {
+    if (!promo) return "";
+    switch (promo.type) {
+      case "PERCENTAGE":
+        return `${Math.round(promo.percentage)}% de descuento`;
+      case "FIXED_AMOUNT":
+        return `$${promo.discountAmount.toLocaleString("es-CL")} de descuento`;
+      case "FREE":
+        return "¡Gratis!";
+      default:
+        return "Descuento aplicado";
+    }
   };
 
   const canPurchase =
@@ -253,7 +353,15 @@ export default function TicketPurchaseForm({
           <CardContent className="space-y-6">
             <RadioGroup
               value={selectedTicketType}
-              onValueChange={setSelectedTicketType}
+              onValueChange={(value) => {
+                setSelectedTicketType(value);
+                // Limpiar promo code al cambiar tipo de ticket
+                if (appliedPromo) {
+                  setAppliedPromo(null);
+                  setPromoCode("");
+                  setPromoError(null);
+                }
+              }}
               className="space-y-4"
             >
               {ticketTypes.map((ticketType) => {
@@ -373,17 +481,162 @@ export default function TicketPurchaseForm({
               </div>
             )}
 
+            {/* Código promocional */}
+            {selectedType && (
+              <>
+                <Separator />
+                {appliedPromo ? (
+                  <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-green-500 rounded-full">
+                            <CheckCircle className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className="text-green-700 border-green-300"
+                              >
+                                {appliedPromo.code}
+                              </Badge>
+                              {getDiscountIcon(appliedPromo.type)}
+                            </div>
+                            <p className="text-sm font-medium text-green-800 dark:text-green-300">
+                              {appliedPromo.name}
+                            </p>
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              {formatDiscount(appliedPromo)}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={removePromoCode}
+                          className="text-green-700 hover:text-green-800 hover:bg-green-100"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-blue-500" />
+                          <Label
+                            htmlFor="promo-code"
+                            className="text-sm font-medium"
+                          >
+                            ¿Tienes un código promocional?
+                          </Label>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <Input
+                              id="promo-code"
+                              placeholder="Ingresa tu código"
+                              value={promoCode}
+                              onChange={(e) => {
+                                setPromoCode(e.target.value.toUpperCase());
+                                setPromoError(null);
+                              }}
+                              className={promoError ? "border-red-300" : ""}
+                              disabled={isValidatingPromo}
+                            />
+                            {promoError && (
+                              <p className="text-xs text-red-600 mt-1">
+                                {promoError}
+                              </p>
+                            )}
+                          </div>
+                          <Button
+                            onClick={() => validatePromoCode(promoCode)}
+                            disabled={isValidatingPromo || !promoCode.trim()}
+                            size="default"
+                          >
+                            {isValidatingPromo ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Aplicar"
+                            )}
+                          </Button>
+                        </div>
+
+                        <p className="text-xs text-muted-foreground">
+                          Los códigos promocionales se aplicarán automáticamente
+                          al total.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+
             {/* Resumen de precio */}
             {selectedType && (
               <>
                 <Separator />
-                <PriceDisplay
-                  basePrice={selectedType.price}
-                  quantity={quantity}
-                  currency={selectedType.currency}
-                  showBreakdown={showPriceBreakdown}
-                  variant="detailed"
-                />
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-lg">Resumen de compra</h4>
+
+                  {appliedPromo ? (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal:</span>
+                        <span className="line-through text-gray-500">
+                          {formatPrice(baseAmount, selectedType.currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Descuento ({appliedPromo.code}):</span>
+                        <span>
+                          -{formatPrice(discountAmount, selectedType.currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal con descuento:</span>
+                        <span>
+                          {formatPrice(finalAmount, selectedType.currency)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>Comisión SorykPass (6%):</span>
+                        <span>
+                          {formatPrice(
+                            totalPrice - finalAmount,
+                            selectedType.currency
+                          )}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold text-lg">
+                        <span>Total a pagar:</span>
+                        <span className="text-primary">
+                          {formatPrice(totalPrice, selectedType.currency)}
+                        </span>
+                      </div>
+                      <div className="text-sm text-green-600 font-medium">
+                        ¡Ahorras{" "}
+                        {formatPrice(discountAmount, selectedType.currency)}!
+                      </div>
+                    </div>
+                  ) : (
+                    <PriceDisplay
+                      basePrice={selectedType.price}
+                      quantity={quantity}
+                      currency={selectedType.currency}
+                      showBreakdown={true}
+                      variant="detailed"
+                    />
+                  )}
+                </div>
               </>
             )}
 

@@ -1,18 +1,12 @@
-// src/hooks/use-payment.ts - VERSIÓN COMPLETA CON PROMO CODES
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  calculatePriceBreakdown,
-  formatPriceBreakdown,
-  calculatePriceBreakdownWithDiscount,
-} from "@/lib/commission";
 
 interface PaymentData {
   ticketTypeId: string;
   quantity: number;
-  promoCode?: string; // ✅ NUEVO: Campo opcional para código promocional
+  promoCode?: string;
 }
 
 interface PaymentResponse {
@@ -122,109 +116,6 @@ export function usePayment() {
   };
 }
 
-export function useRealTimePrice(
-  basePrice: number,
-  quantity: number = 1,
-  currency: string = "CLP"
-) {
-  const [priceData, setPriceData] = useState(() => {
-    const breakdown = calculatePriceBreakdown(basePrice * quantity, currency);
-    return {
-      breakdown,
-      formatted: formatPriceBreakdown(breakdown),
-      isFree: basePrice === 0,
-    };
-  });
-
-  const updatePrice = (
-    newBasePrice: number, 
-    newQuantity: number = 1, 
-    discountAmount: number = 0
-  ) => {
-    const originalAmount = newBasePrice * newQuantity;
-    
-    let breakdown;
-    if (discountAmount > 0) {
-      breakdown = calculatePriceBreakdownWithDiscount(
-        originalAmount,
-        discountAmount,
-        currency
-      );
-    } else {
-      breakdown = calculatePriceBreakdown(originalAmount, currency);
-    }
-
-    setPriceData({
-      breakdown,
-      formatted: formatPriceBreakdown(breakdown),
-      isFree: newBasePrice === 0 || breakdown.totalPrice === 0,
-    });
-  };
-
-  const applyDiscount = (discountAmount: number, promoCode?: string) => {
-    const originalAmount = basePrice * quantity;
-    const breakdown = calculatePriceBreakdownWithDiscount(
-      originalAmount,
-      discountAmount,
-      currency
-    );
-    
-    const enhancedBreakdown = {
-      ...breakdown,
-      promoCode
-    };
-
-    setPriceData({
-      breakdown: enhancedBreakdown,
-      formatted: formatPriceBreakdown(enhancedBreakdown),
-      isFree: enhancedBreakdown.totalPrice === 0,
-    });
-  };
-
-  return {
-    ...priceData,
-    updatePrice,
-    applyDiscount,
-  };
-}
-
-export function usePaymentStatus(orderId?: string) {
-  const [status, setStatus] = useState<
-    "loading" | "success" | "error" | "not-found"
-  >("loading");
-  const [orderData, setOrderData] = useState<Record<string, unknown> | null>(
-    null
-  );
-
-  const checkStatus = async () => {
-    if (!orderId) {
-      setStatus("not-found");
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/orders/${orderId}`);
-      const data = await response.json();
-
-      if (response.ok) {
-        setOrderData(data.order);
-        setStatus("success");
-      } else {
-        setStatus("error");
-      }
-    } catch (error) {
-      console.error("Error checking payment status:", error);
-      setStatus("error");
-    }
-  };
-
-  return {
-    status,
-    orderData,
-    checkStatus,
-  };
-}
-
 export function usePromoCode() {
   const [loading, setLoading] = useState(false);
   const [appliedPromo, setAppliedPromo] = useState<{
@@ -233,6 +124,7 @@ export function usePromoCode() {
     discountAmount: number;
     finalAmount: number;
     percentage: number;
+    type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -272,6 +164,7 @@ export function usePromoCode() {
       const promoData = {
         code: data.promoCode.code,
         name: data.promoCode.name,
+        type: data.promoCode.type,
         discountAmount: data.discount.amount,
         finalAmount: data.discount.finalAmount,
         percentage: data.discount.percentage,
@@ -279,7 +172,7 @@ export function usePromoCode() {
 
       setAppliedPromo(promoData);
       toast.success(
-        `¡Código aplicado! Ahorras $${promoData.discountAmount.toLocaleString("es-CL")}`
+        `¡Código aplicado! Ahorras ${promoData.discountAmount.toLocaleString("es-CL")}`
       );
 
       return promoData;
@@ -307,5 +200,102 @@ export function usePromoCode() {
     loading,
     appliedPromo,
     error,
+  };
+}
+
+export function useRealTimePrice(
+  basePrice: number,
+  quantity: number = 1,
+) {
+  const [priceData, setPriceData] = useState(() => {
+    const originalAmount = basePrice * quantity;
+    return {
+      originalAmount,
+      discountAmount: 0,
+      finalAmount: originalAmount,
+      isFree: basePrice === 0,
+    };
+  });
+
+  const updatePrice = (
+    newBasePrice: number, 
+    newQuantity: number = 1, 
+    discountAmount: number = 0
+  ) => {
+    const originalAmount = newBasePrice * newQuantity;
+    const finalAmount = Math.max(0, originalAmount - discountAmount);
+
+    setPriceData({
+      originalAmount,
+      discountAmount,
+      finalAmount,
+      isFree: newBasePrice === 0 || finalAmount === 0,
+    });
+  };
+
+  const applyDiscount = (discountAmount: number) => {
+    const originalAmount = basePrice * quantity;
+    const finalAmount = Math.max(0, originalAmount - discountAmount);
+    
+    setPriceData({
+      originalAmount,
+      discountAmount,
+      finalAmount,
+      isFree: finalAmount === 0,
+    });
+  };
+
+  const clearDiscount = () => {
+    const originalAmount = basePrice * quantity;
+    setPriceData({
+      originalAmount,
+      discountAmount: 0,
+      finalAmount: originalAmount,
+      isFree: basePrice === 0,
+    });
+  };
+
+  return {
+    ...priceData,
+    updatePrice,
+    applyDiscount,
+    clearDiscount,
+  };
+}
+
+export function usePaymentStatus(orderId?: string) {
+  const [status, setStatus] = useState<
+    "loading" | "success" | "error" | "not-found"
+  >("loading");
+  const [orderData, setOrderData] = useState<Record<string, unknown> | null>(
+    null
+  );
+
+  const checkStatus = async () => {
+    if (!orderId) {
+      setStatus("not-found");
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${orderId}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setOrderData(data.order);
+        setStatus("success");
+      } else {
+        setStatus("error");
+      }
+    } catch (error) {
+      console.error("Error checking payment status:", error);
+      setStatus("error");
+    }
+  };
+
+  return {
+    status,
+    orderData,
+    checkStatus,
   };
 }

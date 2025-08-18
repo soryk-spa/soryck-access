@@ -880,7 +880,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(window.location?.href || "")}`}
+                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -895,7 +895,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${window.location?.href || ""}`)}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${typeof window !== 'undefined' ? window.location.href : ""}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -946,10 +946,6 @@ export default function EventDetailView({
                     firstName: event.organizer.firstName ?? null,
                     lastName: event.organizer.lastName ?? null,
                   },
-                  price: event.ticketTypes[0]?.price ?? 0,
-                  currency: event.ticketTypes[0]?.currency ?? "CLP",
-                  isFree: event.ticketTypes.every((t) => t.price === 0),
-                  capacity: totalCapacity,
                   ticketTypes: event.ticketTypes.map((t) => ({
                     ...t,
                     description: t.description ?? null,
