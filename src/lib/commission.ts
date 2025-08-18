@@ -5,6 +5,9 @@ export interface PriceBreakdown {
   commission: number;
   totalPrice: number;
   currency: string;
+  originalAmount?: number;
+  discountAmount?: number;
+  promoCode?: string;
 }
 
 export function calculateTotalPrice(basePrice: number): number {
@@ -21,7 +24,9 @@ export function calculatePriceBreakdown(
       basePrice: 0,
       commission: 0,
       totalPrice: 0,
-      currency
+      currency,
+      originalAmount: 0,
+      discountAmount: 0
     };
   }
 
@@ -32,7 +37,24 @@ export function calculatePriceBreakdown(
     basePrice,
     commission,
     totalPrice,
-    currency
+    currency,
+    originalAmount: basePrice, // Por defecto, igual al basePrice
+    discountAmount: 0 // Por defecto, sin descuento
+  };
+}
+
+export function calculatePriceBreakdownWithDiscount(
+  originalAmount: number,
+  discountAmount: number,
+  currency: string = 'CLP'
+): PriceBreakdown {
+  const discountedAmount = Math.max(0, originalAmount - discountAmount);
+  const breakdown = calculatePriceBreakdown(discountedAmount, currency);
+  
+  return {
+    ...breakdown,
+    originalAmount,
+    discountAmount
   };
 }
 
@@ -63,5 +85,26 @@ export function formatPriceBreakdown(breakdown: PriceBreakdown): {
     commission: formatPrice(breakdown.commission, breakdown.currency),
     totalPrice: formatPrice(breakdown.totalPrice, breakdown.currency),
     commissionPercentage: `${(COMMISSION_RATE * 100).toFixed(0)}%`
+  };
+}
+
+export function formatPriceBreakdownWithDiscount(breakdown: PriceBreakdown): {
+  originalAmount: string;
+  discountAmount: string;
+  basePrice: string;
+  commission: string;
+  totalPrice: string;
+  commissionPercentage: string;
+  savingsPercentage?: string;
+} {
+  const formatted = formatPriceBreakdown(breakdown);
+  
+  return {
+    ...formatted,
+    originalAmount: formatPrice(breakdown.originalAmount || 0, breakdown.currency),
+    discountAmount: formatPrice(breakdown.discountAmount || 0, breakdown.currency),
+    savingsPercentage: breakdown.originalAmount && breakdown.discountAmount 
+      ? `${Math.round((breakdown.discountAmount / breakdown.originalAmount) * 100)}%`
+      : undefined
   };
 }

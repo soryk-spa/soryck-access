@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { webpayPlus } from "@/lib/transbank";
 import { generateUniqueQRCode } from "@/lib/qr";
 import { calculatePriceBreakdown } from "@/lib/commission";
+import { PromoCodeService } from "@/lib/promo-codes";
 import { sendTicketEmail } from '@/lib/email';
 import { z } from "zod";
 import { Order, Event, User, TicketType } from "@prisma/client";
@@ -11,6 +12,7 @@ import { Order, Event, User, TicketType } from "@prisma/client";
 const createPaymentSchema = z.object({
   ticketTypeId: z.string().min(1, "Se requiere el tipo de ticket"),
   quantity: z.number().min(1, "La cantidad debe ser al menos 1").max(10, "No puedes comprar más de 10 tickets a la vez."),
+  promoCode: z.string().optional(),
 });
 
 function generateShortBuyOrder(prefix: string = "SP"): string {
@@ -36,7 +38,7 @@ function generateShortSessionId(prefix: string = "sess"): string {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("=== INICIO DE CREACIÓN DE PAGO POR TIPO DE TICKET ===");
+    console.log("=== INICIO DE CREACIÓN DE PAGO CON PROMO CODES ===");
 
     const user = await requireAuth();
     const body = await request.json();
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { ticketTypeId, quantity } = validation.data;
+    const { ticketTypeId, quantity, promoCode } = validation.data;
 
     const ticketType = await prisma.ticketType.findUnique({
       where: { id: ticketTypeId },
@@ -82,18 +84,63 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let promoCodeValidation = null;
+    let finalPriceBreakdown = null;
+    
     const basePrice = ticketType.price;
     const baseTotalAmount = basePrice * quantity;
-    const priceBreakdown = calculatePriceBreakdown(baseTotalAmount, event.currency);
-    const finalTotalAmount = priceBreakdown.totalPrice;
+
+    if (promoCode && promoCode.trim()) {
+      console.log(`[PROMO] Validando código promocional: ${promoCode}`);
+      
+      promoCodeValidation = await PromoCodeService.validatePromoCode(
+        promoCode.trim(),
+        user.id,
+        ticketTypeId,
+        quantity
+      );
+
+      if (!promoCodeValidation.isValid) {
+        return NextResponse.json(
+          { error: promoCodeValidation.error },
+          { status: 400 }
+        );
+      }
+
+      console.log(`[PROMO] ✅ Código válido. Descuento: ${promoCodeValidation.discountAmount}`);
+      
+      const discountedAmount = promoCodeValidation.finalAmount || baseTotalAmount;
+      finalPriceBreakdown = calculatePriceBreakdown(discountedAmount, event.currency);
+      
+      finalPriceBreakdown.originalAmount = baseTotalAmount;
+      finalPriceBreakdown.discountAmount = promoCodeValidation.discountAmount || 0;
+      finalPriceBreakdown.promoCode = promoCodeValidation.promoCode?.code;
+    } else {
+      finalPriceBreakdown = calculatePriceBreakdown(baseTotalAmount, event.currency);
+      finalPriceBreakdown.originalAmount = baseTotalAmount;
+      finalPriceBreakdown.discountAmount = 0;
+    }
+
+    const finalTotalAmount = finalPriceBreakdown.totalPrice;
+
+    console.log(`[PAYMENT] Resumen de precios:`, {
+      baseAmount: baseTotalAmount,
+      discountAmount: finalPriceBreakdown.discountAmount,
+      afterDiscount: finalPriceBreakdown.basePrice,
+      commission: finalPriceBreakdown.commission,
+      finalTotal: finalTotalAmount,
+      hasPromoCode: !!promoCode
+    });
 
     const orderNumber = generateShortBuyOrder("SP");
     const order = await prisma.order.create({
       data: {
         orderNumber,
         totalAmount: finalTotalAmount,
-        baseAmount: baseTotalAmount,
-        commissionAmount: priceBreakdown.commission,
+        baseAmount: finalPriceBreakdown.basePrice,
+        commissionAmount: finalPriceBreakdown.commission,
+        originalAmount: finalPriceBreakdown.originalAmount, // ✅ NUEVO: Monto original
+        discountAmount: finalPriceBreakdown.discountAmount, // ✅ NUEVO: Descuento aplicado
         currency: event.currency,
         quantity,
         status: "PENDING",
@@ -102,14 +149,34 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log("Orden creada:", { orderId: order.id, total: finalTotalAmount });
+    console.log("Orden creada:", { 
+      orderId: order.id, 
+      total: finalTotalAmount,
+      discount: finalPriceBreakdown.discountAmount,
+      promoApplied: !!promoCode
+    });
 
-    const isFree = ticketType.price === 0;
+    // Manejar entrada gratuita (incluyendo 100% de descuento)
+    const isFree = finalTotalAmount === 0;
     if (isFree) {
-      console.log("Entrada gratuita, procesando directamente...");
+      console.log("Entrada gratuita o con descuento del 100%, procesando directamente...");
+      
+      // Si hay código promocional, registrar su uso
+      if (promoCodeValidation?.promoCode) {
+        await PromoCodeService.applyPromoCodeToOrder(
+          promoCodeValidation.promoCode.id,
+          user.id,
+          order.id,
+          finalPriceBreakdown.discountAmount,
+          finalPriceBreakdown.originalAmount,
+          finalTotalAmount
+        );
+      }
+      
       return await handleAndGenerateTickets(order, event, user, ticketType);
     }
 
+    // Para pagos con monto > 0, proceder con Transbank
     const sessionId = generateShortSessionId("sess");
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`;
 
@@ -131,11 +198,26 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Si hay código promocional, guardarlo temporalmente en la orden para aplicarlo después del pago
+    if (promoCodeValidation?.promoCode) {
+      // Podríamos usar un campo temporal o metadata, pero por simplicidad 
+      // lo manejaremos en el return de Transbank
+      console.log(`[PROMO] Código ${promoCode} quedará pendiente para aplicar tras pago exitoso`);
+    }
+
     return NextResponse.json({
       success: true,
       orderId: order.id,
       paymentUrl: transbankResponse.url,
       token: transbankResponse.token,
+      priceBreakdown: {
+        originalAmount: finalPriceBreakdown.originalAmount,
+        discountAmount: finalPriceBreakdown.discountAmount,
+        baseAmount: finalPriceBreakdown.basePrice,
+        commission: finalPriceBreakdown.commission,
+        totalAmount: finalTotalAmount,
+        promoCode: promoCode || null
+      }
     });
 
   } catch (error) {

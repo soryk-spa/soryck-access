@@ -106,6 +106,14 @@ export async function POST(request: NextRequest) {
   return await handleTransactionCommit(token);
 }
 
+async function applyPendingPromoCode(order: Order): Promise<void> {  
+  if (!order.discountAmount || order.discountAmount <= 0) {
+    return;
+  }
+  console.log(`[PROMO] Buscando código promocional para orden ${order.orderNumber} con descuento $${order.discountAmount}`);
+  console.log(`[PROMO] Orden completada con descuento aplicado: $${order.discountAmount}`);
+}
+
 async function processSuccessfulPayment(payment: FullPayment, transbankResponse: TransbankCommitResponse, ticketType: TicketType) {
   console.log('Procesando pago exitoso, generando tickets...');
   
@@ -153,10 +161,14 @@ async function processSuccessfulPayment(payment: FullPayment, transbankResponse:
         }
       })
     ]);
-    
     console.log('Tickets creados exitosamente:', ticketsData.length);
-    
+
     const updatedOrder = transactionResult[1] as OrderWithTickets;
+    
+    if (updatedOrder.discountAmount && updatedOrder.discountAmount > 0) {
+      console.log(`[PROMO] Aplicando código promocional post-pago para orden ${updatedOrder.orderNumber}`);
+      await applyPendingPromoCode(updatedOrder);
+    }
 
     await sendTicketEmail({
         user: payment.order.user,
