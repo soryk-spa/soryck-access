@@ -20,16 +20,34 @@ export default async function PromoCodesPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  const serializedPromoCodes = promoCodes.map((code) => ({
-    ...code,
-    description: code.description ?? undefined,
-    usageLimit: code.usageLimit ?? undefined,
-    validFrom: code.validFrom.toISOString(),
-    validUntil: code.validUntil?.toISOString() || undefined,
-    createdAt: code.createdAt.toISOString(),
-    updatedAt: code.updatedAt.toISOString(),
-    event: code.event || undefined,
-  }));
+  const now = new Date();
+  const serializedPromoCodes = promoCodes.map((code) => {
+    let status = code.status;
+
+    if (code.validUntil && code.validUntil < now && status === "ACTIVE") {
+      status = "EXPIRED";
+    }
+
+    if (
+      code.usageLimit &&
+      code.usedCount >= code.usageLimit &&
+      status === "ACTIVE"
+    ) {
+      status = "USED_UP";
+    }
+
+    return {
+      ...code,
+      status,
+      description: code.description ?? undefined,
+      usageLimit: code.usageLimit ?? undefined,
+      validFrom: code.validFrom.toISOString(),
+      validUntil: code.validUntil?.toISOString() || undefined,
+      createdAt: code.createdAt.toISOString(),
+      updatedAt: code.updatedAt.toISOString(),
+      event: code.event || undefined,
+    };
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">

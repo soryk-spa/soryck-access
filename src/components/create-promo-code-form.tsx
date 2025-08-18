@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import {
   Percent,
   DollarSign,
@@ -25,6 +27,9 @@ import {
   Target,
   Code,
   Shuffle,
+  Info,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,32 +66,14 @@ const createPromoCodeSchema = z
 
 type FormData = z.infer<typeof createPromoCodeSchema>;
 
-type PromoCode = {
-  id: string;
-  name: string;
-  description?: string;
-  type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
-  value: number;
-  minOrderAmount?: number;
-  maxDiscountAmount?: number;
-  usageLimit?: number;
-  usageLimitPerUser?: number;
-  validFrom: string;
-  validUntil?: string;
-  eventId?: string;
-  code: string;
-};
-
 interface CreatePromoCodeFormProps {
   eventId?: string;
   events?: Array<{ id: string; title: string }>;
-  onSuccess?: (promoCode: PromoCode) => void;
 }
 
 export default function CreatePromoCodeForm({
   eventId,
   events = [],
-  onSuccess,
 }: CreatePromoCodeFormProps) {
   const [loading, setLoading] = useState(false);
 
@@ -101,13 +88,15 @@ export default function CreatePromoCodeForm({
     defaultValues: {
       type: "PERCENTAGE",
       codeOption: "generate",
-      eventId: eventId || "",
+      eventId: eventId || "all",
       validFrom: new Date().toISOString().slice(0, 16),
     },
   });
 
   const watchType = watch("type");
   const watchCodeOption = watch("codeOption");
+  const watchValue = watch("value");
+  const watchUsageLimit = watch("usageLimit");
 
   const generateRandomCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -127,6 +116,7 @@ export default function CreatePromoCodeForm({
         ...data,
         generateCode: data.codeOption === "generate",
         customCode: data.codeOption === "custom" ? data.customCode : undefined,
+        eventId: data.eventId === "all" ? undefined : data.eventId,
       };
 
       const response = await fetch("/api/promo-codes", {
@@ -143,8 +133,12 @@ export default function CreatePromoCodeForm({
         throw new Error(result.error || "Error al crear código promocional");
       }
 
-      toast.success("¡Código promocional creado exitosamente!");
-      onSuccess?.(result.promoCode);
+      toast.success("¡Código promocional creado exitosamente!", {
+        description: `Código: ${result.promoCode.code}`,
+      });
+
+      // Redirigir después de crear exitosamente
+      window.location.href = "/dashboard/promo-codes";
     } catch (error) {
       console.error("Error creating promo code:", error);
       toast.error(
@@ -170,312 +164,541 @@ export default function CreatePromoCodeForm({
     }
   };
 
+  const getEstimatedImpact = () => {
+    if (!watchValue || !watchUsageLimit) return null;
+
+    let estimatedSavings = 0;
+    if (watchType === "PERCENTAGE") {
+      estimatedSavings = ((50000 * watchValue) / 100) * watchUsageLimit; // Asumiendo ticket promedio de $50,000
+    } else if (watchType === "FIXED_AMOUNT") {
+      estimatedSavings = watchValue * watchUsageLimit;
+    }
+
+    return estimatedSavings;
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Crear Código Promocional
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Columna principal */}
+        <div className="lg:col-span-2 space-y-6">
           {/* Información básica */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="name">Nombre del código *</Label>
-              <Input
-                id="name"
-                {...register("name")}
-                placeholder="Ej: Descuento de lanzamiento"
-              />
-              {errors.name && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.name.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="description">Descripción</Label>
-              <Input
-                id="description"
-                {...register("description")}
-                placeholder="Descripción opcional"
-              />
-            </div>
-          </div>
-
-          {/* Tipo de descuento */}
-          <div>
-            <Label>Tipo de descuento *</Label>
-            <RadioGroup
-              value={watchType}
-              onValueChange={(value: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE") =>
-                setValue("type", value)
-              }
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2"
-            >
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <RadioGroupItem value="PERCENTAGE" id="percentage" />
-                <Label
-                  htmlFor="percentage"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Percent className="h-4 w-4" />
-                  Porcentaje
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <RadioGroupItem value="FIXED_AMOUNT" id="fixed" />
-                <Label
-                  htmlFor="fixed"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <DollarSign className="h-4 w-4" />
-                  Monto fijo
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <RadioGroupItem value="FREE" id="free" />
-                <Label
-                  htmlFor="free"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Gift className="h-4 w-4" />
-                  Gratis (100%)
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Valor del descuento */}
-          {watchType !== "FREE" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="value">
-                  {watchType === "PERCENTAGE"
-                    ? "Porcentaje (%)"
-                    : "Monto (CLP)"}{" "}
-                  *
-                </Label>
-                <Input
-                  id="value"
-                  type="number"
-                  {...register("value", { valueAsNumber: true })}
-                  placeholder={watchType === "PERCENTAGE" ? "10" : "5000"}
-                  min="0"
-                  max={watchType === "PERCENTAGE" ? "100" : undefined}
-                />
-                {errors.value && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.value.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="minOrderAmount">Monto mínimo de orden</Label>
-                <Input
-                  id="minOrderAmount"
-                  type="number"
-                  {...register("minOrderAmount", { valueAsNumber: true })}
-                  placeholder="0"
-                  min="0"
-                />
-              </div>
-
-              {watchType === "PERCENTAGE" && (
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                Información Básica
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="maxDiscountAmount">
-                    Descuento máximo (CLP)
-                  </Label>
+                  <Label htmlFor="name">Nombre del código *</Label>
                   <Input
-                    id="maxDiscountAmount"
-                    type="number"
-                    {...register("maxDiscountAmount", { valueAsNumber: true })}
-                    placeholder="10000"
-                    min="0"
+                    id="name"
+                    {...register("name")}
+                    placeholder="Ej: Descuento de lanzamiento"
+                    className="mt-1"
                   />
+                  {errors.name && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="eventSelect">Evento específico</Label>
+                  <Select
+                    value={watch("eventId") || "all"}
+                    onValueChange={(value) =>
+                      setValue("eventId", value === "all" ? undefined : value)
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Todos los eventos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los eventos</SelectItem>
+                      {events.map((event) => (
+                        <SelectItem key={event.id} value={event.id}>
+                          {event.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="description">Descripción</Label>
+                <Textarea
+                  id="description"
+                  {...register("description")}
+                  placeholder="Descripción opcional para uso interno"
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Configuración de descuento */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Configuración de Descuento
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Tipo de descuento */}
+              <div>
+                <Label>Tipo de descuento *</Label>
+                <RadioGroup
+                  value={watchType}
+                  onValueChange={(
+                    value: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE"
+                  ) => setValue("type", value)}
+                  className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3"
+                >
+                  <div className="relative">
+                    <RadioGroupItem
+                      value="PERCENTAGE"
+                      id="percentage"
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor="percentage"
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                        watchType === "PERCENTAGE"
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/20"
+                          : "border-border"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-lg ${
+                          watchType === "PERCENTAGE"
+                            ? "bg-blue-500 text-white"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <Percent className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Porcentaje</div>
+                        <div className="text-xs text-muted-foreground">
+                          Descuento por %
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className="relative">
+                    <RadioGroupItem
+                      value="FIXED_AMOUNT"
+                      id="fixed"
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor="fixed"
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                        watchType === "FIXED_AMOUNT"
+                          ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+                          : "border-border"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-lg ${
+                          watchType === "FIXED_AMOUNT"
+                            ? "bg-green-500 text-white"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <DollarSign className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Monto fijo</div>
+                        <div className="text-xs text-muted-foreground">
+                          Descuento en $
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+
+                  <div className="relative">
+                    <RadioGroupItem
+                      value="FREE"
+                      id="free"
+                      className="sr-only"
+                    />
+                    <Label
+                      htmlFor="free"
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                        watchType === "FREE"
+                          ? "border-purple-500 bg-purple-50 dark:bg-purple-950/20"
+                          : "border-border"
+                      }`}
+                    >
+                      <div
+                        className={`p-2 rounded-lg ${
+                          watchType === "FREE"
+                            ? "bg-purple-500 text-white"
+                            : "bg-muted"
+                        }`}
+                      >
+                        <Gift className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="font-medium">Gratis</div>
+                        <div className="text-xs text-muted-foreground">
+                          100% de descuento
+                        </div>
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Valor del descuento */}
+              {watchType !== "FREE" && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="value">
+                      {watchType === "PERCENTAGE"
+                        ? "Porcentaje (%)"
+                        : "Monto (CLP)"}{" "}
+                      *
+                    </Label>
+                    <Input
+                      id="value"
+                      type="number"
+                      {...register("value", { valueAsNumber: true })}
+                      placeholder={watchType === "PERCENTAGE" ? "10" : "5000"}
+                      min="0"
+                      max={watchType === "PERCENTAGE" ? "100" : undefined}
+                      className="mt-1"
+                    />
+                    {errors.value && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {errors.value.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="minOrderAmount">Compra mínima (CLP)</Label>
+                    <Input
+                      id="minOrderAmount"
+                      type="number"
+                      {...register("minOrderAmount", { valueAsNumber: true })}
+                      placeholder="Sin mínimo"
+                      min="0"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {watchType === "PERCENTAGE" && (
+                    <div>
+                      <Label htmlFor="maxDiscountAmount">
+                        Descuento máximo (CLP)
+                      </Label>
+                      <Input
+                        id="maxDiscountAmount"
+                        type="number"
+                        {...register("maxDiscountAmount", {
+                          valueAsNumber: true,
+                        })}
+                        placeholder="Sin límite"
+                        min="0"
+                        className="mt-1"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
+            </CardContent>
+          </Card>
 
-          {/* Límites de uso */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="usageLimit">Límite total de usos</Label>
-              <Input
-                id="usageLimit"
-                type="number"
-                {...register("usageLimit", { valueAsNumber: true })}
-                placeholder="100"
-                min="1"
-              />
-            </div>
+          {/* Límites y fechas */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-600" />
+                Límites y Validez
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Límites de uso */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="usageLimit">Límite total de usos</Label>
+                  <Input
+                    id="usageLimit"
+                    type="number"
+                    {...register("usageLimit", { valueAsNumber: true })}
+                    placeholder="Ilimitado"
+                    min="1"
+                    className="mt-1"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="usageLimitPerUser">Límite por usuario</Label>
-              <Input
-                id="usageLimitPerUser"
-                type="number"
-                {...register("usageLimitPerUser", { valueAsNumber: true })}
-                placeholder="1"
-                min="1"
-              />
-            </div>
-          </div>
+                <div>
+                  <Label htmlFor="usageLimitPerUser">Límite por usuario</Label>
+                  <Input
+                    id="usageLimitPerUser"
+                    type="number"
+                    {...register("usageLimitPerUser", { valueAsNumber: true })}
+                    placeholder="Sin límite"
+                    min="1"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
 
-          {/* Fechas de validez */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="validFrom">Válido desde *</Label>
-              <Input
-                id="validFrom"
-                type="datetime-local"
-                {...register("validFrom")}
-              />
-              {errors.validFrom && (
-                <p className="text-sm text-red-600 mt-1">
-                  {errors.validFrom.message}
-                </p>
-              )}
-            </div>
+              <Separator />
 
-            <div>
-              <Label htmlFor="validUntil">Válido hasta</Label>
-              <Input
-                id="validUntil"
-                type="datetime-local"
-                {...register("validUntil")}
-              />
-            </div>
-          </div>
+              {/* Fechas de validez */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="validFrom">Válido desde *</Label>
+                  <Input
+                    id="validFrom"
+                    type="datetime-local"
+                    {...register("validFrom")}
+                    className="mt-1"
+                  />
+                  {errors.validFrom && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.validFrom.message}
+                    </p>
+                  )}
+                </div>
 
-          {/* Evento específico */}
-          {events.length > 0 && (
-            <div>
-              <Label>Aplicar solo a un evento específico</Label>
-              <Select
-                value={watch("eventId") || ""}
-                onValueChange={(value) =>
-                  setValue("eventId", value || undefined)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos los eventos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos los eventos</SelectItem>
-                  {events.map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                <div>
+                  <Label htmlFor="validUntil">Válido hasta</Label>
+                  <Input
+                    id="validUntil"
+                    type="datetime-local"
+                    {...register("validUntil")}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Código promocional */}
-          <div>
-            <Label>Código promocional</Label>
-            <RadioGroup
-              value={watchCodeOption}
-              onValueChange={(value: "generate" | "custom") =>
-                setValue("codeOption", value)
-              }
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2"
-            >
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <RadioGroupItem value="generate" id="generate" />
-                <Label
-                  htmlFor="generate"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Shuffle className="h-4 w-4" />
-                  Generar automáticamente
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                <RadioGroupItem value="custom" id="custom" />
-                <Label
-                  htmlFor="custom"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <Code className="h-4 w-4" />
-                  Código personalizado
-                </Label>
-              </div>
-            </RadioGroup>
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Code className="h-5 w-5 text-indigo-600" />
+                Código Promocional
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <RadioGroup
+                value={watchCodeOption}
+                onValueChange={(value: "generate" | "custom") =>
+                  setValue("codeOption", value)
+                }
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
+                <div className="relative">
+                  <RadioGroupItem
+                    value="generate"
+                    id="generate"
+                    className="sr-only"
+                  />
+                  <Label
+                    htmlFor="generate"
+                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                      watchCodeOption === "generate"
+                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20"
+                        : "border-border"
+                    }`}
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${
+                        watchCodeOption === "generate"
+                          ? "bg-indigo-500 text-white"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <Shuffle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Generar automáticamente</div>
+                      <div className="text-xs text-muted-foreground">
+                        Código único aleatorio
+                      </div>
+                    </div>
+                  </Label>
+                </div>
 
-            {watchCodeOption === "custom" && (
-              <div className="mt-3 flex gap-2">
-                <Input
-                  {...register("customCode")}
-                  placeholder="INGRESA-TU-CODIGO"
-                  className="font-mono uppercase"
-                  onChange={(e) => {
-                    e.target.value = e.target.value.toUpperCase();
-                    setValue("customCode", e.target.value);
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={generateRandomCode}
-                >
-                  <Shuffle className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-            {errors.customCode && (
-              <p className="text-sm text-red-600 mt-1">
-                Código personalizado requerido
-              </p>
-            )}
-          </div>
+                <div className="relative">
+                  <RadioGroupItem
+                    value="custom"
+                    id="custom"
+                    className="sr-only"
+                  />
+                  <Label
+                    htmlFor="custom"
+                    className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all hover:bg-muted/50 ${
+                      watchCodeOption === "custom"
+                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20"
+                        : "border-border"
+                    }`}
+                  >
+                    <div
+                      className={`p-2 rounded-lg ${
+                        watchCodeOption === "custom"
+                          ? "bg-indigo-500 text-white"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <Code className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="font-medium">Código personalizado</div>
+                      <div className="text-xs text-muted-foreground">
+                        Elige tu propio código
+                      </div>
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
 
-          {/* Resumen */}
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
+              {watchCodeOption === "custom" && (
+                <div className="flex gap-2">
+                  <Input
+                    {...register("customCode")}
+                    placeholder="INGRESA-TU-CODIGO"
+                    className="font-mono uppercase"
+                    onChange={(e) => {
+                      e.target.value = e.target.value.toUpperCase();
+                      setValue("customCode", e.target.value);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={generateRandomCode}
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {errors.customCode && (
+                <p className="text-sm text-red-600 mt-1">
+                  Código personalizado requerido
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Barra lateral - Resumen */}
+        <div className="space-y-6">
+          {/* Resumen del código */}
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-muted/50 to-muted/30 sticky top-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 {getTypeIcon(watchType)}
-                Resumen del código promocional
-              </h4>
-              <div className="space-y-2 text-sm">
+                Vista Previa
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span>Tipo:</span>
+                  <span className="text-sm text-muted-foreground">Tipo:</span>
                   <Badge variant="outline">
                     {watchType === "PERCENTAGE" && "Porcentaje"}
                     {watchType === "FIXED_AMOUNT" && "Monto fijo"}
                     {watchType === "FREE" && "Gratis"}
                   </Badge>
                 </div>
+
                 {watchType !== "FREE" && (
                   <div className="flex justify-between">
-                    <span>Valor:</span>
-                    <span>
+                    <span className="text-sm text-muted-foreground">
+                      Valor:
+                    </span>
+                    <span className="font-medium">
                       {watchType === "PERCENTAGE"
-                        ? `${watch("value") || 0}%`
-                        : `${(watch("value") || 0).toLocaleString("es-CL")}`}
+                        ? `${watchValue || 0}%`
+                        : `$${(watchValue || 0).toLocaleString("es-CL")}`}
                     </span>
                   </div>
                 )}
+
                 <div className="flex justify-between">
-                  <span>Usos totales:</span>
-                  <span>{watch("usageLimit") || "Ilimitado"}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Usos totales:
+                  </span>
+                  <span className="font-medium">
+                    {watchUsageLimit || "Ilimitado"}
+                  </span>
                 </div>
+
                 <div className="flex justify-between">
-                  <span>Por usuario:</span>
-                  <span>{watch("usageLimitPerUser") || "Ilimitado"}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Por usuario:
+                  </span>
+                  <span className="font-medium">
+                    {watch("usageLimitPerUser") || "Ilimitado"}
+                  </span>
                 </div>
+              </div>
+
+              {getEstimatedImpact() && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium flex items-center gap-2">
+                      <Info className="h-4 w-4" />
+                      Impacto Estimado
+                    </h4>
+                    <div className="text-sm text-muted-foreground">
+                      Ahorro total estimado:{" "}
+                      <span className="font-medium text-foreground">
+                        ${getEstimatedImpact()?.toLocaleString("es-CL")}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Consejos */}
+          <Card className="border-0 shadow-lg border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="text-base">💡 Consejos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div>
+                <strong>Descuentos por porcentaje:</strong> Ideales para
+                promociones generales. Considera establecer un límite máximo.
+              </div>
+              <div>
+                <strong>Descuentos fijos:</strong> Perfectos para eventos
+                específicos o lanzamientos.
+              </div>
+              <div>
+                <strong>Límites de uso:</strong> Te ayudan a controlar el
+                impacto en tus ingresos.
               </div>
             </CardContent>
           </Card>
 
-          <Button type="submit" disabled={loading} className="w-full">
+          {/* Botón de crear */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 text-base"
+            size="lg"
+          >
             {loading ? (
               <>
                 <Clock className="h-4 w-4 mr-2 animate-spin" />
@@ -488,8 +711,8 @@ export default function CreatePromoCodeForm({
               </>
             )}
           </Button>
-        </form>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </form>
   );
 }

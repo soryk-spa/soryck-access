@@ -35,6 +35,7 @@ import {
   Zap,
   Bell,
   Award,
+  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -408,6 +409,12 @@ export default async function DashboardPage() {
                 description="Ingresos generados"
                 trend="+12% este mes"
                 accentColor="orange"
+              />
+              <QuickActionCard
+                title="Códigos Promocionales"
+                description="Crear descuentos y ofertas"
+                icon={Tag}
+                href="/dashboard/promo-codes"
               />
             </>
           )}
