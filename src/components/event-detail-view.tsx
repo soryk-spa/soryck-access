@@ -564,9 +564,7 @@ export default function EventDetailView({
                 </Card>
               </div>
 
-              {/* Sidebar */}
               <div className="space-y-6">
-                {/* Purchase Panel */}
                 <Card className="sticky top-6 border-0 shadow-xl">
                   <CardHeader className="bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10">
                     <CardTitle className="text-center text-2xl">
