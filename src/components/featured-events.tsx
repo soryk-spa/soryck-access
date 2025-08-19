@@ -11,10 +11,12 @@ import {
   MapPin,
   Users,
   Clock,
+  User,
   ChevronRight,
   Loader2,
   TrendingUp,
   Star,
+  Eye,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
@@ -239,8 +241,8 @@ export default function FeaturedEvents() {
                       animationDelay: `${index * 100}ms`,
                     }}
                   >
-                    {/* Card con imagen de fondo completa - más grande y minimalista */}
-                    <Card className="relative overflow-hidden h-[520px] bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/25">
+                    {/* Card con imagen de fondo completa - más larga para destacar las imágenes */}
+                    <Card className="relative overflow-hidden h-[650px] bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/25">
                       {/* Imagen de fondo completa */}
                       {event.imageUrl ? (
                         <Image
