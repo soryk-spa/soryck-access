@@ -11,12 +11,10 @@ import {
   MapPin,
   Users,
   Clock,
-  User,
   ChevronRight,
   Loader2,
   TrendingUp,
   Star,
-  Eye,
   Sparkles,
   ArrowRight,
 } from "lucide-react";
