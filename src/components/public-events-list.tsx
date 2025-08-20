@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,9 +112,7 @@ const GlassCard = ({
   children,
   className = "",
   ...props
-}: React.PropsWithChildren<
-  { className?: string } & React.HTMLAttributes<HTMLDivElement>
->) => (
+}: React.PropsWithChildren<{ className?: string } & React.HTMLAttributes<HTMLDivElement>>) => (
   <div
     className={`relative overflow-hidden rounded-2xl bg-white/80 dark:bg-black/80 backdrop-blur-lg border border-white/20 dark:border-white/10 shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}
     {...props}
@@ -241,8 +240,11 @@ const EventCardAceternity = ({
                 <Button
                   size="sm"
                   className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl text-white"
+                  asChild
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <Link href={`/events/${event.id}`}>
+                    <ExternalLink className="w-4 h-4" />
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -400,11 +402,17 @@ const EventCardAceternity = ({
           </div>
 
           {/* Botón principal */}
-          <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl text-white font-semibold py-4 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-white/10">
-            <span className="flex items-center justify-center gap-3">
+          <Button
+            className="w-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl text-white font-semibold py-4 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-white/10"
+            asChild
+          >
+            <Link
+              href={`/events/${event.id}`}
+              className="flex items-center justify-center gap-3"
+            >
               Ver Evento
               <ExternalLink className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
+            </Link>
           </Button>
         </div>
       </Card>

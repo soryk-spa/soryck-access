@@ -176,100 +176,109 @@ export default function EventDetailView({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
-        <div className="container mx-auto px-4 py-12">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="space-y-8">
-                {/* Status Badges */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge
-                    variant="outline"
-                    className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0 px-4 py-2"
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {event.category.name}
-                  </Badge>
+      {/* Enhanced Hero Section with Larger Image */}
+      <section className="relative overflow-hidden">
+        {/* Large Hero Image Section */}
+        {event.imageUrl && (
+          <div className="relative h-[60vh] md:h-[70vh] lg:h-[80vh] w-full">
+            <Image
+              src={event.imageUrl}
+              alt={event.title}
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
 
-                  {!isPublished && (
-                    <Badge variant="secondary" className="px-4 py-2">
-                      <Edit className="w-4 h-4 mr-2" />
-                      Borrador
+            {/* Floating content over the image */}
+            <div className="absolute inset-0 flex items-end">
+              <div className="container mx-auto px-4 pb-12">
+                <div className="max-w-4xl">
+                  {/* Status Badges */}
+                  <div className="flex flex-wrap items-center gap-3 mb-6">
+                    <Badge className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0 px-4 py-2 backdrop-blur-sm">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {event.category.name}
                     </Badge>
-                  )}
 
-                  {isPast && (
-                    <Badge variant="destructive" className="px-4 py-2">
-                      <Clock className="w-4 h-4 mr-2" />
-                      Finalizado
-                    </Badge>
-                  )}
+                    {!isPublished && (
+                      <Badge className="bg-black/50 backdrop-blur-sm text-white border border-white/20 px-4 py-2">
+                        <Edit className="w-4 h-4 mr-2" />
+                        Borrador
+                      </Badge>
+                    )}
 
-                  {isSoldOut && !isPast && (
-                    <Badge className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] text-white border-0 px-4 py-2">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Agotado
-                    </Badge>
-                  )}
+                    {isPast && (
+                      <Badge className="bg-red-500/80 backdrop-blur-sm text-white border-0 px-4 py-2">
+                        <Clock className="w-4 h-4 mr-2" />
+                        Finalizado
+                      </Badge>
+                    )}
 
-                  {salesPercentage > 80 && !isSoldOut && (
-                    <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0 px-4 py-2">
-                      <Zap className="w-4 h-4 mr-2" />
-                      ¡Últimas entradas!
-                    </Badge>
-                  )}
-                </div>
+                    {isSoldOut && !isPast && (
+                      <Badge className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] text-white border-0 px-4 py-2 backdrop-blur-sm">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Agotado
+                      </Badge>
+                    )}
 
-                {/* Title */}
-                <div className="space-y-4">
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                    {salesPercentage > 80 && !isSoldOut && (
+                      <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0 px-4 py-2 backdrop-blur-sm">
+                        <Zap className="w-4 h-4 mr-2" />
+                        ¡Últimas entradas!
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Title */}
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight text-white mb-6 drop-shadow-lg">
                     {event.title}
                   </h1>
 
                   {/* Quick Info */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 text-lg">
-                      <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
                         <Calendar className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-lg">
                           {formatFullDateTime(startDate)}
                         </p>
                         {endDate && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-white/80">
                             Hasta {formatFullDateTime(endDate)}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-lg">
-                      <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
                         <MapPin className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-lg">
                           {event.location}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-white/80">
                           Ubicación del evento
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-lg">
-                      <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                    <div className="flex items-center gap-3 text-white">
+                      <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
                         <Users className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">
+                        <p className="font-semibold text-lg">
                           {isSoldOut
                             ? "Agotado"
                             : `${availableTickets} disponibles`}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-white/80">
                           de {totalCapacity} entradas totales
                         </p>
                       </div>
@@ -277,12 +286,12 @@ export default function EventDetailView({
                   </div>
 
                   {/* Price and Actions */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                     <div className="space-y-2">
-                      <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                      <div className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
                         {displayPrice}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-white/80">
                         {displayPrice.startsWith("Desde")
                           ? "Precios desde"
                           : "Precio final incluye comisiones"}
@@ -294,7 +303,7 @@ export default function EventDetailView({
                         variant="outline"
                         size="lg"
                         onClick={handleFavorite}
-                        className="border-2 hover:border-[#0053CC] transition-colors"
+                        className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 transition-all duration-300"
                       >
                         <Heart
                           className={`h-5 w-5 ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
@@ -304,7 +313,7 @@ export default function EventDetailView({
                         variant="outline"
                         size="lg"
                         onClick={handleShare}
-                        className="border-2 hover:border-[#0053CC] transition-colors"
+                        className="bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 transition-all duration-300"
                       >
                         <Share2 className="h-5 w-5" />
                       </Button>
@@ -312,54 +321,200 @@ export default function EventDetailView({
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Event Image */}
-              <div className="relative">
-                {event.imageUrl ? (
-                  <div className="relative h-80 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-                    <div className="absolute -inset-4 bg-gradient-to-r from-[#0053CC] via-[#01CBFE] to-[#CC66CC] rounded-2xl opacity-20 blur-xl"></div>
-                    <Image
-                      src={event.imageUrl}
-                      alt={event.title}
-                      fill
-                      className="object-cover rounded-2xl relative z-10"
-                      priority
-                    />
-                  </div>
-                ) : (
-                  <div className="h-80 lg:h-[500px] rounded-2xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
-                    <div className="text-center space-y-4">
-                      <Calendar className="h-16 w-16 mx-auto text-muted-foreground" />
-                      <p className="text-muted-foreground font-medium">
-                        Imagen del evento
-                      </p>
-                    </div>
-                  </div>
-                )}
+            {/* Progress indicator for ticket sales */}
+            {!isPast && (
+              <div className="absolute bottom-6 right-6 bg-black/50 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                <div className="flex items-center justify-between text-sm mb-2 text-white">
+                  <span className="font-medium">Entradas vendidas</span>
+                  <span className="font-bold">{salesPercentage}%</span>
+                </div>
+                <div className="w-48 bg-white/20 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${salesPercentage}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
-                {/* Progress indicator for ticket sales */}
-                {!isPast && (
-                  <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-sm rounded-xl p-4">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="font-medium">Entradas vendidas</span>
-                      <span className="font-bold">{salesPercentage}%</span>
+        {/* Fallback if no image */}
+        {!event.imageUrl && (
+          <div className="relative h-[60vh] bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
+            <div className="container mx-auto px-4 py-12 h-full flex items-center">
+              <div className="max-w-7xl mx-auto w-full">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
+                  <div className="space-y-8">
+                    {/* Status Badges */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Badge
+                        variant="outline"
+                        className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0 px-4 py-2"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        {event.category.name}
+                      </Badge>
+
+                      {!isPublished && (
+                        <Badge variant="secondary" className="px-4 py-2">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Borrador
+                        </Badge>
+                      )}
+
+                      {isPast && (
+                        <Badge variant="destructive" className="px-4 py-2">
+                          <Clock className="w-4 h-4 mr-2" />
+                          Finalizado
+                        </Badge>
+                      )}
+
+                      {isSoldOut && !isPast && (
+                        <Badge className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] text-white border-0 px-4 py-2">
+                          <TrendingUp className="w-4 h-4 mr-2" />
+                          Agotado
+                        </Badge>
+                      )}
+
+                      {salesPercentage > 80 && !isSoldOut && (
+                        <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0 px-4 py-2">
+                          <Zap className="w-4 mr-2" />
+                          ¡Últimas entradas!
+                        </Badge>
+                      )}
                     </div>
-                    <div className="w-full bg-muted rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${salesPercentage}%` }}
-                      ></div>
+
+                    {/* Title */}
+                    <div className="space-y-4">
+                      <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                        {event.title}
+                      </h1>
+
+                      {/* Quick Info */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-lg">
+                          <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
+                            <Calendar className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {formatFullDateTime(startDate)}
+                            </p>
+                            {endDate && (
+                              <p className="text-sm text-muted-foreground">
+                                Hasta {formatFullDateTime(endDate)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-lg">
+                          <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-xl flex items-center justify-center">
+                            <MapPin className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {event.location}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              Ubicación del evento
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-lg">
+                          <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                            <Users className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {isSoldOut
+                                ? "Agotado"
+                                : `${availableTickets} disponibles`}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              de {totalCapacity} entradas totales
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Price and Actions */}
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-6">
+                        <div className="space-y-2">
+                          <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                            {displayPrice}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {displayPrice.startsWith("Desde")
+                              ? "Precios desde"
+                              : "Precio final incluye comisiones"}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            onClick={handleFavorite}
+                            className="border-2 hover:border-[#0053CC] transition-colors"
+                          >
+                            <Heart
+                              className={`h-5 w-5 ${isFavorited ? "fill-red-500 text-red-500" : ""}`}
+                            />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            onClick={handleShare}
+                            className="border-2 hover:border-[#0053CC] transition-colors"
+                          >
+                            <Share2 className="h-5 w-5" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Placeholder when no image */}
+                  <div className="relative">
+                    <div className="h-80 lg:h-[500px] rounded-2xl bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
+                      <div className="text-center space-y-4">
+                        <Calendar className="h-16 w-16 mx-auto text-muted-foreground" />
+                        <p className="text-muted-foreground font-medium">
+                          Imagen del evento
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Progress indicator for ticket sales */}
+                    {!isPast && (
+                      <div className="absolute bottom-4 left-4 right-4 bg-background/80 backdrop-blur-sm rounded-xl p-4">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="font-medium">Entradas vendidas</span>
+                          <span className="font-bold">{salesPercentage}%</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div
+                            className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${salesPercentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-2xl"></div>
-        <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
+            {/* Decorative elements */}
+            <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-2xl"></div>
+            <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
+          </div>
+        )}
       </section>
 
       {/* Main Content */}
@@ -878,7 +1033,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : "")}`}
+                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -893,7 +1048,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${typeof window !== 'undefined' ? window.location.href : ""}`)}`}
+                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${typeof window !== "undefined" ? window.location.href : ""}`)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
