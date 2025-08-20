@@ -1,13 +1,10 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Twitter, 
-  Instagram, 
-  Linkedin,
-  Github,
+  Mail,
+  Phone,
+  MapPin,
+  Instagram,
   ExternalLink
 } from 'lucide-react'
 import Image from 'next/image'
@@ -98,28 +95,10 @@ export default function Footer() {
 
   const socialLinks = [
     { 
-      name: 'Twitter', 
-      href: 'https://twitter.com/sorykpass', 
-      icon: Twitter,
-      gradient: 'from-[#01CBFE] to-[#0053CC]'
-    },
-    { 
-      name: 'LinkedIn', 
-      href: 'https://linkedin.com/company/sorykpass', 
-      icon: Linkedin,
-      gradient: 'from-[#0053CC] to-[#CC66CC]'
-    },
-    { 
       name: 'Instagram', 
       href: 'https://instagram.com/sorykpass', 
       icon: Instagram,
       gradient: 'from-[#CC66CC] to-[#FE4F00]'
-    },
-    { 
-      name: 'GitHub', 
-      href: 'https://github.com/sorykpass', 
-      icon: Github,
-      gradient: 'from-[#FE4F00] to-[#FDBD00]'
     },
   ]
 
@@ -151,7 +130,7 @@ export default function Footer() {
                   <Phone className="h-4 w-4 text-white" />
                 </div>
                 <a href="tel:+56912345678" className="hover:text-foreground transition-colors">
-                  +56 9 1234 5678
+                  +56 9 5653 2975
                 </a>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
