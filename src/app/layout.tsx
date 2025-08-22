@@ -5,7 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { esMX } from "@clerk/localizations"
+import { esMX } from "@clerk/localizations";
+import { Toaster } from "sonner";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -121,6 +122,12 @@ export default function RootLayout({
               </main>
               <Footer />
             </div>
+            <Toaster 
+              position="top-center"
+              richColors
+              closeButton
+              duration={4000}
+            />
           </ThemeProvider>
         </body>
       </html>

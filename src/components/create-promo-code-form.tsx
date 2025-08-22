@@ -194,8 +194,10 @@ export default function CreatePromoCodeForm({
         description: `Código: ${result.promoCode.code}`,
       });
 
-      // Redirigir después de crear exitosamente
-      window.location.href = "/dashboard/promo-codes";
+      // Esperar un poco antes de redirigir para que el usuario vea el toast
+      setTimeout(() => {
+        window.location.href = "/dashboard/promo-codes";
+      }, 1500);
     } catch (error) {
       console.error("Error creating promo code:", error);
       toast.error(
