@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -46,6 +46,7 @@ const createPromoCodeSchema = z
     validFrom: z.string().min(1, "Fecha de inicio requerida"),
     validUntil: z.string().optional(),
     eventId: z.string().optional(),
+    ticketTypeId: z.string().optional(),
     codeOption: z.enum(["generate", "custom"]),
     customCode: z.string().optional(),
   })
@@ -93,7 +94,7 @@ type FormData = z.infer<typeof createPromoCodeSchema>;
 
 interface CreatePromoCodeFormProps {
   eventId?: string;
-  events?: Array<{ id: string; title: string }>;
+  events?: Array<{ id: string; title: string; ticketTypes?: Array<{ id: string; name: string; price: number }> }>;
 }
 
 export default function CreatePromoCodeForm({
@@ -101,6 +102,7 @@ export default function CreatePromoCodeForm({
   events = [],
 }: CreatePromoCodeFormProps) {
   const [loading, setLoading] = useState(false);
+  const [ticketTypes, setTicketTypes] = useState<Array<{ id: string; name: string; price: number }>>([]);
 
   const {
     register,
@@ -122,6 +124,33 @@ export default function CreatePromoCodeForm({
   const watchCodeOption = watch("codeOption");
   const watchValue = watch("value");
   const watchUsageLimit = watch("usageLimit");
+  const watchEventId = watch("eventId");
+
+  // Efecto para cargar tipos de entrada cuando cambia el evento
+  useEffect(() => {
+    const loadTicketTypes = async () => {
+      if (!watchEventId || watchEventId === "all") {
+        setTicketTypes([]);
+        setValue("ticketTypeId", undefined);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/events/${watchEventId}/ticket-types`);
+        if (response.ok) {
+          const data = await response.json();
+          setTicketTypes(data.ticketTypes || []);
+        } else {
+          setTicketTypes([]);
+        }
+      } catch (error) {
+        console.error("Error loading ticket types:", error);
+        setTicketTypes([]);
+      }
+    };
+
+    loadTicketTypes();
+  }, [watchEventId, setValue]);
 
   const generateRandomCode = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -144,6 +173,7 @@ export default function CreatePromoCodeForm({
         generateCode: data.codeOption === "generate",
         customCode: data.codeOption === "custom" ? data.customCode : undefined,
         eventId: data.eventId === "all" ? undefined : data.eventId,
+        ticketTypeId: data.ticketTypeId === "all" ? undefined : data.ticketTypeId,
       };
 
       const response = await fetch("/api/promo-codes", {
@@ -260,6 +290,34 @@ export default function CreatePromoCodeForm({
                   </Select>
                 </div>
               </div>
+
+              {/* Selector de tipo de entrada - Solo se muestra si hay un evento específico seleccionado */}
+              {watchEventId && watchEventId !== "all" && (
+                <div>
+                  <Label htmlFor="ticketTypeSelect">Tipo de entrada específico</Label>
+                  <Select
+                    value={watch("ticketTypeId") || "all"}
+                    onValueChange={(value) =>
+                      setValue("ticketTypeId", value === "all" ? undefined : value)
+                    }
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Todos los tipos de entrada" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los tipos de entrada</SelectItem>
+                      {ticketTypes.map((ticketType) => (
+                        <SelectItem key={ticketType.id} value={ticketType.id}>
+                          {ticketType.name} - ${ticketType.price.toLocaleString("es-CL")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Si no seleccionas un tipo específico, el código se aplicará a todos los tipos de entrada del evento.
+                  </p>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="description">Descripción</Label>
@@ -697,6 +755,20 @@ export default function CreatePromoCodeForm({
                     {watch("usageLimitPerUser") || "Ilimitado"}
                   </span>
                 </div>
+
+                {/* Mostrar tipo de entrada seleccionado */}
+                {watchEventId && watchEventId !== "all" && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Tipo de entrada:
+                    </span>
+                    <span className="font-medium text-xs">
+                      {watch("ticketTypeId") && watch("ticketTypeId") !== "all"
+                        ? ticketTypes.find(t => t.id === watch("ticketTypeId"))?.name || "Específico"
+                        : "Todos los tipos"}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {getEstimatedImpact() && (
@@ -736,6 +808,10 @@ export default function CreatePromoCodeForm({
               <div>
                 <strong>Códigos gratuitos:</strong> Excelentes para invitaciones
                 especiales, prensa o promociones de 100% descuento.
+              </div>
+              <div>
+                <strong>Tipos de entrada específicos:</strong> Permite crear promociones
+                exclusivas, como descuentos solo en entradas VIP o generales.
               </div>
               <div>
                 <strong>Límites de uso:</strong> Te ayudan a controlar el

@@ -17,6 +17,7 @@ const createPromoCodeSchema = z.object({
   validFrom: z.string().min(1, "Fecha de inicio requerida"),
   validUntil: z.string().optional(),
   eventId: z.string().optional(),
+  ticketTypeId: z.string().optional(),
   generateCode: z.boolean().default(true),
   customCode: z.string().optional(),
 }).refine(
@@ -64,6 +65,9 @@ export async function GET(request: NextRequest) {
         event: {
           select: { title: true },
         },
+        ticketType: {
+          select: { name: true, price: true },
+        },
         _count: {
           select: { usages: true },
         },
@@ -80,6 +84,7 @@ export async function GET(request: NextRequest) {
       createdAt: code.createdAt.toISOString(),
       updatedAt: code.updatedAt.toISOString(),
       event: code.event || undefined,
+      ticketType: code.ticketType || undefined,
     }));
 
     return NextResponse.json({ promoCodes: serializedPromoCodes });
@@ -112,6 +117,7 @@ export async function POST(request: NextRequest) {
       generateCode,
       customCode,
       eventId,
+      ticketTypeId,
       validFrom,
       validUntil,
       ...promoData
@@ -150,6 +156,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validar tipo de entrada si se especifica
+    if (ticketTypeId) {
+      const ticketType = await prisma.ticketType.findFirst({
+        where: {
+          id: ticketTypeId,
+          ...(eventId ? { eventId } : {}), // Si hay eventId, verificar que el ticketType pertenezca a ese evento
+        },
+        include: {
+          event: {
+            select: {
+              organizerId: true,
+            },
+          },
+        },
+      });
+
+      if (!ticketType || ticketType.event.organizerId !== user.id) {
+        return NextResponse.json(
+          { error: "Tipo de entrada no encontrado o no autorizado" },
+          { status: 404 }
+        );
+      }
+    }
+
     // Validar fechas
     const validFromDate = new Date(validFrom);
     const validUntilDate = validUntil ? new Date(validUntil) : null;
@@ -170,12 +200,16 @@ export async function POST(request: NextRequest) {
         validFrom: validFromDate,
         validUntil: validUntilDate,
         eventId: eventId || null,
+        ticketTypeId: ticketTypeId || null,
         createdBy: user.id,
         currency: "CLP",
       },
       include: {
         event: {
           select: { title: true },
+        },
+        ticketType: {
+          select: { name: true, price: true },
         },
       },
     });
@@ -189,6 +223,7 @@ export async function POST(request: NextRequest) {
       createdAt: promoCode.createdAt.toISOString(),
       updatedAt: promoCode.updatedAt.toISOString(),
       event: promoCode.event || undefined,
+      ticketType: promoCode.ticketType || undefined,
     };
 
     return NextResponse.json(

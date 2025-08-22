@@ -63,6 +63,7 @@ interface PromoCode {
   validFrom: string;
   validUntil?: string;
   event?: { title: string };
+  ticketType?: { name: string; price: number };
   _count: { usages: number };
 }
 
@@ -444,6 +445,7 @@ export default function PromoCodesManagement({
                 <TableHead>Uso</TableHead>
                 <TableHead>Validez</TableHead>
                 <TableHead>Evento</TableHead>
+                <TableHead>Tipo de Ticket</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -526,6 +528,23 @@ export default function PromoCodesManagement({
                     ) : (
                       <Badge variant="outline" className="text-xs">
                         Todos los eventos
+                      </Badge>
+                    )}
+                  </TableCell>
+
+                  <TableCell>
+                    {promoCode.ticketType ? (
+                      <div className="text-sm">
+                        <span className="font-medium">{promoCode.ticketType.name}</span>
+                        {promoCode.ticketType.price > 0 && (
+                          <div className="text-muted-foreground text-xs">
+                            ${promoCode.ticketType.price.toLocaleString()} CLP
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        Todos los tipos
                       </Badge>
                     )}
                   </TableCell>
