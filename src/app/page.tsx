@@ -198,24 +198,38 @@ export default function Homepage() {
               <div className="inline-block lg:mx-0 mx-auto mb-6">
                 <SorykPassLogo />
               </div>
-              
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter mb-6">
-                La plataforma para tus eventos, 
-                <span className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent"> simplificada.</span>
+                La plataforma para tus eventos,
+                <span className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                  {" "}
+                  simplificada.
+                </span>
               </h1>
-              
+
               <p className="text-lg text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-8">
-                Olvídate de las complicaciones. SorykPass te entrega las herramientas para vender tickets, controlar el acceso y analizar los resultados de tus eventos de forma segura y eficiente.
+                Olvídate de las complicaciones. SorykPass te entrega las
+                herramientas para vender tickets, controlar el acceso y analizar
+                los resultados de tus eventos de forma segura y eficiente.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Button size="lg" asChild className="min-w-[220px] bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white shadow-lg">
+                <Button
+                  size="lg"
+                  asChild
+                  className="min-w-[220px] bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white shadow-lg"
+                >
                   <Link href="/events/create">
                     Empieza a Crear tu Evento
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" asChild className="min-w-[220px]">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="min-w-[220px]"
+                >
                   <Link href="/events">
                     <Calendar className="mr-2 h-4 w-4" />
                     Explorar Eventos
@@ -226,10 +240,10 @@ export default function Homepage() {
             <div className="relative h-80 lg:h-[500px] w-full max-w-lg mx-auto lg:max-w-none">
               <div className="absolute -inset-2 bg-gradient-to-br from-[#FDBD00] via-[#FE4F00] to-[#01CBFE] rounded-2xl opacity-50 blur-xl"></div>
               <Image
-                src="/sorykpass_1.jpg"
-                alt="Una persona emocionada disfrutando de un evento"
+                src="https://i.postimg.cc/0yP11HSn/sorykpass-1.jpg"
+                alt="SorykPass Hero"
                 fill
-                className="object-cover rounded-xl shadow-2xl"
+                className="object-cover rounded-2xl shadow-lg"
                 priority
               />
             </div>
@@ -241,27 +255,44 @@ export default function Homepage() {
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 border-[#CC66CC] text-[#0053CC]">
+            <Badge
+              variant="outline"
+              className="mb-4 border-[#CC66CC] text-[#0053CC]"
+            >
               Características
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Todo lo que necesitas para
-              <span className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] bg-clip-text text-transparent"> eventos exitosos</span>
+              <span className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] bg-clip-text text-transparent">
+                {" "}
+                eventos exitosos
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Desde la publicación hasta el análisis post-evento, nuestras herramientas están diseñadas para que solo te preocupes de una cosa: crear una experiencia inolvidable.
+              Desde la publicación hasta el análisis post-evento, nuestras
+              herramientas están diseñadas para que solo te preocupes de una
+              cosa: crear una experiencia inolvidable.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <Card
+                key={index}
+                className="p-6 hover:shadow-xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800"
+              >
                 <CardContent className="p-0">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 shadow-lg`}>
+                  <div
+                    className={`w-16 h-16 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-6 shadow-lg`}
+                  >
                     <feature.icon className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-semibold mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {feature.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -271,27 +302,43 @@ export default function Homepage() {
       <section className="py-24 bg-gradient-to-br from-[#01CBFE]/5 to-[#0053CC]/5">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 border-[#01CBFE] text-[#0053CC]">
+            <Badge
+              variant="outline"
+              className="mb-4 border-[#01CBFE] text-[#0053CC]"
+            >
               Testimonios
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Organizadores que confían en
-              <span className="bg-gradient-to-r from-[#01CBFE] to-[#0053CC] bg-clip-text text-transparent"> SorykPass</span>
+              <span className="bg-gradient-to-r from-[#01CBFE] to-[#0053CC] bg-clip-text text-transparent">
+                {" "}
+                SorykPass
+              </span>
             </h2>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="p-6 hover:shadow-xl transition-all duration-300 bg-background border-l-4 border-l-[#01CBFE]">
+              <Card
+                key={index}
+                className="p-6 hover:shadow-xl transition-all duration-300 bg-background border-l-4 border-l-[#01CBFE]"
+              >
                 <CardContent className="p-0">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-[#FDBD00] text-[#FDBD00]" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-[#FDBD00] text-[#FDBD00]"
+                      />
                     ))}
                   </div>
-                  <p className="text-muted-foreground mb-6 italic">&quot;{testimonial.content}&quot;</p>
+                  <p className="text-muted-foreground mb-6 italic">
+                    &quot;{testimonial.content}&quot;
+                  </p>
                   <div>
-                    <div className="font-semibold text-[#0053CC]">{testimonial.name}</div>
+                    <div className="font-semibold text-[#0053CC]">
+                      {testimonial.name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       {testimonial.role} • {testimonial.company}
                     </div>
@@ -305,28 +352,42 @@ export default function Homepage() {
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 border-[#FE4F00] text-[#0053CC]">
+            <Badge
+              variant="outline"
+              className="mb-4 border-[#FE4F00] text-[#0053CC]"
+            >
               Precios
             </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
               Un precio
-              <span className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent"> simple y transparente</span>
+              <span className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent">
+                {" "}
+                simple y transparente
+              </span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Sin mensualidades ni costos ocultos. Solo cobramos una pequeña comisión cuando tú vendes un ticket. Si tu evento es gratuito, SorykPass también lo es.
+              Sin mensualidades ni costos ocultos. Solo cobramos una pequeña
+              comisión cuando tú vendes un ticket. Si tu evento es gratuito,
+              SorykPass también lo es.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {pricingPlans.map((plan, index) => (
-              <Card key={index} className={`p-6 relative hover:shadow-xl transition-all duration-300 ${
-                plan.popular 
-                  ? 'border-2 scale-105 shadow-xl' 
-                  : 'border'
-              }`}
-              style={plan.popular ? {
-                borderImage: 'linear-gradient(135deg, #FDBD00, #FE4F00, #CC66CC) 1'
-              } : {}}>
+              <Card
+                key={index}
+                className={`p-6 relative hover:shadow-xl transition-all duration-300 ${
+                  plan.popular ? "border-2 scale-105 shadow-xl" : "border"
+                }`}
+                style={
+                  plan.popular
+                    ? {
+                        borderImage:
+                          "linear-gradient(135deg, #FDBD00, #FE4F00, #CC66CC) 1",
+                      }
+                    : {}
+                }
+              >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                     <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white shadow-lg">
@@ -338,36 +399,43 @@ export default function Homepage() {
                 <CardContent className="p-0">
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                    <div className={`text-3xl font-bold mb-2 ${plan.popular ? 'bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent' : 'text-[#0053CC]'}`}>
+                    <div
+                      className={`text-3xl font-bold mb-2 ${plan.popular ? "bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent" : "text-[#0053CC]"}`}
+                    >
                       {plan.price}
                     </div>
                     <p className="text-muted-foreground">{plan.description}</p>
                     {plan.commission && (
-                      <Badge variant="outline" className="mt-2 border-[#01CBFE] text-[#0053CC]">
+                      <Badge
+                        variant="outline"
+                        className="mt-2 border-[#01CBFE] text-[#0053CC]"
+                      >
                         {plan.commission} comisión por venta
                       </Badge>
                     )}
                   </div>
-                  
+
                   <ul className="space-y-3 mb-6">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-3">
+                      <li
+                        key={featureIndex}
+                        className="flex items-center gap-3"
+                      >
                         <CheckCircle className="h-4 w-4 text-[#01CBFE] flex-shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
                   </ul>
-                  
-                  <Button 
-                    className={`w-full ${plan.popular 
-                      ? 'bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] hover:from-[#FDBD00]/90 hover:to-[#FE4F00]/90' 
-                      : 'bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90'
+
+                  <Button
+                    className={`w-full ${
+                      plan.popular
+                        ? "bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] hover:from-[#FDBD00]/90 hover:to-[#FE4F00]/90"
+                        : "bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
                     }`}
                     asChild
                   >
-                    <Link href="/sign-up">
-                      {plan.cta}
-                    </Link>
+                    <Link href="/sign-up">{plan.cta}</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -378,16 +446,22 @@ export default function Homepage() {
       <section className="py-24 bg-gradient-to-br from-[#0053CC] via-[#CC66CC] to-[#01CBFE] text-white relative overflow-hidden">
         <div className="absolute top-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute bottom-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        
+
         <div className="container mx-auto px-4 text-center relative">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
             ¿Listo para lanzar tu próximo evento?
           </h2>
           <p className="text-xl opacity-90 max-w-2xl mx-auto mb-8">
-            Miles de personas están buscando nuevas experiencias. Publica tu evento en SorykPass y empieza a vender tickets hoy mismo.
+            Miles de personas están buscando nuevas experiencias. Publica tu
+            evento en SorykPass y empieza a vender tickets hoy mismo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" asChild className="min-w-[200px] bg-white text-[#0053CC] hover:bg-white/90">
+            <Button
+              size="lg"
+              variant="secondary"
+              asChild
+              className="min-w-[200px] bg-white text-[#0053CC] hover:bg-white/90"
+            >
               <Link href="/sign-up">
                 Regístrate Gratis
                 <ChevronRight className="ml-2 h-4 w-4" />
@@ -404,7 +478,8 @@ export default function Homepage() {
                 Mantente al día con SorykPass
               </h3>
               <p className="text-muted-foreground mb-6">
-                Recibe las últimas actualizaciones, consejos para organizadores y casos de éxito directamente en tu inbox.
+                Recibe las últimas actualizaciones, consejos para organizadores
+                y casos de éxito directamente en tu inbox.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
                 <input
@@ -425,5 +500,5 @@ export default function Homepage() {
         </div>
       </section>
     </div>
-  )
+  );
 }
