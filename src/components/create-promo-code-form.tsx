@@ -38,7 +38,7 @@ const createPromoCodeSchema = z
     name: z.string().min(1, "Nombre requerido").max(100),
     description: z.string().optional(),
     type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]),
-    value: z.number().min(0, "Valor debe ser positivo"),
+    value: z.number().min(0, "Valor debe ser positivo").optional(),
     minOrderAmount: z.number().min(0).optional(),
     maxDiscountAmount: z.number().min(0).optional(),
     usageLimit: z.number().min(1).optional(),
@@ -51,16 +51,41 @@ const createPromoCodeSchema = z
   })
   .refine(
     (data) => {
+      // Validar código personalizado
       if (data.codeOption === "custom" && !data.customCode) {
-        return false;
-      }
-      if (data.type === "PERCENTAGE" && data.value > 100) {
         return false;
       }
       return true;
     },
     {
-      message: "Datos inválidos",
+      message: "Código personalizado requerido",
+      path: ["customCode"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar valor para tipos que no sean FREE
+      if (data.type !== "FREE" && (data.value === undefined || data.value <= 0)) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Valor requerido para este tipo de descuento",
+      path: ["value"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar porcentaje máximo
+      if (data.type === "PERCENTAGE" && data.value && data.value > 100) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "El porcentaje no puede ser mayor a 100%",
+      path: ["value"],
     }
   );
 
@@ -114,6 +139,8 @@ export default function CreatePromoCodeForm({
     try {
       const payload = {
         ...data,
+        // Para tipo FREE, no enviamos valor o enviamos 0
+        value: data.type === "FREE" ? 0 : data.value,
         generateCode: data.codeOption === "generate",
         customCode: data.codeOption === "custom" ? data.customCode : undefined,
         eventId: data.eventId === "all" ? undefined : data.eventId,
@@ -165,13 +192,17 @@ export default function CreatePromoCodeForm({
   };
 
   const getEstimatedImpact = () => {
-    if (!watchValue || !watchUsageLimit) return null;
+    if (!watchUsageLimit) return null;
 
     let estimatedSavings = 0;
-    if (watchType === "PERCENTAGE") {
-      estimatedSavings = ((50000 * watchValue) / 100) * watchUsageLimit; // Asumiendo ticket promedio de $50,000
-    } else if (watchType === "FIXED_AMOUNT") {
+    const avgTicketPrice = 50000; // Asumiendo ticket promedio de $50,000
+    
+    if (watchType === "PERCENTAGE" && watchValue) {
+      estimatedSavings = ((avgTicketPrice * watchValue) / 100) * watchUsageLimit;
+    } else if (watchType === "FIXED_AMOUNT" && watchValue) {
       estimatedSavings = watchValue * watchUsageLimit;
+    } else if (watchType === "FREE") {
+      estimatedSavings = avgTicketPrice * watchUsageLimit; // 100% de descuento
     }
 
     return estimatedSavings;
@@ -417,6 +448,24 @@ export default function CreatePromoCodeForm({
                   )}
                 </div>
               )}
+
+              {/* Mensaje informativo para tipo FREE */}
+              {watchType === "FREE" && (
+                <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                  <div className="p-2 bg-purple-500 text-white rounded-lg">
+                    <Gift className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-purple-900 dark:text-purple-100">
+                      Código promocional gratuito
+                    </h4>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">
+                      Este código otorgará acceso 100% gratuito a los tickets seleccionados.
+                      No necesitas especificar un valor de descuento.
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -619,18 +668,17 @@ export default function CreatePromoCodeForm({
                   </Badge>
                 </div>
 
-                {watchType !== "FREE" && (
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Valor:
-                    </span>
-                    <span className="font-medium">
-                      {watchType === "PERCENTAGE"
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Valor:
+                  </span>
+                  <span className="font-medium">
+                    {watchType === "FREE" ? "100% GRATIS" :
+                     watchType === "PERCENTAGE"
                         ? `${watchValue || 0}%`
                         : `$${(watchValue || 0).toLocaleString("es-CL")}`}
-                    </span>
-                  </div>
-                )}
+                  </span>
+                </div>
 
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">
@@ -684,6 +732,10 @@ export default function CreatePromoCodeForm({
               <div>
                 <strong>Descuentos fijos:</strong> Perfectos para eventos
                 específicos o lanzamientos.
+              </div>
+              <div>
+                <strong>Códigos gratuitos:</strong> Excelentes para invitaciones
+                especiales, prensa o promociones de 100% descuento.
               </div>
               <div>
                 <strong>Límites de uso:</strong> Te ayudan a controlar el

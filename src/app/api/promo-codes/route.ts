@@ -9,7 +9,7 @@ const createPromoCodeSchema = z.object({
   name: z.string().min(1, "Nombre requerido").max(100),
   description: z.string().optional(),
   type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]),
-  value: z.number().min(0, "Valor debe ser positivo"),
+  value: z.number().min(0, "Valor debe ser positivo").optional(),
   minOrderAmount: z.number().min(0).optional(),
   maxDiscountAmount: z.number().min(0).optional(),
   usageLimit: z.number().min(1).optional(),
@@ -21,16 +21,23 @@ const createPromoCodeSchema = z.object({
   customCode: z.string().optional(),
 }).refine(
   (data) => {
+    // Validar código personalizado
     if (!data.generateCode && !data.customCode) {
       return false;
     }
-    if (data.type === "PERCENTAGE" && data.value > 100) {
+    // Validar valor para tipos que no sean FREE
+    if (data.type !== "FREE" && (data.value === undefined || data.value <= 0)) {
+      return false;
+    }
+    // Validar porcentaje máximo
+    if (data.type === "PERCENTAGE" && data.value && data.value > 100) {
       return false;
     }
     return true;
   },
   {
     message: "Datos inválidos",
+    path: ["value"], // Especifica que el error es del campo value
   }
 );
 
@@ -158,6 +165,8 @@ export async function POST(request: NextRequest) {
       data: {
         ...promoData,
         code,
+        // Para tipo FREE, establecer valor en 0 (será 100% de descuento por lógica)
+        value: promoData.type === "FREE" ? 0 : (promoData.value || 0),
         validFrom: validFromDate,
         validUntil: validUntilDate,
         eventId: eventId || null,
