@@ -27,12 +27,18 @@ const createPromoCodeSchema = z.object({
       return false;
     }
     // Validar valor para tipos que no sean FREE
-    if (data.type !== "FREE" && (data.value === undefined || data.value <= 0)) {
-      return false;
-    }
-    // Validar porcentaje máximo
-    if (data.type === "PERCENTAGE" && data.value && data.value > 100) {
-      return false;
+    if (data.type !== "FREE") {
+      if (data.value === undefined || isNaN(data.value) || data.value < 0) {
+        return false;
+      }
+      // Para FIXED_AMOUNT, el valor debe ser mayor que 0
+      if (data.type === "FIXED_AMOUNT" && data.value <= 0) {
+        return false;
+      }
+      // Para PERCENTAGE, el valor debe estar entre 0 y 100
+      if (data.type === "PERCENTAGE" && (data.value <= 0 || data.value > 100)) {
+        return false;
+      }
     }
     return true;
   },
@@ -101,9 +107,13 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireOrganizer();
     const body = await request.json();
+    
+    console.log("Request body received:", body); // Para debug
+    
     const validation = createPromoCodeSchema.safeParse(body);
 
     if (!validation.success) {
+      console.log("Validation failed:", validation.error.issues); // Para debug
       return NextResponse.json(
         {
           error: "Datos inválidos",

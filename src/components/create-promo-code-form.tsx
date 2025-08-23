@@ -66,13 +66,23 @@ const createPromoCodeSchema = z
   .refine(
     (data) => {
       // Validar valor para tipos que no sean FREE
-      if (data.type !== "FREE" && (data.value === undefined || data.value <= 0)) {
-        return false;
+      if (data.type !== "FREE") {
+        if (data.value === undefined || isNaN(data.value) || data.value < 0) {
+          return false;
+        }
+        // Para FIXED_AMOUNT, el valor debe ser mayor que 0
+        if (data.type === "FIXED_AMOUNT" && data.value <= 0) {
+          return false;
+        }
+        // Para PERCENTAGE, el valor debe ser mayor que 0
+        if (data.type === "PERCENTAGE" && data.value <= 0) {
+          return false;
+        }
       }
       return true;
     },
     {
-      message: "Valor requerido para este tipo de descuento",
+      message: "Valor requerido para este tipo de descuento y debe ser mayor que 0",
       path: ["value"],
     }
   )
@@ -166,15 +176,26 @@ export default function CreatePromoCodeForm({
     setLoading(true);
 
     try {
+      // Validar y limpiar el valor
+      let cleanValue = data.value;
+      if (data.type === "FREE") {
+        cleanValue = 0;
+      } else if (cleanValue === undefined || isNaN(cleanValue)) {
+        toast.error("Por favor ingresa un valor válido para el descuento");
+        setLoading(false);
+        return;
+      }
+
       const payload = {
         ...data,
-        // Para tipo FREE, no enviamos valor o enviamos 0
-        value: data.type === "FREE" ? 0 : data.value,
+        value: cleanValue,
         generateCode: data.codeOption === "generate",
         customCode: data.codeOption === "custom" ? data.customCode : undefined,
         eventId: data.eventId === "all" ? undefined : data.eventId,
         ticketTypeId: data.ticketTypeId === "all" ? undefined : data.ticketTypeId,
       };
+
+      console.log("Payload a enviar:", payload); // Para debug
 
       const response = await fetch("/api/promo-codes", {
         method: "POST",
