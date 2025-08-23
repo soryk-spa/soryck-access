@@ -2,9 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { 
   Mail, 
-  Phone, 
-  MapPin, 
-  Clock, 
+  Phone,
   Send, 
   MessageCircle,
   ArrowLeft,
@@ -106,33 +104,10 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-1" />
                   <div>
                     <h3 className="font-medium text-gray-900 dark:text-white">Teléfono</h3>
-                    <p className="text-gray-900 dark:text-white">+56 9 1234 5678</p>
+                    <p className="text-gray-900 dark:text-white">+56 9 5653 2975</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                       Atención de lunes a viernes, 9:00 - 18:00 hrs
                     </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-1" />
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">Dirección</h3>
-                    <p className="text-gray-900 dark:text-white">
-                      Av. Providencia 1234, Oficina 567<br />
-                      Santiago, Chile
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-1" />
-                  <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">Horarios de Atención</h3>
-                    <div className="text-gray-900 dark:text-white">
-                      <p>Lunes a Viernes: 9:00 - 18:00 hrs</p>
-                      <p>Sábados: 10:00 - 14:00 hrs</p>
-                      <p>Domingos: Cerrado</p>
-                    </div>
                   </div>
                 </div>
               </div>
