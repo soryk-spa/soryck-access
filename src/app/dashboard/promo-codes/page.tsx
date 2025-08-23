@@ -11,7 +11,13 @@ export default async function PromoCodesPage() {
     },
     include: {
       event: {
-        select: { title: true },
+        select: { id: true, title: true },
+      },
+      category: {
+        select: { id: true, name: true },
+      },
+      ticketType: {
+        select: { id: true, name: true, price: true },
       },
       _count: {
         select: { usages: true },
@@ -40,12 +46,20 @@ export default async function PromoCodesPage() {
       ...code,
       status,
       description: code.description ?? undefined,
+      minOrderAmount: code.minOrderAmount ?? undefined,
+      maxDiscountAmount: code.maxDiscountAmount ?? undefined,
       usageLimit: code.usageLimit ?? undefined,
+      usageLimitPerUser: code.usageLimitPerUser ?? undefined,
       validFrom: code.validFrom.toISOString(),
-      validUntil: code.validUntil?.toISOString() || undefined,
+      validUntil: code.validUntil?.toISOString() ?? undefined,
       createdAt: code.createdAt.toISOString(),
       updatedAt: code.updatedAt.toISOString(),
-      event: code.event || undefined,
+      event: code.event ?? undefined,
+      category: code.category ?? undefined,
+      ticketType: code.ticketType ?? undefined,
+      eventId: code.eventId ?? null,
+      categoryId: code.categoryId ?? null,
+      ticketTypeId: code.ticketTypeId ?? null,
     };
   });
 

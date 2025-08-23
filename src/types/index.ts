@@ -73,16 +73,23 @@ export interface PromoCode {
   description?: string;
   type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
   value: number;
+  minOrderAmount?: number;
+  maxDiscountAmount?: number;
+  currency: string;
   status: "ACTIVE" | "INACTIVE" | "EXPIRED" | "USED_UP";
   usedCount: number;
   usageLimit?: number;
+  usageLimitPerUser?: number;
   validFrom: string;
   validUntil?: string;
   eventId: string | null;
+  categoryId: string | null;
   ticketTypeId: string | null;
+  createdBy: string;
   createdAt?: string;
   updatedAt?: string;
   event?: Pick<Event, "id" | "title">;
+  category?: Pick<Category, "id" | "name">;
   ticketType?: Pick<TicketType, "id" | "name" | "price">;
   _count: { usages: number };
 }
