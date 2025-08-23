@@ -36,7 +36,6 @@ import {
   Heart,
   ExternalLink,
   Bookmark,
-  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -374,20 +373,7 @@ const EventCardAceternity = ({
                 {event.description}
               </p>
             )}
-
-            {/* Detalles importantes */}
-            <div className="flex items-center justify-between text-sm text-white/80 mb-3">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-400" />
-                <span>{eventDate.time}</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-blue-400" />
-                <span>{event._count.orders} asistentes</span>
-              </div>
-            </div>
-
+            <div className="flex items-center justify-between text-sm text-white/80 mb-3"></div>
             <div className="flex items-center justify-between text-sm text-white/80">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-blue-400" />
@@ -395,8 +381,8 @@ const EventCardAceternity = ({
               </div>
 
               <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-purple-400" />
-                <span>{Math.floor(Math.random() * 1000) + 100}</span>
+                <Clock className="h-4 w-4 text-blue-400" />
+                <span>{eventDate.time}</span>
               </div>
             </div>
           </div>
