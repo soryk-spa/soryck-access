@@ -587,7 +587,7 @@ export default function EventDetailView({
               </div>
 
               <div className="space-y-6">
-                <Card className="sticky top-6 border-0 shadow-xl">
+                <Card className="border-0 shadow-xl">
                   <CardHeader className="bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10">
                     <CardTitle className="text-center text-2xl">
                       {isPast ? "Evento finalizado" : "Reserva tu lugar"}
@@ -936,7 +936,7 @@ export default function EventDetailView({
       {showPurchaseForm && user && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-background rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">
-            <div className="sticky top-0 bg-background/95 backdrop-blur-sm p-6 border-b z-10">
+            <div className="bg-background/95 backdrop-blur-sm p-6 border-b z-10">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">

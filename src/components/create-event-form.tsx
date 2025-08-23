@@ -700,7 +700,7 @@ export default function CreateEventForm({
                 </CardContent>
               </Card>
             </div>
-            <div className="space-y-6 lg:sticky top-6">
+            <div className="space-y-6">
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
                 <CardHeader>
                   <CardTitle className="text-blue-700 dark:text-blue-400">

@@ -746,7 +746,7 @@ export default function CreatePromoCodeForm({
         {/* Barra lateral - Resumen */}
         <div className="space-y-6">
           {/* Resumen del código */}
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-muted/50 to-muted/30 sticky top-4">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-muted/50 to-muted/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {getTypeIcon(watchType)}
