@@ -22,24 +22,38 @@ const createPromoCodeSchema = z.object({
   customCode: z.string().optional(),
 }).refine(
   (data) => {
+    console.log("=== DEBUG Backend Validation ===");
+    console.log("Data type:", data.type);
+    console.log("Data value:", data.value);
+    console.log("Value type:", typeof data.value);
+    console.log("Is value undefined:", data.value === undefined);
+    console.log("Is value NaN:", typeof data.value === 'number' ? isNaN(data.value) : 'not a number');
+    
     // Validar código personalizado
     if (!data.generateCode && !data.customCode) {
+      console.log("ERROR: Código personalizado requerido pero no provisto");
       return false;
     }
+    
     // Validar valor para tipos que no sean FREE
     if (data.type !== "FREE") {
-      if (data.value === undefined || isNaN(data.value) || data.value < 0) {
+      if (data.value === undefined || (typeof data.value === 'number' && isNaN(data.value)) || data.value < 0) {
+        console.log("ERROR: Valor inválido:", data.value);
         return false;
       }
       // Para FIXED_AMOUNT, el valor debe ser mayor que 0
       if (data.type === "FIXED_AMOUNT" && data.value <= 0) {
+        console.log("ERROR: Valor FIXED_AMOUNT debe ser > 0:", data.value);
         return false;
       }
       // Para PERCENTAGE, el valor debe estar entre 0 y 100
       if (data.type === "PERCENTAGE" && (data.value <= 0 || data.value > 100)) {
+        console.log("ERROR: Valor PERCENTAGE inválido:", data.value);
         return false;
       }
     }
+    
+    console.log("Validación EXITOSA");
     return true;
   },
   {

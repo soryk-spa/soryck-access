@@ -175,12 +175,21 @@ export default function CreatePromoCodeForm({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
 
+    console.log("=== DEBUG: Datos del formulario ===");
+    console.log("Datos originales:", data);
+    console.log("Tipo:", data.type);
+    console.log("Valor original:", data.value);
+    console.log("Tipo de valor:", typeof data.value);
+    console.log("Es NaN:", data.value !== undefined ? isNaN(data.value) : "undefined");
+    console.log("Es undefined:", data.value === undefined);
+
     try {
       // Validar y limpiar el valor
       let cleanValue = data.value;
       if (data.type === "FREE") {
         cleanValue = 0;
       } else if (cleanValue === undefined || isNaN(cleanValue)) {
+        console.log("ERROR: Valor inválido detectado");
         toast.error("Por favor ingresa un valor válido para el descuento");
         setLoading(false);
         return;
@@ -195,7 +204,8 @@ export default function CreatePromoCodeForm({
         ticketTypeId: data.ticketTypeId === "all" ? undefined : data.ticketTypeId,
       };
 
-      console.log("Payload a enviar:", payload); // Para debug
+      console.log("=== DEBUG: Payload final ===");
+      console.log("Payload a enviar:", payload);
 
       const response = await fetch("/api/promo-codes", {
         method: "POST",
@@ -206,8 +216,17 @@ export default function CreatePromoCodeForm({
       });
 
       const result = await response.json();
+      
+      console.log("=== DEBUG: Respuesta del servidor ===");
+      console.log("Status:", response.status);
+      console.log("Response OK:", response.ok);
+      console.log("Result:", result);
 
       if (!response.ok) {
+        console.log("ERROR del servidor:", result);
+        if (result.details) {
+          console.log("Detalles de validación:", result.details);
+        }
         throw new Error(result.error || "Error al crear código promocional");
       }
 
@@ -485,11 +504,15 @@ export default function CreatePromoCodeForm({
                     <Input
                       id="value"
                       type="number"
-                      {...register("value", { valueAsNumber: true })}
+                      {...register("value", { 
+                        valueAsNumber: true,
+                        required: "El valor es requerido"
+                      })}
                       placeholder={watchType === "PERCENTAGE" ? "10" : "5000"}
-                      min="0"
+                      min="1"
                       max={watchType === "PERCENTAGE" ? "100" : undefined}
                       className="mt-1"
+                      step={watchType === "PERCENTAGE" ? "1" : "100"}
                     />
                     {errors.value && (
                       <p className="text-sm text-red-600 mt-1">
