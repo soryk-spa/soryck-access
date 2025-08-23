@@ -587,7 +587,7 @@ export default function EventDetailView({
               </div>
 
               <div className="space-y-6">
-                <Card className="border-0 shadow-xl">
+                <Card className="sticky top-6 border-0 shadow-xl">
                   <CardHeader className="bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10">
                     <CardTitle className="text-center text-2xl">
                       {isPast ? "Evento finalizado" : "Reserva tu lugar"}
@@ -936,7 +936,7 @@ export default function EventDetailView({
       {showPurchaseForm && user && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-background rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">
-            <div className="bg-background/95 backdrop-blur-sm p-6 border-b z-10">
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm p-6 border-b z-10">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
@@ -961,17 +961,46 @@ export default function EventDetailView({
               <TicketPurchaseForm
                 event={{
                   ...event,
+                  // Add missing Event interface properties
+                  capacity: totalCapacity,
+                  price: event.ticketTypes.length > 0 ? Math.min(...event.ticketTypes.map(t => t.price)) : 0,
+                  currency: event.ticketTypes.length > 0 ? event.ticketTypes[0].currency : "CLP",
+                  isFree: event.ticketTypes.every(t => t.price === 0),
+                  categoryId: event.category.name, // Using name as ID for now
+                  organizerId: event.organizer.id,
+                  description: event.description ?? "",
+                  category: {
+                    id: event.category.name, // Using name as ID for now
+                    name: event.category.name,
+                  },
                   organizer: {
                     ...event.organizer,
                     firstName: event.organizer.firstName ?? null,
                     lastName: event.organizer.lastName ?? null,
+                    role: "ORGANIZER" as const,
                   },
                   ticketTypes: event.ticketTypes.map((t) => ({
-                    ...t,
-                    description: t.description ?? null,
+                    id: t.id,
+                    name: t.name,
+                    description: t.description ?? undefined,
+                    price: t.price,
+                    capacity: t.capacity,
+                    currency: t.currency,
+                    eventId: event.id,
+                    ticketsGenerated: 1,
                   })),
                 }}
-                userTicketsCount={userTicketsCount}
+                ticketTypes={event.ticketTypes.map((t) => ({
+                  id: t.id,
+                  name: t.name,
+                  description: t.description ?? undefined,
+                  price: t.price,
+                  capacity: t.capacity,
+                  currency: t.currency,
+                  eventId: event.id,
+                  ticketsGenerated: 1,
+                  _count: t._count,
+                }))}
               />
             </div>
           </div>

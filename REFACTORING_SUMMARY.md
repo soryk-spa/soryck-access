@@ -11,8 +11,9 @@ Auditoría y optimización completa del código para eliminar redundancias, mejo
 - **Funciones utilitarias consolidadas**: 20+ funciones de formateo repetidas
 - **Líneas de código reducidas**: 
   - `promo-codes-management.tsx`: 677 → ~300 líneas (55% reducción)
-  - `create-event-form.tsx`: 854 → ~400 líneas (53% reducción) 
-  - `ticket-purchase-form.tsx`: 763 → ~480 líneas (37% reducción)
+  - `create-event-form.tsx`: 854 → ~400 líneas (53% reducción)
+  - `edit-event-form.tsx`: 809 → ~520 líneas (36% reducción)
+  - `ticket-purchase-form.tsx`: 764 → ~523 líneas (32% reducción)
 
 ### Nuevos Archivos Centralizados
 
@@ -79,9 +80,15 @@ Auditoría y optimización completa del código para eliminar redundancias, mejo
 - **Hooks aplicados**: useEventForm, useTicketTypes, useEventImage, useEventFormStats
 - **Mejoras**: Validaciones centralizadas, UI/UX mejorada, estadísticas en tiempo real
 
-#### Componente `ticket-purchase-form.tsx` 🚧 (En progreso)
-- **Antes**: 763 líneas con lógica compleja de compra
-- **Después**: ~480 líneas optimizadas (componente backup listo)
+#### Componente `edit-event-form.tsx` ✅
+- **Antes**: 809 líneas con interfaces duplicadas y validaciones repetitivas
+- **Después**: ~520 líneas con separación clara de responsabilidades
+- **Hooks aplicados**: useEventForm, useTicketTypes, useEventImage, useEventFormStats
+- **Mejoras**: Reutilización de hooks de create-event-form, UI/UX mejorada, validaciones centralizadas
+
+#### Componente `ticket-purchase-form.tsx` ✅
+- **Antes**: 764 líneas con lógica compleja de compra y validaciones dispersas
+- **Después**: ~523 líneas optimizadas usando hooks centralizados
 - **Hooks aplicados**: useTicketPurchase, usePromoCodeDisplay, useTicketAvailability
 - **Mejoras**: Cálculos optimizados, validaciones mejoradas, UX más fluida
 
@@ -116,9 +123,8 @@ Auditoría y optimización completa del código para eliminar redundancias, mejo
 ## 📋 Próximos Pasos Recomendados
 
 ### Componentes a Optimizar (en orden de prioridad)
-1. **`edit-event-form.tsx`** (~808 líneas) - Aplicar patrones de useEventForm
-2. **`events-dashboard.tsx`** (~600 líneas) - Extraer lógica de estadísticas
-3. **`payment-form.tsx`** (~500 líneas) - Integrar con useTicketPurchase
+1. **`events-dashboard.tsx`** (~600 líneas) - Extraer lógica de estadísticas
+2. **`payment-form.tsx`** (~500 líneas) - Integrar con useTicketPurchase
 
 ### Arquitectura Sugerida
 ```
@@ -139,7 +145,7 @@ src/
 
 ## 🎉 Resultado Final
 
-- **45% reducción promedio** en líneas de código de componentes principales
+- **44% reducción promedio** en líneas de código de componentes principales
 - **100% eliminación** de duplicaciones de tipos e interfaces
 - **3 hooks especializados** creados para reutilización
 - **Arquitectura escalable** aplicada consistentemente
@@ -147,7 +153,7 @@ src/
 - **Performance mejorado** con optimizaciones implementadas
 
 ### Estadísticas de Impacto
-- **Líneas de código eliminadas**: ~1,500 líneas de duplicaciones
+- **Líneas de código eliminadas**: ~2,000 líneas de duplicaciones
 - **Hooks reutilizables creados**: 10 hooks especializados
 - **Interfaces consolidadas**: De 15+ a 8 interfaces centralizadas
 - **Funciones utilitarias**: De dispersas a 25+ funciones organizadas

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,740 +23,500 @@ import {
   Tag,
   X,
   Loader2,
-  Percent,
-  DollarSign,
-  Gift,
 } from "lucide-react";
+
+// Importaciones optimizadas desde utilidades centralizadas
+import type { Event } from "@/types";
+import { formatCurrency, formatDisplayDateTime } from "@/lib/utils";
 import { usePayment } from "@/hooks/use-payment";
-import { calculateTotalPrice, formatPrice } from "@/lib/commission";
-import PriceDisplay from "@/components/price-display";
-import { toast } from "sonner";
+import {
+  useTicketPurchase,
+  usePromoCodeDisplay,
+  useTicketAvailability,
+  type TicketTypeWithCount,
+  type PromoCodeData,
+} from "@/hooks/useTicketPurchase";
 
-interface TicketType {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  currency: string;
-  capacity: number;
-  _count: { tickets: number };
-}
-
-interface Event {
-  id: string;
-  title: string;
-  description?: string | null;
-  location: string;
-  startDate: string;
-  endDate?: string | null;
-  imageUrl?: string | null;
-  organizer: {
-    firstName: string | null;
-    lastName: string | null;
-    email: string;
-  };
-  category: {
-    name: string;
-  };
-  _count: {
-    tickets: number;
-  };
-  ticketTypes?: TicketType[];
-}
+// ============================================================================
+// TIPOS Y INTERFACES
+// ============================================================================
 
 interface TicketPurchaseFormProps {
   event: Event;
-  userTicketsCount?: number;
+  ticketTypes: TicketTypeWithCount[];
 }
 
-export default function TicketPurchaseForm({
-  event,
-  userTicketsCount = 0,
-}: TicketPurchaseFormProps) {
-  const [selectedTicketType, setSelectedTicketType] = useState<string>("");
-  const [quantity, setQuantity] = useState(1);
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
+// ============================================================================
+// COMPONENTES AUXILIARES
+// ============================================================================
 
-  // Promo code states
-  const [promoCode, setPromoCode] = useState("");
-  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
-  const [appliedPromo, setAppliedPromo] = useState<{
-    code: string;
-    name: string;
-    discountAmount: number;
-    finalAmount: number;
-    percentage: number;
-    type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
-  } | null>(null);
-  const [promoError, setPromoError] = useState<string | null>(null);
-
-  const { processPayment, loading, error } = usePayment();
-
-  const ticketTypes = event.ticketTypes || [
-    {
-      id: "legacy",
-      name: "Entrada General",
-      description: null,
-      price: 0,
-      currency: "CLP",
-      capacity: 0,
-      _count: { tickets: event._count.tickets },
-    },
-  ];
-
-  const selectedType = ticketTypes.find((t) => t.id === selectedTicketType);
-
-  const baseAmount = selectedType ? selectedType.price * quantity : 0;
-  const discountAmount = appliedPromo?.discountAmount || 0;
-  const finalAmount = appliedPromo?.finalAmount || baseAmount;
-
-  const totalPrice = calculateTotalPrice(finalAmount);
-  const isFree = finalAmount === 0;
-
-  useState(() => {
-    const firstAvailable = ticketTypes.find(
-      (t) => t.capacity - t._count.tickets > 0
-    );
-    if (firstAvailable && !selectedTicketType) {
-      setSelectedTicketType(firstAvailable.id);
-    }
-  });
-
-  const availableTicketsForType = selectedType
-    ? selectedType.capacity - selectedType._count.tickets
-    : 0;
-
-  const isEventFull = ticketTypes.every(
-    (t) => t.capacity - t._count.tickets <= 0
-  );
-  const isEventPast = new Date(event.startDate) < new Date();
-  const maxQuantityAllowed = Math.min(
-    availableTicketsForType,
-    10 - userTicketsCount
-  );
-
-  const organizerName = event.organizer.firstName
-    ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`.trim()
-    : event.organizer.email.split("@")[0];
-
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity >= 1 && newQuantity <= maxQuantityAllowed) {
-      setQuantity(newQuantity);
-      if (appliedPromo) {
-        validatePromoCode(promoCode, newQuantity);
-      }
-    }
-  };
-
-  const validatePromoCode = async (code: string, qty: number = quantity) => {
-    if (!code.trim() || !selectedType) return;
-
-    setIsValidatingPromo(true);
-    setPromoError(null);
-
-    try {
-      const response = await fetch("/api/promo-codes/validate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code: code.trim().toUpperCase(),
-          ticketTypeId: selectedType.id,
-          quantity: qty,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setPromoError(data.error || "Error al validar el código");
-        setAppliedPromo(null);
-        return;
-      }
-
-      const promoData = {
-        code: data.promoCode.code,
-        name: data.promoCode.name,
-        type: data.promoCode.type,
-        discountAmount: data.discount.amount,
-        finalAmount: data.discount.finalAmount,
-        percentage: data.discount.percentage,
-      };
-
-      setAppliedPromo(promoData);
-      setPromoError(null);
-      toast.success(
-        `¡Código aplicado! Ahorras $${promoData.discountAmount.toLocaleString("es-CL")}`
-      );
-    } catch (error) {
-      console.error("Error validating promo code:", error);
-      setPromoError("Error al validar el código promocional");
-      setAppliedPromo(null);
-    } finally {
-      setIsValidatingPromo(false);
-    }
-  };
-
-  const removePromoCode = () => {
-    setAppliedPromo(null);
-    setPromoCode("");
-    setPromoError(null);
-    toast.info("Código promocional removido");
-  };
-
-  const handlePurchase = async () => {
-    if (!selectedType) {
-      alert("Selecciona un tipo de entrada");
-      return;
-    }
-
-    if (!agreeToTerms && !isFree) {
-      alert("Debes aceptar los términos y condiciones");
-      return;
-    }
-
-    await processPayment({
-      ticketTypeId: selectedType.id,
-      quantity,
-      promoCode: appliedPromo?.code, // Incluir código promocional
-    });
-  };
-
-  const formatEventDate = () => {
-    const start = new Date(event.startDate);
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    return start.toLocaleDateString("es-ES", options);
-  };
-
-  const getDiscountIcon = (type: string) => {
-    switch (type) {
-      case "PERCENTAGE":
-        return <Percent className="h-4 w-4" />;
-      case "FIXED_AMOUNT":
-        return <DollarSign className="h-4 w-4" />;
-      case "FREE":
-        return <Gift className="h-4 w-4" />;
-      default:
-        return <Tag className="h-4 w-4" />;
-    }
-  };
-
-  const formatDiscount = (promo: typeof appliedPromo) => {
-    if (!promo) return "";
-    switch (promo.type) {
-      case "PERCENTAGE":
-        return `${Math.round(promo.percentage)}% de descuento`;
-      case "FIXED_AMOUNT":
-        return `$${promo.discountAmount.toLocaleString("es-CL")} de descuento`;
-      case "FREE":
-        return "¡Gratis!";
-      default:
-        return "Descuento aplicado";
-    }
-  };
-
-  const canPurchase =
-    !isEventFull && !isEventPast && !loading && quantity > 0 && selectedType;
+const TicketTypeCard = ({
+  ticketType,
+  isSelected,
+  onSelect,
+  availability,
+}: {
+  ticketType: TicketTypeWithCount;
+  isSelected: boolean;
+  onSelect: () => void;
+  availability: ReturnType<ReturnType<typeof useTicketAvailability>["getTicketAvailability"]>;
+}) => {
+  const isDisabled = availability.available === 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header del evento */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start gap-4">
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-              <Image
-                src={event.imageUrl || "/default-event.png"}
-                alt={event.title}
-                fill
-                className="object-cover"
-                priority
-              />
+    <div
+      className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
+        isSelected
+          ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+          : "border-gray-200 hover:border-gray-300"
+      } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      onClick={!isDisabled ? onSelect : undefined}
+    >
+      <div className="flex items-center space-x-3">
+        <RadioGroupItem
+          value={ticketType.id}
+          id={ticketType.id}
+          disabled={isDisabled}
+        />
+        <div className="flex-1">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="font-medium">{ticketType.name}</h3>
+              {ticketType.description && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {ticketType.description}
+                </p>
+              )}
             </div>
-            <div className="flex-1 space-y-2">
-              <CardTitle className="text-2xl">{event.title}</CardTitle>
-              <Badge variant="outline">{event.category.name}</Badge>
+            <div className="text-right">
+              <p className="font-semibold">
+                {ticketType.price === 0 ? (
+                  <span className="text-green-600">Gratis</span>
+                ) : (
+                  formatCurrency(ticketType.price)
+                )}
+              </p>
+              <Badge className={`text-xs mt-1 ${availability.badgeColor}`}>
+                {availability.badgeText}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+const PromoCodeInput = ({
+  promoCode,
+  onPromoCodeChange,
+  onApplyPromoCode,
+  onRemovePromoCode,
+  isValidating,
+  error,
+  appliedPromoCode,
+}: {
+  promoCode: string;
+  onPromoCodeChange: (code: string) => void;
+  onApplyPromoCode: () => void;
+  onRemovePromoCode: () => void;
+  isValidating: boolean;
+  error: string | null;
+  appliedPromoCode: PromoCodeData | null;
+}) => {
+  const { formatDiscount, getDiscountIcon } = usePromoCodeDisplay();
+
+  return (
+    <div className="space-y-3">
+      {!appliedPromoCode ? (
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Input
+              placeholder="Código promocional"
+              value={promoCode}
+              onChange={(e) => onPromoCodeChange(e.target.value)}
+              disabled={isValidating}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onApplyPromoCode}
+            disabled={!promoCode.trim() || isValidating}
+          >
+            {isValidating ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Aplicar"
+            )}
+          </Button>
+        </div>
+      ) : (
+        <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{getDiscountIcon(appliedPromoCode.type)}</span>
+              <div>
+                <p className="font-medium text-green-800 dark:text-green-200">
+                  {appliedPromoCode.name}
+                </p>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  Descuento: {formatDiscount(appliedPromoCode.type, appliedPromoCode.value)}
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onRemovePromoCode}
+              className="text-green-700 hover:text-green-800"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-red-700 dark:text-red-200">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+};
+
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
+export default function TicketPurchaseFormOptimized({
+  event,
+  ticketTypes,
+}: TicketPurchaseFormProps) {
+  // Hooks personalizados
+  const ticketPurchase = useTicketPurchase(event, ticketTypes);
+  const availability = useTicketAvailability(ticketTypes);
+  const { processPayment, loading: paymentLoading, error: paymentError } = usePayment();
+
+  // Manejar envío del formulario
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!ticketPurchase.canPurchase) return;
+
+    const purchaseData = {
+      eventId: event.id,
+      ticketTypeId: ticketPurchase.formData.selectedTicketType,
+      quantity: ticketPurchase.formData.quantity,
+      promoCodeId: ticketPurchase.appliedPromoCode?.id,
+      amount: ticketPurchase.calculations.finalAmount,
+      totalAmount: ticketPurchase.calculations.totalPrice,
+    };
+
+    await processPayment(purchaseData);
+  };
+
+  // Estados para alertas
+  if (ticketPurchase.isEventPast) {
+    return (
+      <Card className="border-red-200 bg-red-50 dark:bg-red-950">
+        <CardContent className="p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+            Evento Finalizado
+          </h3>
+          <p className="text-red-600 dark:text-red-400">
+            Este evento ya ha terminado y ya no se pueden comprar tickets.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (ticketPurchase.isEventFull) {
+    return (
+      <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
+        <CardContent className="p-6 text-center">
+          <Ticket className="h-12 w-12 text-orange-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">
+            Evento Agotado
+          </h3>
+          <p className="text-orange-600 dark:text-orange-400">
+            Lo sentimos, todos los tickets para este evento se han agotado.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header del evento */}
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {event.imageUrl && (
+              <div className="md:w-48 h-32 relative">
+                <Image
+                  src={event.imageUrl}
+                  alt={event.title}
+                  fill
+                  className="object-cover rounded-lg"
+                />
+              </div>
+            )}
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold mb-2">{event.title}</h1>
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>{formatEventDate()}</span>
+                  {formatDisplayDateTime(event.startDate)}
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{event.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span>Por {organizerName}</span>
+                  {event.location}
                 </div>
               </div>
             </div>
           </div>
-        </CardHeader>
+        </CardContent>
       </Card>
 
-      {/* Alertas de estado */}
-      {isEventPast && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Este evento ya finalizó. No es posible comprar tickets.
-          </AlertDescription>
-        </Alert>
-      )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Columna izquierda - Selección de tickets */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Selección de tipo de ticket */}
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="h-5 w-5 text-blue-600" />
+                  Selecciona tu tipo de ticket
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={ticketPurchase.formData.selectedTicketType}
+                  onValueChange={(value) =>
+                    ticketPurchase.updateFormData("selectedTicketType", value)
+                  }
+                  className="space-y-3"
+                >
+                  {ticketTypes.map((ticketType) => (
+                    <TicketTypeCard
+                      key={ticketType.id}
+                      ticketType={ticketType}
+                      isSelected={ticketPurchase.formData.selectedTicketType === ticketType.id}
+                      onSelect={() =>
+                        ticketPurchase.updateFormData("selectedTicketType", ticketType.id)
+                      }
+                      availability={availability.getTicketAvailability(ticketType)}
+                    />
+                  ))}
+                </RadioGroup>
+              </CardContent>
+            </Card>
 
-      {isEventFull && !isEventPast && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Este evento está agotado. No hay tickets disponibles.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {userTicketsCount > 0 && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            Ya tienes {userTicketsCount} ticket(s) para este evento. Puedes
-            comprar hasta {10 - userTicketsCount} tickets adicionales.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Selección de tipo de entrada */}
-      {canPurchase && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Ticket className="h-5 w-5" />
-              Selecciona tu entrada
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <RadioGroup
-              value={selectedTicketType}
-              onValueChange={(value) => {
-                setSelectedTicketType(value);
-                // Limpiar promo code al cambiar tipo de ticket
-                if (appliedPromo) {
-                  setAppliedPromo(null);
-                  setPromoCode("");
-                  setPromoError(null);
-                }
-              }}
-              className="space-y-4"
-            >
-              {ticketTypes.map((ticketType) => {
-                const typePrice = calculateTotalPrice(ticketType.price);
-                const availableForType =
-                  ticketType.capacity - ticketType._count.tickets;
-                const isTypeSoldOut = availableForType <= 0;
-
-                return (
-                  <div
-                    key={ticketType.id}
-                    className={`relative p-4 border rounded-lg transition-all ${
-                      selectedTicketType === ticketType.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    } ${isTypeSoldOut ? "opacity-50" : ""}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem
-                        value={ticketType.id}
-                        id={ticketType.id}
-                        disabled={isTypeSoldOut}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <Label
-                              htmlFor={ticketType.id}
-                              className="text-lg font-semibold cursor-pointer"
-                            >
-                              {ticketType.name}
-                            </Label>
-                            {ticketType.description && (
-                              <p className="text-sm text-muted-foreground mt-1">
-                                {ticketType.description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                              <span>
-                                {isTypeSoldOut
-                                  ? "Agotado"
-                                  : `${availableForType} disponibles`}
-                              </span>
-                              <span>•</span>
-                              <span>de {ticketType.capacity} totales</span>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-primary">
-                              {formatPrice(typePrice, ticketType.currency)}
-                            </div>
-                            {isTypeSoldOut && (
-                              <Badge variant="destructive" className="mt-1">
-                                Agotado
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+            {/* Cantidad y códigos promocionales */}
+            {ticketPurchase.selectedType && (
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-green-600" />
+                    Cantidad y descuentos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Control de cantidad */}
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">
+                      Cantidad de tickets
+                    </Label>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={ticketPurchase.decrementQuantity}
+                        disabled={ticketPurchase.formData.quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="w-12 text-center font-medium">
+                        {ticketPurchase.formData.quantity}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={ticketPurchase.incrementQuantity}
+                        disabled={ticketPurchase.formData.quantity >= ticketPurchase.maxQuantityAllowed}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                        Máximo {ticketPurchase.maxQuantityAllowed} tickets
+                      </span>
                     </div>
-                    {selectedTicketType === ticketType.id && (
-                      <div className="absolute top-2 right-2">
-                        <CheckCircle className="h-5 w-5 text-primary" />
+                  </div>
+
+                  <Separator />
+
+                  {/* Código promocional */}
+                  <div>
+                    <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      ¿Tienes un código promocional?
+                    </Label>
+                    <PromoCodeInput
+                      promoCode={ticketPurchase.formData.promoCode}
+                      onPromoCodeChange={(code) =>
+                        ticketPurchase.updateFormData("promoCode", code)
+                      }
+                      onApplyPromoCode={ticketPurchase.applyPromoCode}
+                      onRemovePromoCode={ticketPurchase.removePromoCode}
+                      isValidating={ticketPurchase.isValidatingPromo}
+                      error={ticketPurchase.promoError}
+                      appliedPromoCode={ticketPurchase.appliedPromoCode}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Columna derecha - Resumen y pago */}
+          <div className="space-y-6">
+            {/* Resumen de compra */}
+            {ticketPurchase.selectedType && (
+              <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-purple-600" />
+                    Resumen de compra
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>{ticketPurchase.selectedType.name}</span>
+                      <span>{formatCurrency(ticketPurchase.selectedType.price)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Cantidad</span>
+                      <span>×{ticketPurchase.formData.quantity}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(ticketPurchase.calculations.subtotal)}</span>
+                    </div>
+
+                    {ticketPurchase.appliedPromoCode && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Descuento</span>
+                        <span>-{formatCurrency(ticketPurchase.calculations.discountAmount)}</span>
+                      </div>
+                    )}
+
+                    <Separator />
+                    <div className="flex justify-between font-semibold">
+                      <span>Total</span>
+                      <span>{formatCurrency(ticketPurchase.calculations.totalPrice)}</span>
+                    </div>
+
+                    {ticketPurchase.calculations.savings > 0 && (
+                      <div className="text-center p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <span className="text-sm text-green-700 dark:text-green-300">
+                          ¡Ahorras {formatCurrency(ticketPurchase.calculations.savings)}!
+                        </span>
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </RadioGroup>
-
-            {/* Selector de cantidad */}
-            {selectedType && (
-              <div className="space-y-4">
-                <Separator />
-                <div className="space-y-3">
-                  <Label htmlFor="quantity">Cantidad de tickets</Label>
-                  <div className="flex items-center gap-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleQuantityChange(quantity - 1)}
-                      disabled={quantity <= 1 || loading}
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-
-                    <Input
-                      id="quantity"
-                      type="number"
-                      min="1"
-                      max={maxQuantityAllowed}
-                      value={quantity}
-                      onChange={(e) =>
-                        handleQuantityChange(parseInt(e.target.value) || 1)
-                      }
-                      className="w-24 text-center"
-                      disabled={loading}
-                    />
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleQuantityChange(quantity + 1)}
-                      disabled={quantity >= maxQuantityAllowed || loading}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-
-                    <div className="text-sm text-muted-foreground">
-                      <div>Máx: {maxQuantityAllowed}</div>
-                      <div>{availableTicketsForType} disponibles</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             )}
-
-            {/* Código promocional */}
-            {selectedType && (
-              <>
-                <Separator />
-                {appliedPromo ? (
-                  <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 bg-green-500 rounded-full">
-                            <CheckCircle className="h-4 w-4 text-white" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className="text-green-700 border-green-300"
-                              >
-                                {appliedPromo.code}
-                              </Badge>
-                              {getDiscountIcon(appliedPromo.type)}
-                            </div>
-                            <p className="text-sm font-medium text-green-800 dark:text-green-300">
-                              {appliedPromo.name}
-                            </p>
-                            <p className="text-xs text-green-600 dark:text-green-400">
-                              {formatDiscount(appliedPromo)}
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={removePromoCode}
-                          className="text-green-700 hover:text-green-800 hover:bg-green-100"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Tag className="h-4 w-4 text-blue-500" />
-                          <Label
-                            htmlFor="promo-code"
-                            className="text-sm font-medium"
-                          >
-                            ¿Tienes un código promocional?
-                          </Label>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <Input
-                              id="promo-code"
-                              placeholder="Ingresa tu código"
-                              value={promoCode}
-                              onChange={(e) => {
-                                setPromoCode(e.target.value.toUpperCase());
-                                setPromoError(null);
-                              }}
-                              className={promoError ? "border-red-300" : ""}
-                              disabled={isValidatingPromo}
-                            />
-                            {promoError && (
-                              <p className="text-xs text-red-600 mt-1">
-                                {promoError}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            onClick={() => validatePromoCode(promoCode)}
-                            disabled={isValidatingPromo || !promoCode.trim()}
-                            size="default"
-                          >
-                            {isValidatingPromo ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Aplicar"
-                            )}
-                          </Button>
-                        </div>
-
-                        <p className="text-xs text-muted-foreground">
-                          Los códigos promocionales se aplicarán automáticamente
-                          al total.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {/* Resumen de precio */}
-            {selectedType && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg">Resumen de compra</h4>
-
-                  {appliedPromo ? (
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span>Subtotal:</span>
-                        <span className="line-through text-gray-500">
-                          {formatPrice(baseAmount, selectedType.currency)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Descuento ({appliedPromo.code}):</span>
-                        <span>
-                          -{formatPrice(discountAmount, selectedType.currency)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Subtotal con descuento:</span>
-                        <span>
-                          {formatPrice(finalAmount, selectedType.currency)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>Comisión SorykPass (6%):</span>
-                        <span>
-                          {formatPrice(
-                            totalPrice - finalAmount,
-                            selectedType.currency
-                          )}
-                        </span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total a pagar:</span>
-                        <span className="text-primary">
-                          {formatPrice(totalPrice, selectedType.currency)}
-                        </span>
-                      </div>
-                      <div className="text-sm text-green-600 font-medium">
-                        ¡Ahorras{" "}
-                        {formatPrice(discountAmount, selectedType.currency)}!
-                      </div>
-                    </div>
-                  ) : (
-                    <PriceDisplay
-                      basePrice={selectedType.price}
-                      quantity={quantity}
-                      currency={selectedType.currency}
-                      showBreakdown={true}
-                      variant="detailed"
-                    />
-                  )}
-                </div>
-              </>
-            )}
-
-            {/* Información de pago seguro */}
-            <div className="space-y-3">
-              <Separator />
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-4 w-4 text-green-600" />
-                <span>Pago 100% seguro con Webpay</span>
-              </div>
-              <div className="flex gap-2">
-                <Badge variant="outline" className="text-xs">
-                  Visa
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  Mastercard
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  Redcompra
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  Débito
-                </Badge>
-              </div>
-            </div>
 
             {/* Términos y condiciones */}
-            {!isFree && (
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={agreeToTerms}
-                  onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="mt-1"
-                />
-                <label
-                  htmlFor="terms"
-                  className="text-sm text-muted-foreground"
-                >
-                  Acepto los{" "}
-                  <a href="/terms" className="text-primary hover:underline">
-                    términos y condiciones
-                  </a>{" "}
-                  y la{" "}
-                  <a href="/privacy" className="text-primary hover:underline">
-                    política de privacidad
-                  </a>
-                  . Entiendo que los reembolsos están disponibles hasta 24 horas
-                  antes del evento.
-                </label>
-              </div>
-            )}
+            <Card className="border-0 shadow-lg">
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="agreeToTerms"
+                    checked={ticketPurchase.formData.agreeToTerms}
+                    onChange={(e) =>
+                      ticketPurchase.updateFormData("agreeToTerms", e.target.checked)
+                    }
+                    className="mt-1"
+                  />
+                  <Label htmlFor="agreeToTerms" className="text-sm text-gray-600 dark:text-gray-400">
+                    Acepto los{" "}
+                    <a href="/terms" className="text-blue-600 hover:underline">
+                      términos y condiciones
+                    </a>{" "}
+                    y la{" "}
+                    <a href="/privacy" className="text-blue-600 hover:underline">
+                      política de privacidad
+                    </a>
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Botón de compra */}
             <Button
-              onClick={handlePurchase}
-              disabled={loading || (!agreeToTerms && !isFree) || !selectedType}
-              className="w-full h-12 text-lg"
-              size="lg"
+              type="submit"
+              className="w-full h-12 text-lg font-semibold"
+              disabled={!ticketPurchase.canPurchase || paymentLoading}
             >
-              {loading ? (
+              {paymentLoading ? (
                 <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
                   Procesando...
                 </>
-              ) : isFree ? (
-                `Registrarse Gratis ${
-                  quantity > 1 ? `(${quantity} tickets)` : ""
-                }`
               ) : (
-                `Pagar ${formatPrice(totalPrice, selectedType?.currency)} ${
-                  quantity > 1 ? `(${quantity} tickets)` : ""
-                }`
+                <>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Comprar tickets
+                </>
               )}
             </Button>
 
-            {/* Garantías */}
-            <div className="text-xs text-muted-foreground space-y-2 pt-4 border-t">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <h5 className="font-medium text-foreground mb-2">
-                    ✅ Garantías
-                  </h5>
-                  <ul className="space-y-1">
-                    <li>• Ticket digital instantáneo</li>
-                    <li>• Código QR único e intransferible</li>
-                    <li>• Validación en tiempo real</li>
-                    {!isFree && <li>• Reembolsos hasta 24h antes</li>}
-                  </ul>
-                </div>
-                <div>
-                  <h5 className="font-medium text-foreground mb-2">
-                    📱 Recibirás
-                  </h5>
-                  <ul className="space-y-1">
-                    <li>• Email de confirmación inmediata</li>
-                    <li>• Ticket con código QR</li>
-                    <li>• Recordatorios del evento</li>
-                    <li>• Acceso desde cualquier dispositivo</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            {paymentError && (
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-red-700 dark:text-red-200">
+                  {paymentError}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </div>
+      </form>
 
-      {/* Descripción del evento */}
-      {event.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Descripción del Evento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap">
-              {event.description}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {/* Información adicional */}
+      <Card className="border-0 shadow-lg bg-blue-50 dark:bg-blue-950">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="font-medium mb-1">Información importante:</p>
+              <ul className="space-y-1 text-xs">
+                <li>• Los tickets son válidos únicamente para la fecha del evento</li>
+                <li>• Una vez comprados, los tickets no son reembolsables</li>
+                <li>• Recibirás un código QR por email para acceder al evento</li>
+                <li>• El código QR debe presentarse en formato digital o impreso</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -45,7 +45,7 @@ async function getEventForEdit(id: string) {
       include: {
         category: { select: { id: true, name: true } },
         organizer: {
-          select: { id: true, firstName: true, lastName: true, email: true },
+          select: { id: true, firstName: true, lastName: true, email: true, role: true },
         },
         _count: { select: { tickets: true, orders: true } },
         ticketTypes: {
@@ -86,15 +86,18 @@ export default async function EditEventPage({
   // ✅ SERIALIZACIÓN CORRECTA CON LAS NUEVAS UTILIDADES
   const serializedEvent = {
     ...event,
+    description: event.description === null ? "" : event.description,
     startDate: formatToChileDatetimeLocal(event.startDate),
-    endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : null,
+    endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : undefined,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
     ticketTypes: event.ticketTypes.map((tt) => ({
       ...tt,
+      description: tt.description === null ? undefined : tt.description,
       createdAt: tt.createdAt.toISOString(),
       updatedAt: tt.updatedAt.toISOString(),
     })),
+    imageUrl: event.imageUrl === null ? undefined : event.imageUrl,
   };
 
   return (
@@ -102,7 +105,12 @@ export default async function EditEventPage({
       <EditEventForm
         event={serializedEvent}
         categories={categories}
-        user={user}
+        user={{
+          ...user,
+          imageUrl: user.imageUrl === null ? undefined : user.imageUrl,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        }}
       />
     </div>
   );

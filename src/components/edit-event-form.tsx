@@ -1,14 +1,10 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import ImageUpload from "@/components/image-upload-simple";
 import {
   Select,
   SelectContent,
@@ -16,75 +12,83 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { 
-  Loader2, 
-  Save, 
-  Trash2, 
-  Ticket, 
-  PlusCircle,
+import { Badge } from "@/components/ui/badge";
+import ImageUpload from "@/components/image-upload-simple";
+import Image from "next/image";
+import {
   Calendar,
   MapPin,
   Users,
   Info,
-  Edit3,
-  Clock,
-  Target,
+  ImageIcon,
+  Ticket,
+  Trash2,
+  PlusCircle,
+  Loader2,
+  Save,
   Sparkles,
-  Activity,
+  Clock,
+  DollarSign,
   CheckCircle2,
-  AlertTriangle,
-  ArrowLeft
+  Activity,
+  ArrowLeft,
+  Edit3,
 } from "lucide-react";
-import { UserRole } from "@prisma/client";
-import { toast } from "sonner";
-// ✅ IMPORTAR LAS NUEVAS UTILIDADES DE FECHA
+
+// Importaciones optimizadas desde utilidades centralizadas
+import type { Category, Event, User } from "@/types";
+import { formatCurrency } from "@/lib/utils";
 import {
-  parseChileDatetime,
-  formatToChileDatetimeLocal,
-  toChileISOString,
-  isFutureDate,
-  isValidDateRange,
-} from "@/lib/date-utils";
+  useEventForm,
+  useTicketTypes,
+  useEventImage,
+  useEventFormStats,
+  type InitialEventData,
+} from "@/hooks/useEventForm";
 
-interface Category {
-  id: string;
-  name: string;
-}
+// ============================================================================
+// COMPONENTES AUXILIARES
+// ============================================================================
 
-interface User {
-  id: string;
-  role: UserRole;
-  firstName: string | null;
-  lastName: string | null;
-  email: string;
-}
-
-interface TicketType {
-  id: string;
-  name: string;
-  price: number;
-  capacity: number;
-  ticketsGenerated: number;
-  _count: {
-    tickets: number;
-  };
-}
-
-interface Event {
-  id: string;
+const StatCard = ({
+  icon,
+  title,
+  value,
+  description,
+  color = "blue",
+}: {
+  icon: React.ReactNode;
   title: string;
-  description: string | null;
-  imageUrl: string | null;
-  location: string;
-  startDate: string;
-  endDate: string | null;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
-  category: { id: string; name: string };
-  _count: { tickets: number };
-  ticketTypes: TicketType[];
-}
+  value: string | number;
+  description: string;
+  color?: "blue" | "green" | "purple" | "orange";
+}) => {
+  const colorClasses = {
+    blue: "border-blue-200 bg-blue-50 text-blue-700",
+    green: "border-green-200 bg-green-50 text-green-700",
+    purple: "border-purple-200 bg-purple-50 text-purple-700",
+    orange: "border-orange-200 bg-orange-50 text-orange-700",
+  };
+
+  return (
+    <div className={`border rounded-lg p-4 ${colorClasses[color]}`}>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="text-lg">{icon}</div>
+          <div>
+            <h3 className="font-medium text-sm">{title}</h3>
+            <p className="text-2xl font-bold">{value}</p>
+          </div>
+        </div>
+      </div>
+      <p className="text-xs mt-2 opacity-75">{description}</p>
+    </div>
+  );
+};
+
+// ============================================================================
+// INTERFACES PRINCIPALES
+// ============================================================================
 
 interface EditEventFormProps {
   event: Event;
@@ -92,717 +96,462 @@ interface EditEventFormProps {
   user: User;
 }
 
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
 export default function EditEventForm({
   event,
   categories,
 }: EditEventFormProps) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const [formData, setFormData] = useState({
+  // Preparar datos iniciales para el hook
+  const initialData: InitialEventData = {
+    id: event.id,
     title: event.title,
     description: event.description || "",
     location: event.location,
-    // ✅ USAR LA FUNCIÓN CORRECTA PARA FORMATEAR FECHAS
-    startDate: formatToChileDatetimeLocal(event.startDate),
-    endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : "",
+    startDate: event.startDate,
+    endDate: event.endDate || "",
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
-  });
-
-  const [ticketTypes, setTicketTypes] = useState<TicketType[]>(
-    event.ticketTypes
-  );
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    ticketTypes: event.ticketTypes.map(ticket => ({
+      name: ticket.name,
+      price: ticket.price,
+      capacity: ticket.capacity,
+      ticketsGenerated: ticket.ticketsGenerated || 1,
+    })),
   };
 
-  const handleTicketTypeChange = (
-    index: number,
-    field: keyof Omit<TicketType, "id" | "_count" | "createdAt" | "updatedAt">,
-    value: string | number
-  ) => {
-    const newTicketTypes = [...ticketTypes];
+  // ============================================================================
+  // HOOKS ESPECIALIZADOS
+  // ============================================================================
 
-    if (field === "name") {
-      newTicketTypes[index][field] = value as string;
-    } else if (
-      field === "price" ||
-      field === "capacity" ||
-      field === "ticketsGenerated"
-    ) {
-      newTicketTypes[index][field] =
-        typeof value === "string" ? Number(value) : value;
-    }
+  const eventForm = useEventForm(initialData, "edit");
+  const ticketTypesHook = useTicketTypes(initialData.ticketTypes);
+  const { imageUrl, handleImageChange } = useEventImage(initialData.imageUrl);
+  const stats = useEventFormStats(ticketTypesHook.ticketTypes);
 
-    setTicketTypes(newTicketTypes);
-  };
-
-  const addTicketType = () => {
-    const tempId = `new-${Date.now()}`;
-    setTicketTypes([
-      ...ticketTypes,
-      {
-        id: tempId,
-        name: "",
-        price: 0,
-        capacity: 50,
-        ticketsGenerated: 1,
-        _count: { tickets: 0 },
-      },
-    ]);
-  };
-
-  const removeTicketType = (index: number) => {
-    if (ticketTypes.length <= 1) {
-      toast.error("Debes tener al menos un tipo de entrada.");
-      return;
-    }
-    const ticketToRemove = ticketTypes[index];
-    if (ticketToRemove._count.tickets > 0) {
-      toast.error(
-        "No puedes eliminar un tipo de entrada que ya tiene tickets vendidos."
-      );
-      return;
-    }
-    setTicketTypes(ticketTypes.filter((_, i) => i !== index));
-  };
+  // ============================================================================
+  // HANDLERS
+  // ============================================================================
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const invalidTicketTypes = ticketTypes.filter(
-      (ticket) =>
-        !ticket.name || ticket.capacity <= 0 || ticket.ticketsGenerated <= 0
-    );
-
-    if (invalidTicketTypes.length > 0) {
-      toast.error("Completa todos los campos para cada tipo de entrada.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // ✅ VALIDACIONES DE FECHA MEJORADAS
-      if (!formData.startDate) {
-        toast.error("La fecha de inicio es requerida.");
-        setLoading(false);
-        return;
-      }
-
-      const startDate = parseChileDatetime(formData.startDate);
-
-      if (!isFutureDate(startDate)) {
-        toast.error("La fecha de inicio debe ser en el futuro.");
-        setLoading(false);
-        return;
-      }
-
-      let endDate: Date | null = null;
-      if (formData.endDate) {
-        endDate = parseChileDatetime(formData.endDate);
-
-        if (!isValidDateRange(startDate, endDate)) {
-          toast.error(
-            "La fecha de fin debe ser posterior a la fecha de inicio."
-          );
-          setLoading(false);
-          return;
-        }
-      }
-
-      // ✅ PREPARAR DATOS CON FECHAS CORRECTAS
-      const requestBody = {
-        ...formData,
-        startDate: toChileISOString(startDate),
-        endDate: endDate ? toChileISOString(endDate) : null,
-        ticketTypes: ticketTypes.map((ticket) => ({
-          id: ticket.id.startsWith("new-") ? undefined : ticket.id,
-          name: ticket.name,
-          description: null,
-          price: Number(ticket.price),
-          capacity: Number(ticket.capacity),
-          ticketsGenerated: Number(ticket.ticketsGenerated),
-        })),
-      };
-
-      console.log(
-        "📤 Enviando datos con fechas correctas:",
-        JSON.stringify(requestBody, null, 2)
-      );
-
-      const response = await fetch(`/api/events/${event.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success("Evento actualizado con éxito!");
-        router.push(`/events/${event.id}`);
-        router.refresh();
-      } else {
-        console.error("❌ Error del servidor:", data);
-        throw new Error(data.error || "No se pudo actualizar el evento.");
-      }
-    } catch (error) {
-      console.error("❌ Error en la solicitud:", error);
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("Ocurrió un error inesperado.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    await eventForm.handleSubmit(e, ticketTypesHook.ticketTypes);
   };
 
-  function handleImageChange(imageUrl: string): void {
-    setFormData((prev) => ({ ...prev, imageUrl }));
-  }
-
-  const totalCapacity = ticketTypes.reduce(
-    (sum, type) => sum + type.capacity * type.ticketsGenerated,
-    0
-  );
-
-  // Componente para tarjetas de estadísticas
-  const StatCard = ({
-    title,
-    value,
-    icon: Icon,
-    description,
-    accentColor = "blue",
-  }: {
-    title: string;
-    value: string | number;
-    icon: React.ElementType;
-    description: string;
-    accentColor?: "blue" | "green" | "purple" | "orange";
-  }) => {
-    const colorVariants = {
-      blue: {
-        bg: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900",
-        icon: "bg-blue-500 text-white",
-        accent: "text-blue-600 dark:text-blue-400",
-      },
-      green: {
-        bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900",
-        icon: "bg-green-500 text-white",
-        accent: "text-green-600 dark:text-green-400",
-      },
-      purple: {
-        bg: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900",
-        icon: "bg-purple-500 text-white",
-        accent: "text-purple-600 dark:text-purple-400",
-      },
-      orange: {
-        bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900",
-        icon: "bg-orange-500 text-white",
-        accent: "text-orange-600 dark:text-orange-400",
-      },
-    };
-
-    const colors = colorVariants[accentColor];
-
-    return (
-      <Card className={`border-0 ${colors.bg}`}>
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">
-                {title}
-              </p>
-              <p className={`text-2xl font-bold ${colors.accent}`}>
-                {value}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {description}
-              </p>
-            </div>
-            <div className={`p-3 rounded-lg ${colors.icon}`}>
-              <Icon className="h-5 w-5" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Header con navegación */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => router.back()}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
-                  Volver
-                </Button>
-                <Separator orientation="vertical" className="h-4" />
-                <Edit3 className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Editar Evento
-              </h1>
-              <p className="text-muted-foreground">
-                Modifica los detalles de tu evento y tipos de entrada
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Badge 
-                variant={event.isPublished ? "default" : "secondary"}
-                className="px-3 py-1"
-              >
-                {event.isPublished ? (
-                  <>
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Publicado
-                  </>
-                ) : (
-                  <>
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Borrador
-                  </>
-                )}
-              </Badge>
-            </div>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.history.back()}
+            className="flex items-center space-x-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Volver</span>
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center space-x-2">
+              <Edit3 className="h-8 w-8 text-blue-600" />
+              <span>Editar Evento</span>
+            </h1>
+            <p className="text-gray-600 mt-1">
+              Modifica los detalles de tu evento
+            </p>
           </div>
+        </div>
+        
+        <Badge variant={event.isPublished ? "default" : "secondary"}>
+          {event.isPublished ? "Publicado" : "Borrador"}
+        </Badge>
+      </div>
 
-          {/* Estadísticas del evento */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              title="Tickets Vendidos"
-              value={event._count.tickets}
-              icon={Ticket}
-              description="Total de entradas"
-              accentColor="blue"
-            />
-            <StatCard
-              title="Capacidad Total"
-              value={totalCapacity}
-              icon={Users}
-              description="Máximo de asistentes"
-              accentColor="green"
-            />
-            <StatCard
-              title="Tipos de Entrada"
-              value={ticketTypes.length}
-              icon={Target}
-              description="Diferentes categorías"
-              accentColor="purple"
-            />
-            <StatCard
-              title="Ocupación"
-              value={`${Math.round((event._count.tickets / totalCapacity) * 100)}%`}
-              icon={Activity}
-              description="Porcentaje vendido"
-              accentColor="orange"
-            />
-          </div>
+      {/* Estadísticas Rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard
+          icon={<Ticket />}
+          title="Tipos de Entrada"
+          value={stats.totalTypes}
+          description="Variedades disponibles"
+          color="blue"
+        />
+        <StatCard
+          icon={<Users />}
+          title="Capacidad Total"
+          value={stats.totalCapacity}
+          description="Asistentes máximos"
+          color="green"
+        />
+        <StatCard
+          icon={<DollarSign />}
+          title="Precio Promedio"
+          value={formatCurrency(stats.averagePrice)}
+          description="Por entrada"
+          color="purple"
+        />
+        <StatCard
+          icon={<Activity />}
+          title="Vendidos"
+          value={event._count?.tickets || 0}
+          description="Entradas vendidas"
+          color="orange"
+        />
+      </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 items-start">
-            <div className="lg:col-span-2 space-y-6">
-              {/* Información Básica */}
-              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                      <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <CardTitle className="text-xl">Información Básica</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="title" className="text-sm font-medium">
-                      Título del evento *
-                    </Label>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Columna Principal - Información del Evento */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Información Básica */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Info className="h-5 w-5" />
+                  <span>Información del Evento</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Título del evento *</Label>
+                  <Input
+                    id="title"
+                    value={eventForm.formData.title}
+                    onChange={(e) => eventForm.handleInputChange("title", e.target.value)}
+                    placeholder="Ej: Conferencia de Tecnología 2024"
+                    className="mt-1"
+                  />
+                  {eventForm.errors.title && (
+                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.title}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Descripción *</Label>
+                  <Textarea
+                    id="description"
+                    value={eventForm.formData.description}
+                    onChange={(e) => eventForm.handleInputChange("description", e.target.value)}
+                    placeholder="Describe tu evento de manera atractiva..."
+                    className="mt-1 min-h-[100px]"
+                  />
+                  {eventForm.errors.description && (
+                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.description}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Ubicación *</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      id="title"
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange("title", e.target.value)}
-                      required
-                      className="h-11"
-                      placeholder="Ej: Concierto de Jazz en Vivo"
+                      id="location"
+                      value={eventForm.formData.location}
+                      onChange={(e) => eventForm.handleInputChange("location", e.target.value)}
+                      placeholder="Ej: Centro de Convenciones, Santiago"
+                      className="pl-10 mt-1"
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm font-medium">
-                      Descripción
-                    </Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) =>
-                        handleInputChange("description", e.target.value)
-                      }
-                      rows={4}
-                      className="resize-none"
-                      placeholder="Describe tu evento, qué pueden esperar los asistentes..."
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-sm font-medium">
-                      Categoría *
-                    </Label>
-                    <Select
-                      value={formData.categoryId}
-                      onValueChange={(value) =>
-                        handleInputChange("categoryId", value)
-                      }
-                    >
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Selecciona una categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      Imagen del evento
-                    </Label>
-                    <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-                      <ImageUpload
-                        currentImageUrl={formData.imageUrl}
-                        onImageChange={handleImageChange}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  {eventForm.errors.location && (
+                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.location}</p>
+                  )}
+                </div>
 
-              {/* Fecha y Ubicación */}
-              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                      <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <CardTitle className="text-xl">Fecha y Ubicación</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="startDate" className="text-sm font-medium">
-                        <Clock className="h-4 w-4 inline mr-1" />
-                        Fecha de inicio *
-                      </Label>
+                <div>
+                  <Label htmlFor="categoryId">Categoría *</Label>
+                  <Select 
+                    value={eventForm.formData.categoryId} 
+                    onValueChange={(value) => eventForm.handleInputChange("categoryId", value)}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {eventForm.errors.categoryId && (
+                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.categoryId}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Fechas y Horarios */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Calendar className="h-5 w-5" />
+                  <span>Fechas y Horarios</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="startDate">Fecha y hora de inicio *</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="startDate"
                         type="datetime-local"
-                        value={formData.startDate}
-                        onChange={(e) =>
-                          handleInputChange("startDate", e.target.value)
-                        }
-                        required
-                        className="h-11"
+                        value={eventForm.formData.startDate}
+                        onChange={(e) => eventForm.handleInputChange("startDate", e.target.value)}
+                        className="pl-10 mt-1"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Hora de Chile (se ajusta automáticamente por horario de verano)
-                      </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="endDate" className="text-sm font-medium">
-                        <Clock className="h-4 w-4 inline mr-1" />
-                        Fecha de fin (opcional)
-                      </Label>
+                    {eventForm.errors.startDate && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.startDate}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="endDate">Fecha y hora de fin</Label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
                         id="endDate"
                         type="datetime-local"
-                        value={formData.endDate}
-                        onChange={(e) =>
-                          handleInputChange("endDate", e.target.value)
-                        }
-                        className="h-11"
+                        value={eventForm.formData.endDate}
+                        onChange={(e) => eventForm.handleInputChange("endDate", e.target.value)}
+                        className="pl-10 mt-1"
                       />
-                      <p className="text-xs text-muted-foreground">
-                        Deja vacío para eventos de un solo día
-                      </p>
                     </div>
+                    {eventForm.errors.endDate && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.endDate}</p>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-sm font-medium">
-                      <MapPin className="h-4 w-4 inline mr-1" />
-                      Ubicación *
-                    </Label>
-                    <Input
-                      id="location"
-                      type="text"
-                      value={formData.location}
-                      onChange={(e) =>
-                        handleInputChange("location", e.target.value)
-                      }
-                      required
-                      className="h-11"
-                      placeholder="Ej: Teatro Municipal, Santiago, Chile"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Tipos de Entrada */}
-              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                        <Ticket className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <CardTitle className="text-xl">Tipos de Entrada</CardTitle>
-                    </div>
-                    <Badge variant="secondary" className="px-3 py-1">
-                      <Users className="h-3 w-3 mr-1" />
-                      Capacidad: {totalCapacity}
-                    </Badge>
+            {/* Tipos de Entrada */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Ticket className="h-5 w-5" />
+                    <span>Tipos de Entrada</span>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {ticketTypes.map((ticket, index) => (
-                    <div
-                      key={ticket.id}
-                      className="relative p-6 border border-border/50 rounded-xl bg-gradient-to-br from-background to-muted/20 space-y-4"
-                    >
-                      {ticketTypes.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={ticketTypesHook.addTicketType}
+                    className="flex items-center space-x-1"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    <span>Agregar Tipo</span>
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {ticketTypesHook.ticketTypes.map((ticket, index) => (
+                  <div key={index} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-medium">Tipo de Entrada #{index + 1}</h4>
+                      {ticketTypesHook.ticketTypes.length > 1 && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
-                          className="absolute top-3 right-3 h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeTicketType(index)}
-                          disabled={ticket._count.tickets > 0}
+                          onClick={() => ticketTypesHook.removeTicketType(index)}
+                          className="text-red-600 hover:text-red-700"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       )}
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`ticketName-${index}`} className="text-sm font-medium">
-                            Nombre del Ticket *
-                          </Label>
-                          <Input
-                            id={`ticketName-${index}`}
-                            type="text"
-                            value={ticket.name}
-                            onChange={(e) =>
-                              handleTicketTypeChange(index, "name", e.target.value)
-                            }
-                            placeholder="Ej: Entrada General, VIP, Early Bird"
-                            required
-                            className="h-11"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`ticketPrice-${index}`} className="text-sm font-medium">
-                            Precio (CLP) *
-                          </Label>
-                          <Input
-                            id={`ticketPrice-${index}`}
-                            type="number"
-                            min="0"
-                            value={ticket.price}
-                            onChange={(e) =>
-                              handleTicketTypeChange(index, "price", e.target.value)
-                            }
-                            placeholder="0"
-                            required
-                            className="h-11"
-                          />
-                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label>Nombre *</Label>
+                        <Input
+                          value={ticket.name}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "name", e.target.value)}
+                          placeholder="Ej: General"
+                          className="mt-1"
+                        />
                       </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor={`ticketCapacity-${index}`} className="text-sm font-medium">
-                            Cantidad Disponible *
-                          </Label>
-                          <Input
-                            id={`ticketCapacity-${index}`}
-                            type="number"
-                            value={ticket.capacity}
-                            min={ticket._count.tickets}
-                            onChange={(e) =>
-                              handleTicketTypeChange(
-                                index,
-                                "capacity",
-                                e.target.value
-                              )
-                            }
-                            placeholder="100"
-                            required
-                            className="h-11"
-                          />
-                          {ticket._count.tickets > 0 && (
-                            <div className="flex items-center gap-2">
-                              <AlertTriangle className="h-3 w-3 text-yellow-500" />
-                              <p className="text-xs text-yellow-600">
-                                {ticket._count.tickets} vendidos. Mínimo {ticket._count.tickets}.
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`ticketsGenerated-${index}`} className="text-sm font-medium">
-                            Entradas por Venta *
-                          </Label>
-                          <Input
-                            id={`ticketsGenerated-${index}`}
-                            type="number"
-                            min="1"
-                            value={ticket.ticketsGenerated}
-                            onChange={(e) =>
-                              handleTicketTypeChange(
-                                index,
-                                "ticketsGenerated",
-                                e.target.value
-                              )
-                            }
-                            placeholder="1"
-                            required
-                            disabled={ticket._count.tickets > 0}
-                            className="h-11"
-                          />
-                          {ticket._count.tickets > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              No se puede cambiar después de vender tickets.
-                            </p>
-                          )}
-                        </div>
+
+                      <div>
+                        <Label>Precio (CLP) *</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={ticket.price}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "price", e.target.value)}
+                          placeholder="0"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Capacidad *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={ticket.capacity}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "capacity", e.target.value)}
+                          placeholder="50"
+                          className="mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <Label>Por Ticket *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={ticket.ticketsGenerated || 1}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "ticketsGenerated", e.target.value)}
+                          placeholder="1"
+                          className="mt-1"
+                        />
                       </div>
                     </div>
-                  ))}
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 border-dashed border-2 hover:bg-muted/50"
-                    onClick={addTicketType}
-                  >
-                    <PlusCircle className="w-5 h-5 mr-2" />
-                    Añadir nuevo tipo de entrada
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* Sidebar con acciones */}
-            <div className="space-y-6">
-              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                      <Sparkles className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                      <span>Ingresos estimados: {formatCurrency(ticket.price * ticket.capacity)}</span>
                     </div>
-                    <CardTitle className="text-xl">Acciones</CardTitle>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    type="submit" 
-                    disabled={loading} 
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Guardar Cambios
-                      </>
-                    )}
-                  </Button>
-                  
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12"
-                    onClick={() => router.back()}
-                    disabled={loading}
-                  >
-                    Cancelar
-                  </Button>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">
-                      Acceso rápido
-                    </h4>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start h-10"
-                      onClick={() => router.push(`/events/${event.id}`)}
-                    >
-                      <Target className="h-4 w-4 mr-2" />
-                      Ver evento público
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start h-10"
-                      onClick={() => router.push(`/dashboard/events`)}
-                    >
-                      <Activity className="h-4 w-4 mr-2" />
-                      Dashboard de eventos
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Información adicional */}
-              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-lg">Información</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Info className="h-4 w-4" />
-                    <span>Los cambios se guardan automáticamente al enviar</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <AlertTriangle className="h-4 w-4" />
-                    <span>No puedes eliminar tipos con tickets vendidos</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>Las fechas se manejan en horario de Chile</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
-        </form>
-      </div>
+
+          {/* Columna Lateral - Imagen y Estadísticas */}
+          <div className="space-y-6">
+            
+            {/* Imagen del Evento */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <ImageIcon className="h-5 w-5" />
+                  <span>Imagen del Evento</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {imageUrl ? (
+                    <div className="relative">
+                      <Image
+                        src={imageUrl}
+                        alt="Imagen del evento"
+                        width={300}
+                        height={200}
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleImageChange("")}
+                        className="absolute top-2 right-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <p className="text-gray-500">Sin imagen</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <ImageUpload
+                    currentImageUrl={imageUrl}
+                    onImageChange={handleImageChange}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Resumen de Estadísticas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5" />
+                  <span>Resumen del Evento</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tipos de entrada:</span>
+                    <Badge variant="outline">{stats.totalTypes}</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Capacidad total:</span>
+                    <Badge variant="outline">{stats.totalCapacity} personas</Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Precio promedio:</span>
+                    <p className="font-semibold">{formatCurrency(stats.averagePrice)}</p>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Ingresos potenciales:</span>
+                    <p className="font-semibold text-green-600">{formatCurrency(stats.totalCapacity * stats.averagePrice)}</p>
+                  </div>
+
+                  {event._count?.tickets > 0 && (
+                    <div className="flex justify-between items-center pt-2 border-t">
+                      <span className="text-sm text-gray-600">Entradas vendidas:</span>
+                      <Badge variant="default">{event._count.tickets}</Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Botones de Acción */}
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 border-t pt-6">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <span>Los cambios se guardarán automáticamente</span>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.history.back()}
+            >
+              Cancelar
+            </Button>
+            
+            <Button
+              type="submit"
+              disabled={eventForm.loading}
+              className="flex items-center space-x-2"
+            >
+              {eventForm.loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              <span>{eventForm.loading ? "Guardando..." : "Guardar Cambios"}</span>
+            </Button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }
