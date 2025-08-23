@@ -29,11 +29,11 @@ import {
 import {
   Plus,
   Search,
+  Power,
   MoreVertical,
   Copy,
   Eye,
   Edit,
-  Trash2,
   Users,
   Activity,
   Target,
@@ -46,26 +46,23 @@ import {
   Share2,
   BarChart3,
 } from "lucide-react";
-import { toast } from "sonner";
-import { formatDate } from "@/lib/date";
 import Link from "next/link";
 
-interface PromoCode {
-  id: string;
-  code: string;
-  name: string;
-  description?: string;
-  type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
-  value: number;
-  status: "ACTIVE" | "INACTIVE" | "EXPIRED" | "USED_UP";
-  usedCount: number;
-  usageLimit?: number;
-  validFrom: string;
-  validUntil?: string;
-  event?: { title: string };
-  ticketType?: { name: string; price: number };
-  _count: { usages: number };
-}
+// Importaciones optimizadas desde utilidades centralizadas
+import type { PromoCode } from "@/types";
+import { 
+  formatDisplayDate,
+  formatDiscount, 
+  getStatusConfig,
+  calculateUsagePercentage,
+  formatCurrency 
+} from "@/lib/utils";
+import { 
+  usePromoCodeManagement, 
+  usePromoCodeFilters, 
+  usePromoCodeStats,
+  usePromoCodeSharing 
+} from "@/hooks/usePromoCode";
 
 interface PromoCodesManagementProps {
   initialPromoCodes: PromoCode[];
@@ -74,69 +71,22 @@ interface PromoCodesManagementProps {
 export default function PromoCodesManagement({
   initialPromoCodes,
 }: PromoCodesManagementProps) {
-  const [promoCodes] = useState<PromoCode[]>(initialPromoCodes);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [selectedPromoCode, setSelectedPromoCode] = useState<PromoCode | null>(
-    null
-  );
+  // Hooks personalizados para manejo de estado y lógica
+  const { promoCodes, loadingStates, togglePromoCodeStatus, copyToClipboard } = 
+    usePromoCodeManagement(initialPromoCodes);
+  
+  const { filters, filteredPromoCodes, updateFilter } = usePromoCodeFilters(promoCodes);
+  
+  const totalStats = usePromoCodeStats(promoCodes);
+  
+  const { sharePromoCode } = usePromoCodeSharing();
+
+  // Estado local para UI
+  const [selectedPromoCode, setSelectedPromoCode] = useState<PromoCode | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
-  const filteredPromoCodes = promoCodes.filter((code) => {
-    const matchesSearch =
-      code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      code.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" || code.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code);
-    toast.success("Código copiado al portapapeles");
-  };
-
-  const sharePromoCode = (code: PromoCode) => {
-    const shareText = `🎫 ¡Descuento especial! Usa el código ${code.code} y obtén ${formatDiscount(code.type, code.value)} en tu próxima compra.`;
-
-    if (navigator.share) {
-      navigator.share({
-        title: `Código promocional: ${code.name}`,
-        text: shareText,
-      });
-    } else {
-      navigator.clipboard.writeText(shareText);
-      toast.success("Texto de promoción copiado al portapapeles");
-    }
-  };
-
   const getStatusBadge = (status: string) => {
-    const variants = {
-      ACTIVE: {
-        variant: "default" as const,
-        label: "Activo",
-        color: "bg-green-100 text-green-800",
-      },
-      INACTIVE: {
-        variant: "secondary" as const,
-        label: "Inactivo",
-        color: "bg-gray-100 text-gray-800",
-      },
-      EXPIRED: {
-        variant: "destructive" as const,
-        label: "Expirado",
-        color: "bg-red-100 text-red-800",
-      },
-      USED_UP: {
-        variant: "outline" as const,
-        label: "Agotado",
-        color: "bg-orange-100 text-orange-800",
-      },
-    } as const;
-
-    const config = variants[status as keyof typeof variants];
+    const config = getStatusConfig(status);
     return (
       <Badge variant={config.variant} className={config.color}>
         {config.label}
@@ -157,23 +107,10 @@ export default function PromoCodesManagement({
     }
   };
 
-  const formatDiscount = (type: string, value: number) => {
-    switch (type) {
-      case "PERCENTAGE":
-        return `${value}%`;
-      case "FIXED_AMOUNT":
-        return `$${value.toLocaleString("es-CL")}`;
-      case "FREE":
-        return "Gratis";
-      default:
-        return value.toString();
-    }
-  };
-
   const getUsageProgress = (used: number, limit?: number) => {
     if (!limit) return null;
 
-    const percentage = (used / limit) * 100;
+    const percentage = calculateUsagePercentage(used, limit);
     const color =
       percentage >= 90
         ? "bg-red-500"
@@ -189,13 +126,6 @@ export default function PromoCodesManagement({
         />
       </div>
     );
-  };
-
-  const totalStats = {
-    total: promoCodes.length,
-    active: promoCodes.filter((code) => code.status === "ACTIVE").length,
-    totalUsages: promoCodes.reduce((sum, code) => sum + code.usedCount, 0),
-    expired: promoCodes.filter((code) => code.status === "EXPIRED").length,
   };
 
   const PromoCodeDetails = ({ promoCode }: { promoCode: PromoCode }) => (
@@ -246,14 +176,14 @@ export default function PromoCodesManagement({
           <h4 className="font-medium text-sm text-muted-foreground">
             Válido desde
           </h4>
-          <p className="mt-1 text-sm">{formatDate(promoCode.validFrom)}</p>
+          <p className="mt-1 text-sm">{formatDisplayDate(promoCode.validFrom)}</p>
         </div>
         {promoCode.validUntil && (
           <div>
             <h4 className="font-medium text-sm text-muted-foreground">
               Válido hasta
             </h4>
-            <p className="mt-1 text-sm">{formatDate(promoCode.validUntil)}</p>
+            <p className="mt-1 text-sm">{formatDisplayDate(promoCode.validUntil)}</p>
           </div>
         )}
       </div>
@@ -284,7 +214,7 @@ export default function PromoCodesManagement({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => sharePromoCode(promoCode)}
+          onClick={() => sharePromoCode(promoCode, formatDiscount)}
           className="flex-1"
         >
           <Share2 className="h-4 w-4 mr-2" />
@@ -406,16 +336,16 @@ export default function PromoCodesManagement({
                 <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Buscar por código o nombre..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={filters.search || ""}
+                  onChange={(e) => updateFilter("search", e.target.value)}
                   className="pl-10"
                 />
               </div>
             </div>
             <div className="flex gap-2">
               <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                value={filters.status}
+                onChange={(e) => updateFilter("status", e.target.value as "all" | "ACTIVE" | "INACTIVE" | "EXPIRED" | "USED_UP")}
                 className="px-3 py-2 border rounded-md text-sm bg-background"
               >
                 <option value="all">Todos los estados</option>
@@ -538,7 +468,7 @@ export default function PromoCodesManagement({
                         <span className="font-medium">{promoCode.ticketType.name}</span>
                         {promoCode.ticketType.price > 0 && (
                           <div className="text-muted-foreground text-xs">
-                            ${promoCode.ticketType.price.toLocaleString()} CLP
+                            {formatCurrency(promoCode.ticketType.price)} CLP
                           </div>
                         )}
                       </div>
@@ -579,7 +509,7 @@ export default function PromoCodesManagement({
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => sharePromoCode(promoCode)}
+                          onClick={() => sharePromoCode(promoCode, formatDiscount)}
                         >
                           <Share2 className="h-4 w-4 mr-2" />
                           Compartir
@@ -588,9 +518,13 @@ export default function PromoCodesManagement({
                           <Copy className="h-4 w-4 mr-2" />
                           Duplicar
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Eliminar
+                        <DropdownMenuItem 
+                          onClick={() => togglePromoCodeStatus(promoCode)}
+                          disabled={loadingStates[promoCode.id] || promoCode.status === "EXPIRED" || promoCode.status === "USED_UP"}
+                          className={promoCode.status === "ACTIVE" ? "text-orange-600" : "text-green-600"}
+                        >
+                          <Power className="h-4 w-4 mr-2" />
+                          {promoCode.status === "ACTIVE" ? "Desactivar" : "Activar"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -606,16 +540,16 @@ export default function PromoCodesManagement({
                 <Target className="h-12 w-12 text-blue-500" />
               </div>
               <h3 className="text-lg font-semibold mb-2">
-                {searchTerm || statusFilter !== "all"
+                {filters.search || filters.status !== "all"
                   ? "No se encontraron códigos"
                   : "No hay códigos promocionales"}
               </h3>
               <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
-                {searchTerm || statusFilter !== "all"
+                {filters.search || filters.status !== "all"
                   ? "Intenta ajustar tus filtros de búsqueda"
                   : "Crea tu primer código promocional para empezar a ofrecer descuentos increíbles"}
               </p>
-              {!searchTerm && statusFilter === "all" && (
+              {!filters.search && filters.status === "all" && (
                 <Button asChild>
                   <Link href="/dashboard/promo-codes/create">
                     <Plus className="h-4 w-4 mr-2" />

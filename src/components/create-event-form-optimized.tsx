@@ -107,7 +107,7 @@ interface EventFormProps {
 // COMPONENTE PRINCIPAL
 // ============================================================================
 
-export default function CreateEventForm({
+export default function CreateEventFormOptimized({
   categories,
   initialData,
   mode = "create",
