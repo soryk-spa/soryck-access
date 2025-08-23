@@ -67,22 +67,18 @@ const createPromoCodeSchema = z
     (data) => {
       // Validar valor para tipos que no sean FREE
       if (data.type !== "FREE") {
-        if (data.value === undefined || isNaN(data.value) || data.value < 0) {
+        if (data.value === undefined || isNaN(data.value) || data.value <= 0) {
           return false;
         }
-        // Para FIXED_AMOUNT, el valor debe ser mayor que 0
-        if (data.type === "FIXED_AMOUNT" && data.value <= 0) {
-          return false;
-        }
-        // Para PERCENTAGE, el valor debe ser mayor que 0
-        if (data.type === "PERCENTAGE" && data.value <= 0) {
+        // Para PERCENTAGE, no puede ser mayor a 100
+        if (data.type === "PERCENTAGE" && data.value > 100) {
           return false;
         }
       }
       return true;
     },
     {
-      message: "Valor requerido para este tipo de descuento y debe ser mayor que 0",
+      message: "Valor requerido y debe ser mayor que 0",
       path: ["value"],
     }
   )
@@ -136,6 +132,8 @@ export default function CreatePromoCodeForm({
   const watchUsageLimit = watch("usageLimit");
   const watchEventId = watch("eventId");
 
+  //
+
   // Efecto para cargar tipos de entrada cuando cambia el evento
   useEffect(() => {
     const loadTicketTypes = async () => {
@@ -175,21 +173,12 @@ export default function CreatePromoCodeForm({
   const onSubmit = async (data: FormData) => {
     setLoading(true);
 
-    console.log("=== DEBUG: Datos del formulario ===");
-    console.log("Datos originales:", data);
-    console.log("Tipo:", data.type);
-    console.log("Valor original:", data.value);
-    console.log("Tipo de valor:", typeof data.value);
-    console.log("Es NaN:", data.value !== undefined ? isNaN(data.value) : "undefined");
-    console.log("Es undefined:", data.value === undefined);
-
     try {
       // Validar y limpiar el valor
       let cleanValue = data.value;
       if (data.type === "FREE") {
         cleanValue = 0;
       } else if (cleanValue === undefined || isNaN(cleanValue)) {
-        console.log("ERROR: Valor inválido detectado");
         toast.error("Por favor ingresa un valor válido para el descuento");
         setLoading(false);
         return;
@@ -204,9 +193,6 @@ export default function CreatePromoCodeForm({
         ticketTypeId: data.ticketTypeId === "all" ? undefined : data.ticketTypeId,
       };
 
-      console.log("=== DEBUG: Payload final ===");
-      console.log("Payload a enviar:", payload);
-
       const response = await fetch("/api/promo-codes", {
         method: "POST",
         headers: {
@@ -216,17 +202,8 @@ export default function CreatePromoCodeForm({
       });
 
       const result = await response.json();
-      
-      console.log("=== DEBUG: Respuesta del servidor ===");
-      console.log("Status:", response.status);
-      console.log("Response OK:", response.ok);
-      console.log("Result:", result);
 
       if (!response.ok) {
-        console.log("ERROR del servidor:", result);
-        if (result.details) {
-          console.log("Detalles de validación:", result.details);
-        }
         throw new Error(result.error || "Error al crear código promocional");
       }
 
@@ -248,6 +225,15 @@ export default function CreatePromoCodeForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  // Cuando el formulario es inválido, muestra un toast con el primer error
+  const onInvalid = (errs: Record<string, { message?: string } | undefined>) => {
+    const firstError = Object.values(errs)[0];
+    const message = firstError?.message || "Revisa los campos requeridos";
+    try {
+      toast.error(message);
+    } catch {}
   };
 
   const getTypeIcon = (type: string) => {
@@ -281,7 +267,7 @@ export default function CreatePromoCodeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Columna principal */}
         <div className="lg:col-span-2 space-y-6">
@@ -504,15 +490,15 @@ export default function CreatePromoCodeForm({
                     <Input
                       id="value"
                       type="number"
-                      {...register("value", { 
-                        valueAsNumber: true,
-                        required: "El valor es requerido"
+                      {...register("value", {
+                        setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                        required: "El valor es requerido",
                       })}
                       placeholder={watchType === "PERCENTAGE" ? "10" : "5000"}
                       min="1"
                       max={watchType === "PERCENTAGE" ? "100" : undefined}
                       className="mt-1"
-                      step={watchType === "PERCENTAGE" ? "1" : "100"}
+                      step={watchType === "PERCENTAGE" ? "1" : "1"}
                     />
                     {errors.value && (
                       <p className="text-sm text-red-600 mt-1">
@@ -526,7 +512,9 @@ export default function CreatePromoCodeForm({
                     <Input
                       id="minOrderAmount"
                       type="number"
-                      {...register("minOrderAmount", { valueAsNumber: true })}
+                      {...register("minOrderAmount", {
+                        setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                      })}
                       placeholder="Sin mínimo"
                       min="0"
                       className="mt-1"
@@ -542,7 +530,7 @@ export default function CreatePromoCodeForm({
                         id="maxDiscountAmount"
                         type="number"
                         {...register("maxDiscountAmount", {
-                          valueAsNumber: true,
+                          setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
                         })}
                         placeholder="Sin límite"
                         min="0"
@@ -589,7 +577,9 @@ export default function CreatePromoCodeForm({
                   <Input
                     id="usageLimit"
                     type="number"
-                    {...register("usageLimit", { valueAsNumber: true })}
+                    {...register("usageLimit", {
+                      setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                    })}
                     placeholder="Ilimitado"
                     min="1"
                     className="mt-1"
@@ -601,7 +591,9 @@ export default function CreatePromoCodeForm({
                   <Input
                     id="usageLimitPerUser"
                     type="number"
-                    {...register("usageLimitPerUser", { valueAsNumber: true })}
+                    {...register("usageLimitPerUser", {
+                      setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                    })}
                     placeholder="Sin límite"
                     min="1"
                     className="mt-1"
