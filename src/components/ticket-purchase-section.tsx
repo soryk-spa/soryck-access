@@ -13,7 +13,6 @@ import {
   ShoppingCart,
   CreditCard,
   AlertCircle,
-  Users,
 } from "lucide-react";
 import { UserRole } from "@prisma/client";
 
@@ -198,15 +197,7 @@ export default function TicketPurchaseSection({
           <div className="text-sm text-muted-foreground">por ticket</div>
         </div>
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Disponibles:
-          </span>
-          <span className="font-medium">
-            {availability.available} de {event.capacity}
-          </span>
-        </div>
+
 
         <div className="space-y-3">
           <Label htmlFor="quantity">Cantidad de tickets</Label>
@@ -269,23 +260,7 @@ export default function TicketPurchaseSection({
           </div>
         )}
 
-        {availability.status === "almost-sold" && (
-          <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-            <div className="flex items-center gap-2 text-orange-800 dark:text-orange-200 text-sm">
-              <AlertCircle className="h-4 w-4" />
-              <span>¡Últimas entradas disponibles!</span>
-            </div>
-          </div>
-        )}
 
-        {availability.status === "filling-up" && (
-          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg">
-            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200 text-sm">
-              <AlertCircle className="h-4 w-4" />
-              <span>Este evento se está llenando rápido</span>
-            </div>
-          </div>
-        )}
 
         {userTicketsCount > 0 && (
           <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">

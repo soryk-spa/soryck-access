@@ -99,27 +99,12 @@ export default function FeaturedEvents() {
 
   const getAvailability = (event: Event) => {
     const available = event.capacity - event._count.tickets;
-    const percentage = Math.round(
-      (event._count.tickets / event.capacity) * 100
-    );
 
     if (available === 0) {
       return {
         status: "sold-out",
         text: "Agotado",
         color: "bg-red-500/10 text-red-400 border border-red-500/20",
-      };
-    } else if (percentage >= 90) {
-      return {
-        status: "almost-sold",
-        text: "Últimas entradas",
-        color: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
-      };
-    } else if (percentage >= 70) {
-      return {
-        status: "filling-up",
-        text: "Llenándose",
-        color: "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20",
       };
     } else {
       return {

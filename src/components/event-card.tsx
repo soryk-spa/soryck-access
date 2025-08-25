@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Calendar,
   MapPin,
-  Users,
   Clock,
   ExternalLink,
   Heart,
@@ -62,7 +61,7 @@ export default function EventCard({
   const isPast = startDate < now;
   const isToday = startDate.toDateString() === now.toDateString();
 
-  // Calcular precios y disponibilidad
+  // Calcular precios y estado básico
   const prices = event.ticketTypes.map((t) => t.price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
@@ -101,9 +100,8 @@ export default function EventCard({
     if (isPast) return <Badge variant="secondary">Finalizado</Badge>;
     if (isSoldOut) return <Badge variant="destructive">Agotado</Badge>;
     if (isToday) return <Badge className="bg-green-500">Hoy</Badge>;
-    if (availableTickets <= 10)
-      return <Badge variant="outline">Últimos tickets</Badge>;
-    return null;
+    
+    return null; // No mostrar badges de cantidad
   };
 
   if (variant === "compact") {
@@ -233,14 +231,7 @@ export default function EventCard({
                   <span className="truncate">{event.location}</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="h-4 w-4 text-primary" />
-                  <span>
-                    {isSoldOut
-                      ? "Agotado"
-                      : `${availableTickets} tickets disponibles`}
-                  </span>
-                </div>
+
               </div>
             </div>
           </CardContent>
@@ -306,12 +297,6 @@ export default function EventCard({
                 <Badge variant="outline" className="text-xs">
                   {event.category.name}
                 </Badge>
-                {/* ✅ INDICADOR DE DISPONIBILIDAD */}
-                {!isPast && !isSoldOut && availableTickets <= 10 && (
-                  <span className="text-xs text-orange-600 font-medium">
-                    ¡Últimos {availableTickets}!
-                  </span>
-                )}
               </div>
 
               <Link href={`/events/${event.id}`}>
@@ -336,16 +321,7 @@ export default function EventCard({
                 <span className="line-clamp-1">{event.location}</span>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Users className="h-4 w-4 flex-shrink-0" />
-                <span>
-                  {isSoldOut ? (
-                    <span className="text-red-600 font-medium">Agotado</span>
-                  ) : (
-                    `${availableTickets} disponibles`
-                  )}
-                </span>
-              </div>
+
             </div>
           </div>
         </CardContent>

@@ -259,21 +259,7 @@ export default function EventDetailView({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 text-lg">
-                      <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
-                        <Users className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {isSoldOut
-                            ? "Agotado"
-                            : `${availableTickets} disponibles`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          de {totalCapacity} entradas totales
-                        </p>
-                      </div>
-                    </div>
+
                   </div>
 
                   {/* Price and Actions */}
