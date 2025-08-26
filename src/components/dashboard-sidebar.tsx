@@ -138,20 +138,20 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex h-full flex-col border-r bg-background transition-all duration-300",
+        "flex h-full flex-col bg-background border-r border-border transition-all duration-300",
         collapsed ? "w-16" : "w-64",
         className
       )}
     >
       {/* Header del Sidebar */}
-      <div className="flex h-16 items-center justify-between px-4 border-b">
+      <div className="flex h-16 items-center justify-between px-4 border-b border-border bg-background/95">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-r from-[#0053CC] to-[#01CBFE] flex items-center justify-center">
               <Ticket className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold">
+              <h2 className="text-sm font-semibold text-foreground">
                 {isAdmin ? "Admin Panel" : "Dashboard"}
               </h2>
               <p className="text-xs text-muted-foreground">SorykPass</p>
@@ -162,7 +162,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8"
+          className="h-8 w-8 shrink-0"
         >
           {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>

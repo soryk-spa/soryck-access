@@ -13,6 +13,7 @@ import {
   UserRole,
 } from "@/lib/roles";
 import MobileNav from "@/components/mobile-nav";
+import { useScrollBehavior } from "@/hooks/use-scroll-behavior";
 
 const SorykPassLogo = () => (
   <Link
@@ -50,6 +51,7 @@ export default function Navbar() {
   const { user: clerkUser, isLoaded } = useUser();
   const [dbUser, setDbUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { scrollY, isAtTop } = useScrollBehavior();
 
   useEffect(() => {
     async function fetchUserData() {
@@ -79,7 +81,11 @@ export default function Navbar() {
 
   if (!isLoaded || loading) {
     return (
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <nav className={`fixed top-0 left-0 right-0 z-[100] border-b transition-all duration-300 ${
+        isAtTop 
+          ? "bg-background/80 backdrop-blur-sm" 
+          : "bg-background/95 backdrop-blur-md border-border/50 shadow-sm"
+      }`}>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -102,7 +108,11 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+    <nav className={`fixed top-0 left-0 right-0 z-[100] border-b transition-all duration-300 ${
+      isAtTop 
+        ? "bg-background/80 backdrop-blur-sm" 
+        : "bg-background/95 backdrop-blur-md border-border/50 shadow-sm"
+    }`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">

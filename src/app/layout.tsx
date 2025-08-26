@@ -3,8 +3,7 @@ import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import ConditionalLayout from "@/components/conditional-layout";
 import { esMX } from "@clerk/localizations";
 import { Toaster } from "sonner";
 
@@ -115,13 +114,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
           >
-            <div className="min-h-screen flex flex-col">
-              <Navbar />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
             <Toaster 
               position="top-center"
               richColors

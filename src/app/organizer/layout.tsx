@@ -1,13 +1,13 @@
 import { DashboardLayout } from "@/components/dashboard-layout";
 
-export default function Layout({
+export default function OrganizerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <DashboardLayout 
-      title="Dashboard del Organizador"
+      title="Panel del Organizador"
       showSearch={true}
     >
       {children}

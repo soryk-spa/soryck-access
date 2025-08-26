@@ -5,5 +5,12 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <DashboardLayout 
+      title="Panel de Administración"
+      showSearch={true}
+    >
+      {children}
+    </DashboardLayout>
+  );
 }
