@@ -150,8 +150,8 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: code.trim(),
-          eventId: event.id,
           ticketTypeId: formData.selectedTicketType,
+          quantity: formData.quantity,
         }),
       });
 
@@ -171,7 +171,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     } finally {
       setIsValidatingPromo(false);
     }
-  }, [event.id, formData.selectedTicketType]);
+  }, [formData.selectedTicketType, formData.quantity]);
 
   // Aplicar código promocional
   const applyPromoCode = useCallback(() => {

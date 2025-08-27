@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth();
     const body = await request.json();
+    
     const validation = validatePromoCodeSchema.safeParse(body);
 
     if (!validation.success) {
