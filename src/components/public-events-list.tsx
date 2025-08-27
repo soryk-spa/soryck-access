@@ -144,10 +144,23 @@ const EventCardAceternity = ({
     };
   };
 
-  const getLowestPrice = () => {
-    if (!event.ticketTypes?.length) return null;
+  const getPriceDisplay = () => {
+    if (!event.ticketTypes?.length) return "Gratis";
+    
     const prices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
-    return prices.length > 0 ? Math.min(...prices) : 0;
+    
+    if (prices.length === 0) return "Gratis";
+    
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    
+    // Si todos los tipos tienen el mismo precio
+    if (minPrice === maxPrice) {
+      return formatPrice(minPrice);
+    }
+    
+    // Si hay múltiples precios, mostrar "desde"
+    return `Desde ${formatPrice(minPrice)}`;
   };
 
   const formatPrice = (price: number) => {
@@ -159,7 +172,6 @@ const EventCardAceternity = ({
   };
 
   const eventDate = formatDate(event.startDate);
-  const lowestPrice = getLowestPrice();
 
   if (variant === "compact") {
     return (
@@ -225,13 +237,13 @@ const EventCardAceternity = ({
 
               <div className="flex items-center justify-between">
                 <div>
-                  {lowestPrice !== null && lowestPrice > 0 ? (
-                    <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                      {formatPrice(lowestPrice)}
-                    </span>
-                  ) : (
+                  {getPriceDisplay() === "Gratis" ? (
                     <span className="text-xl font-bold text-green-400">
                       Gratis
+                    </span>
+                  ) : (
+                    <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                      {getPriceDisplay()}
                     </span>
                   )}
                 </div>
@@ -350,12 +362,12 @@ const EventCardAceternity = ({
         {/* Precio flotante */}
         <div className="absolute top-32 right-6 z-20">
           <div className="bg-black/50 backdrop-blur-xl rounded-2xl px-4 py-2 border border-white/10">
-            {lowestPrice !== null && lowestPrice > 0 ? (
-              <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                {formatPrice(lowestPrice)}
-              </span>
-            ) : (
+            {getPriceDisplay() === "Gratis" ? (
               <span className="text-lg font-bold text-green-400">Gratis</span>
+            ) : (
+              <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                {getPriceDisplay()}
+              </span>
             )}
           </div>
         </div>

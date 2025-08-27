@@ -120,6 +120,14 @@ export async function GET(request: NextRequest) {
               email: true
             }
           },
+          ticketTypes: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              currency: true
+            }
+          },
           _count: {
             select: {
               tickets: true,

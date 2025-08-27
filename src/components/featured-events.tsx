@@ -40,6 +40,12 @@ interface Event {
     lastName: string | null;
     email: string;
   };
+  ticketTypes: {
+    id: string;
+    name: string;
+    price: number;
+    currency: string;
+  }[];
   _count: {
     tickets: number;
     orders: number;
@@ -95,6 +101,34 @@ export default function FeaturedEvents() {
       currency: "CLP",
       minimumFractionDigits: 0,
     }).format(price);
+  };
+
+  const getEventPriceDisplay = (event: Event) => {
+    // Si el evento es gratis
+    if (event.isFree || !event.ticketTypes.length) {
+      return { display: "Gratis", isRange: false };
+    }
+
+    // Obtener todos los precios válidos (mayores a 0)
+    const prices = event.ticketTypes
+      .map(t => t.price)
+      .filter(p => p > 0);
+
+    // Si no hay precios válidos, es gratis
+    if (prices.length === 0) {
+      return { display: "Gratis", isRange: false };
+    }
+
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    // Si todos los tipos tienen el mismo precio
+    if (minPrice === maxPrice) {
+      return { display: formatPrice(minPrice), isRange: false };
+    }
+
+    // Si hay múltiples precios, mostrar "desde"
+    return { display: `Desde ${formatPrice(minPrice)}`, isRange: true };
   };
 
   const getAvailability = (event: Event) => {
@@ -272,15 +306,18 @@ export default function FeaturedEvents() {
                       {/* Precio flotante */}
                       <div className="absolute top-24 right-6 z-20">
                         <div className="bg-black/50 backdrop-blur-xl rounded-2xl px-4 py-2 border border-white/10">
-                          {event.isFree ? (
-                            <span className="text-lg font-bold text-green-400">
-                              Gratis
-                            </span>
-                          ) : (
-                            <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                              {formatPrice(event.price)}
-                            </span>
-                          )}
+                          {(() => {
+                            const priceInfo = getEventPriceDisplay(event);
+                            return priceInfo.display === "Gratis" ? (
+                              <span className="text-lg font-bold text-green-400">
+                                Gratis
+                              </span>
+                            ) : (
+                              <span className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                                {priceInfo.display}
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
 
