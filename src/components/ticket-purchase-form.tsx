@@ -124,7 +124,7 @@ const PromoCodeInput = ({
   error: string | null;
   appliedPromoCode: PromoCodeData | null;
 }) => {
-  const { formatDiscount, getDiscountIcon } = usePromoCodeDisplay();
+  const { getDiscountIcon } = usePromoCodeDisplay();
 
   return (
     <div className="space-y-3">
@@ -161,7 +161,11 @@ const PromoCodeInput = ({
                   {appliedPromoCode.name}
                 </p>
                 <p className="text-sm text-green-600 dark:text-green-400">
-                  Descuento: {formatDiscount(appliedPromoCode.type, appliedPromoCode.value)}
+                  Descuento: {appliedPromoCode.type === "PERCENTAGE" 
+                    ? `${appliedPromoCode.percentage.toFixed(1)}%` 
+                    : appliedPromoCode.type === "FREE" 
+                    ? "Gratis" 
+                    : formatCurrency(appliedPromoCode.discountAmount)}
                 </p>
               </div>
             </div>

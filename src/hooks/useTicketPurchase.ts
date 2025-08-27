@@ -21,13 +21,12 @@ export interface PromoCodeData {
   id: string;
   code: string;
   type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
-  value: number;
   name: string;
   description?: string;
-  validFrom: string;
-  validUntil?: string;
-  usageLimit?: number;
-  usedCount: number;
+  // Información del descuento ya calculada
+  discountAmount: number;
+  finalAmount: number;
+  percentage: number;
 }
 
 export interface TicketSelection {
@@ -107,17 +106,8 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     let discountAmount = 0;
 
     if (appliedPromoCode) {
-      switch (appliedPromoCode.type) {
-        case "PERCENTAGE":
-          discountAmount = (subtotal * appliedPromoCode.value) / 100;
-          break;
-        case "FIXED_AMOUNT":
-          discountAmount = Math.min(appliedPromoCode.value, subtotal);
-          break;
-        case "FREE":
-          discountAmount = subtotal;
-          break;
-      }
+      // Usar el descuento ya calculado por el API
+      discountAmount = appliedPromoCode.discountAmount;
     }
 
     const finalAmount = Math.max(0, subtotal - discountAmount);
@@ -158,7 +148,17 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
       const data = await response.json();
 
       if (response.ok) {
-        setAppliedPromoCode(data.promoCode);
+        const promoData: PromoCodeData = {
+          id: data.promoCode.id,
+          code: data.promoCode.code,
+          type: data.promoCode.type,
+          name: data.promoCode.name,
+          description: data.promoCode.description,
+          discountAmount: data.discount.amount,
+          finalAmount: data.discount.finalAmount,
+          percentage: data.discount.percentage,
+        };
+        setAppliedPromoCode(promoData);
         toast.success(`¡Código promocional aplicado! ${data.promoCode.name}`);
       } else {
         setPromoError(data.error || "Código promocional inválido");
