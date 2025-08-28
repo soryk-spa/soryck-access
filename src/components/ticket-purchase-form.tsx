@@ -214,12 +214,9 @@ export default function TicketPurchaseFormOptimized({
     if (!ticketPurchase.canPurchase) return;
 
     const purchaseData = {
-      eventId: event.id,
       ticketTypeId: ticketPurchase.formData.selectedTicketType,
       quantity: ticketPurchase.formData.quantity,
-      promoCodeId: ticketPurchase.appliedPromoCode?.id,
-      amount: ticketPurchase.calculations.finalAmount,
-      totalAmount: ticketPurchase.calculations.totalPrice,
+      promoCode: ticketPurchase.appliedPromoCode?.code, // Enviar el código, no el ID
     };
 
     await processPayment(purchaseData);
