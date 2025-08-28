@@ -5,7 +5,7 @@ import { UserRole } from "@prisma/client";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const { userId: clerkId } = await auth();
@@ -13,6 +13,9 @@ export async function PATCH(
     if (!clerkId) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
+
+    // Obtener los parámetros de la ruta
+    const { userId } = await params;
 
     // Verificar que el usuario sea administrador
     const user = await prisma.user.findUnique({
@@ -33,7 +36,7 @@ export async function PATCH(
 
     // Actualizar el rol del usuario
     const updatedUser = await prisma.user.update({
-      where: { id: params.userId },
+      where: { id: userId },
       data: { role },
       select: {
         id: true,
