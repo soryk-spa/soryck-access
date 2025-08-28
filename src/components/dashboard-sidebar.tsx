@@ -113,7 +113,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   const settingsItems: NavItem[] = [
     {
       title: "Configuración",
-      href: "/settings",
+      href: "/dashboard/settings",
       icon: Settings,
       description: "Preferencias de la cuenta",
     },

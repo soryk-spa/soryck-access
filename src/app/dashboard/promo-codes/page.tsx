@@ -45,6 +45,8 @@ export default async function PromoCodesPage() {
     return {
       ...code,
       status,
+      usedCount: code.usedCount || 0,
+      discountValue: code.value || 0,
       description: code.description ?? undefined,
       minOrderAmount: code.minOrderAmount ?? undefined,
       maxDiscountAmount: code.maxDiscountAmount ?? undefined,
@@ -63,9 +65,5 @@ export default async function PromoCodesPage() {
     };
   });
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <PromoCodesManagement initialPromoCodes={serializedPromoCodes} />
-    </div>
-  );
+  return <PromoCodesManagement initialPromoCodes={serializedPromoCodes} />;
 }

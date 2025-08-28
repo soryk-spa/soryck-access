@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModernStatCard, StatsGrid } from "@/components/modern-stat-card";
 import { Overview } from "@/components/overview";
 import { DataTable } from "@/components/data-table";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -24,7 +25,9 @@ import {
   Bell,
   UserPlus,
   Calendar as CalendarIcon,
+  Loader2,
 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RecentEvent {
   id: string;
@@ -82,6 +85,7 @@ export function AdminDashboardClient({
   monthlyStats
 }: AdminDashboardClientProps) {
   const router = useRouter();
+  const { data: statsData, loading: statsLoading, error: statsError } = useDashboardStats(true);
 
   const handleViewEvent = (eventId: string) => {
     router.push(`/events/${eventId}`);
@@ -90,6 +94,9 @@ export function AdminDashboardClient({
   const handleViewUser = (userId: string) => {
     router.push(`/admin/users/${userId}`);
   };
+
+  // Usar datos reales si están disponibles, sino usar los props como fallback
+  const realMonthlyStats = statsData?.monthlyStats || monthlyStats;
 
   return (
     <div className="space-y-6">
@@ -187,26 +194,41 @@ export function AdminDashboardClient({
             </div>
           </CardHeader>
           <CardContent className="pl-2">
-            <Tabs defaultValue="ingresos">
-              <TabsContent value="ingresos">
-                <Overview 
-                  data={monthlyStats.map(item => ({ name: item.name, total: item.ingresos }))} 
-                  type="area" 
-                />
-              </TabsContent>
-              <TabsContent value="usuarios">
-                <Overview 
-                  data={monthlyStats.map(item => ({ name: item.name, total: item.usuarios }))} 
-                  type="line" 
-                />
-              </TabsContent>
-              <TabsContent value="eventos">
-                <Overview 
-                  data={monthlyStats.map(item => ({ name: item.name, total: item.eventos }))} 
-                  type="bar" 
-                />
-              </TabsContent>
-            </Tabs>
+            {statsLoading ? (
+              <div className="flex items-center justify-center h-[350px]">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Cargando estadísticas...</span>
+              </div>
+            ) : statsError ? (
+              <div className="flex items-center justify-center h-[350px]">
+                <Alert>
+                  <AlertDescription>
+                    Error al cargar las estadísticas: {statsError}
+                  </AlertDescription>
+                </Alert>
+              </div>
+            ) : (
+              <Tabs defaultValue="ingresos">
+                <TabsContent value="ingresos">
+                  <Overview 
+                    data={realMonthlyStats.map(item => ({ name: item.name, total: item.ingresos }))} 
+                    type="area" 
+                  />
+                </TabsContent>
+                <TabsContent value="usuarios">
+                  <Overview 
+                    data={realMonthlyStats.map(item => ({ name: item.name, total: item.usuarios || 0 }))} 
+                    type="line" 
+                  />
+                </TabsContent>
+                <TabsContent value="eventos">
+                  <Overview 
+                    data={realMonthlyStats.map(item => ({ name: item.name, total: item.eventos }))} 
+                    type="bar" 
+                  />
+                </TabsContent>
+              </Tabs>
+            )}
           </CardContent>
         </Card>
 

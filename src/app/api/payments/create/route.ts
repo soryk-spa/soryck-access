@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webpayPlus } from "@/lib/transbank";
 import { generateUniqueQRCode } from "@/lib/qr";
-import { calculatePriceBreakdown } from "@/lib/commission";
+import { calculatePriceBreakdown, calculatePriceBreakdownWithDiscount } from "@/lib/commission";
 import { PromoCodeService } from "@/lib/promo-codes";
 import { sendTicketEmail } from '@/lib/email';
 import { z } from "zod";
@@ -109,11 +109,13 @@ export async function POST(request: NextRequest) {
 
       console.log(`[PROMO] ✅ Código válido. Descuento: ${promoCodeValidation.discountAmount}`);
       
-      const discountedAmount = promoCodeValidation.finalAmount || baseTotalAmount;
-      finalPriceBreakdown = calculatePriceBreakdown(discountedAmount, event.currency);
+      // Usar la función correcta para calcular el breakdown con descuento
+      finalPriceBreakdown = calculatePriceBreakdownWithDiscount(
+        baseTotalAmount,
+        promoCodeValidation.discountAmount || 0,
+        event.currency
+      );
       
-      finalPriceBreakdown.originalAmount = baseTotalAmount;
-      finalPriceBreakdown.discountAmount = promoCodeValidation.discountAmount || 0;
       finalPriceBreakdown.promoCode = promoCodeValidation.promoCode?.code;
     } else {
       finalPriceBreakdown = calculatePriceBreakdown(baseTotalAmount, event.currency);
@@ -129,8 +131,11 @@ export async function POST(request: NextRequest) {
       afterDiscount: finalPriceBreakdown.basePrice,
       commission: finalPriceBreakdown.commission,
       finalTotal: finalTotalAmount,
-      hasPromoCode: !!promoCode
+      hasPromoCode: !!promoCode,
+      originalAmount: finalPriceBreakdown.originalAmount
     });
+
+    console.log(`[WEBPAY] Monto que será enviado a WebPay: $${finalTotalAmount} ${event.currency}`);
 
     const orderNumber = generateShortBuyOrder("SP");
     const order = await prisma.order.create({
@@ -167,8 +172,8 @@ export async function POST(request: NextRequest) {
           promoCodeValidation.promoCode.id,
           user.id,
           order.id,
-          finalPriceBreakdown.discountAmount,
-          finalPriceBreakdown.originalAmount,
+          finalPriceBreakdown.discountAmount || 0,
+          finalPriceBreakdown.originalAmount || 0,
           finalTotalAmount
         );
       }

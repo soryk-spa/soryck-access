@@ -188,9 +188,7 @@ const ModernPromoCodeCard = ({ promoCode }: { promoCode: PromoCode }) => {
     }
   };
 
-  const formatDiscount = (type: string, value: number | undefined) => {
-    if (!value && value !== 0) return "N/A";
-    
+  const formatDiscount = (type: string, value: number) => {
     switch (type) {
       case "PERCENTAGE":
         return `${value}% OFF`;
@@ -215,7 +213,7 @@ const ModernPromoCodeCard = ({ promoCode }: { promoCode: PromoCode }) => {
   const typeConfig = getTypeIcon(promoCode.type);
   const TypeIcon = typeConfig.icon;
   
-  const usagePercentage = (promoCode.usageLimit && promoCode.usedCount !== undefined)
+  const usagePercentage = promoCode.usageLimit 
     ? Math.round((promoCode.usedCount / promoCode.usageLimit) * 100)
     : 0;
 
@@ -394,9 +392,9 @@ export default function PromoCodesManagement({ initialPromoCodes }: PromoCodesMa
   // Calcular estadísticas
   const totalCodes = promoCodes.length;
   const activeCodes = promoCodes.filter((code) => code.status === "ACTIVE").length;
-  const totalUsages = promoCodes.reduce((sum, code) => sum + (code.usedCount || 0), 0);
+  const totalUsages = promoCodes.reduce((sum, code) => sum + code.usedCount, 0);
   const totalSavings = promoCodes.reduce((sum, code) => {
-    if (code.type === "FIXED_AMOUNT" && code.discountValue && code.usedCount) {
+    if (code.type === "FIXED_AMOUNT") {
       return sum + (code.discountValue * code.usedCount);
     }
     return sum;

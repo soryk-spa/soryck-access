@@ -82,7 +82,7 @@ export function DashboardNavbarActions({ actions }: DashboardNavbarActionsProps)
 
       {/* Settings */}
       <Button variant="ghost" size="sm" asChild>
-        <Link href="/settings">
+        <Link href="/dashboard/settings">
           <Settings className="h-4 w-4" />
         </Link>
       </Button>

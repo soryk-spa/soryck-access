@@ -78,19 +78,24 @@ export function usePayment() {
         } else if (data.paymentUrl && data.token) {
           toast.info("Redirigiendo a la pasarela de pago...");
           
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = data.paymentUrl;
-          form.style.display = "none";
-
-          const tokenInput = document.createElement("input");
-          tokenInput.type = "hidden";
-          tokenInput.name = "token_ws";
-          tokenInput.value = data.token;
-
-          form.appendChild(tokenInput);
-          document.body.appendChild(form);
-          form.submit();
+          // Construir URL con parámetros de información del pago
+          const redirectUrl = new URL("/payment/redirect", window.location.origin);
+          redirectUrl.searchParams.set("token", data.token);
+          redirectUrl.searchParams.set("url", data.paymentUrl);
+          
+          // Agregar información del monto y descuento si están disponibles
+          if (data.priceBreakdown) {
+            redirectUrl.searchParams.set("amount", data.priceBreakdown.totalAmount.toString());
+            if (data.priceBreakdown.discountAmount > 0) {
+              redirectUrl.searchParams.set("discount", data.priceBreakdown.discountAmount.toString());
+              if (data.priceBreakdown.promoCode) {
+                redirectUrl.searchParams.set("promoCode", data.priceBreakdown.promoCode);
+              }
+            }
+          }
+          
+          // Redirigir a la página intermedia
+          router.push(redirectUrl.toString());
         }
       }
 

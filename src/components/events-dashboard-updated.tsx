@@ -170,17 +170,17 @@ const ModernEventCard = ({ event }: { event: Event }) => {
   const revenue = ticketsSold * event.price;
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02] cursor-pointer overflow-hidden h-full">
-      <CardContent className="p-0 h-full flex flex-col">
-        <div className="relative flex-1">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02] cursor-pointer overflow-hidden">
+      <CardContent className="p-0">
+        <div className="relative">
           {/* Header con gradiente */}
-          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-4 text-white">
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-6 text-white">
             <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="text-lg font-bold line-clamp-1 flex-1">{event.title}</h3>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-xl font-bold line-clamp-1">{event.title}</h3>
                   {isHighDemand && (
-                    <div className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium flex-shrink-0">
+                    <div className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                       <Zap className="h-3 w-3" />
                       Hot
                     </div>
@@ -195,56 +195,58 @@ const ModernEventCard = ({ event }: { event: Event }) => {
                   </Badge>
                 </div>
               </div>
-              <ChevronRight className="h-5 w-5 text-blue-200 group-hover:text-white group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 ml-2" />
+              <div className="text-right">
+                <ChevronRight className="h-5 w-5 text-blue-200 group-hover:text-white group-hover:translate-x-1 transition-all duration-200" />
+              </div>
             </div>
           </div>
 
           {/* Contenido principal */}
-          <div className="p-4 space-y-4 flex-1">
+          <div className="p-6 space-y-6">
             {/* Información del evento */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900 rounded-lg flex-shrink-0">
-                    <Calendar className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground text-xs">{formatDate(event.startDate)}</p>
-                    <p className="text-muted-foreground text-xs">{formatTime(event.startDate)}</p>
+                  <div>
+                    <p className="font-medium text-foreground">{formatDate(event.startDate)}</p>
+                    <p className="text-muted-foreground">{formatTime(event.startDate)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900 rounded-lg flex-shrink-0">
-                    <Users className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <MapPin className="h-4 w-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground text-xs">
-                      {ticketsSold}/{event.capacity}
-                    </p>
-                    <p className="text-muted-foreground text-xs">{occupancy}% ocupación</p>
+                  <div>
+                    <p className="font-medium text-foreground line-clamp-1">{event.location}</p>
+                    <p className="text-muted-foreground">Ubicación del evento</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1.5 bg-green-100 dark:bg-green-900 rounded-lg flex-shrink-0">
-                    <MapPin className="h-3 w-3 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                    <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground line-clamp-1 text-xs">{event.location}</p>
-                    <p className="text-muted-foreground text-xs">Ubicación</p>
+                  <div>
+                    <p className="font-medium text-foreground">
+                      {ticketsSold}/{event.capacity} tickets
+                    </p>
+                    <p className="text-muted-foreground">{occupancy}% ocupación</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900 rounded-lg flex-shrink-0">
-                    <DollarSign className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground text-xs">${revenue.toLocaleString("es-CL")}</p>
-                    <p className="text-muted-foreground text-xs">Ingresos</p>
+                  <div>
+                    <p className="font-medium text-foreground">${revenue.toLocaleString("es-CL")} CLP</p>
+                    <p className="text-muted-foreground">Ingresos generados</p>
                   </div>
                 </div>
               </div>
@@ -252,13 +254,13 @@ const ModernEventCard = ({ event }: { event: Event }) => {
 
             {/* Barra de progreso de ocupación */}
             <div className="space-y-2">
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Ocupación</span>
                 <span className="font-medium">{occupancy}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-2 rounded-full transition-all duration-300 ${
                     occupancy > 80
                       ? "bg-gradient-to-r from-orange-500 to-red-500"
                       : occupancy > 50
@@ -269,27 +271,27 @@ const ModernEventCard = ({ event }: { event: Event }) => {
                 />
               </div>
             </div>
-          </div>
 
-          {/* Acciones rápidas */}
-          <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" asChild className="h-8 text-xs">
-                <Link href={`/events/${event.id}`}>
-                  <Eye className="h-3 w-3 mr-1" />
-                  Ver
-                </Link>
-              </Button>
-              <Button size="sm" variant="outline" asChild className="h-8 text-xs">
-                <Link href={`/events/${event.id}/edit`}>
-                  <Settings className="h-3 w-3 mr-1" />
-                  Editar
-                </Link>
-              </Button>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Activity className="h-3 w-3" />
-              {event._count.orders}
+            {/* Acciones rápidas */}
+            <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/events/${event.id}`}>
+                    <Eye className="h-4 w-4 mr-1" />
+                    Ver
+                  </Link>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/events/${event.id}/edit`}>
+                    <Settings className="h-4 w-4 mr-1" />
+                    Editar
+                  </Link>
+                </Button>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Activity className="h-3 w-3" />
+                {event._count.orders} órdenes
+              </div>
             </div>
           </div>
         </div>
@@ -353,7 +355,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
   return (
     <DashboardPageLayout header={headerConfig}>
       {/* Estadísticas */}
-      <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatCard
           title="Total Eventos"
           value={totalEvents}
@@ -393,14 +395,13 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
       </div>
 
       {/* Controles de vista */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Button
               variant={viewMode === "grid" ? "default" : "outline"}
               size="sm"
               onClick={() => setViewMode("grid")}
-              className="h-9"
             >
               <Grid3X3 className="h-4 w-4 mr-2" />
               Grid
@@ -409,7 +410,6 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
               variant={viewMode === "list" ? "default" : "outline"}
               size="sm"
               onClick={() => setViewMode("list")}
-              className="h-9"
             >
               <List className="h-4 w-4 mr-2" />
               Lista
@@ -417,11 +417,11 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-9">
+          <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-2" />
             Filtros
           </Button>
-          <Button variant="outline" size="sm" className="h-9">
+          <Button variant="outline" size="sm">
             <Search className="h-4 w-4 mr-2" />
             Buscar
           </Button>
@@ -429,7 +429,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
       </div>
 
       {/* Lista de eventos */}
-      <div className={viewMode === "grid" ? "grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "space-y-4"}>
+      <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "space-y-4"}>
         {events.map((event) => (
           <ModernEventCard key={event.id} event={event} />
         ))}
