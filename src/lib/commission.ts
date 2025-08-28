@@ -63,15 +63,19 @@ export function calculateBasePriceFromTotal(totalPrice: number): number {
   return Math.round(totalPrice / (1 + COMMISSION_RATE));
 }
 
-export function formatPrice(price: number, currency: string = 'CLP'): string {
+export function formatPrice(price: number, currency?: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _ = currency; // Mantenemos compatibilidad con llamadas existentes
+  
   if (price === 0) return 'Gratis';
   
-  return new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(price);
+  // Formateo más simple y consistente para evitar problemas de hidratación
+  // Usa formateo manual para garantizar consistencia servidor-cliente
+  const formatNumber = (num: number): string => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+  
+  return `$${formatNumber(Math.round(price))}`;
 }
 
 export function formatPriceBreakdown(breakdown: PriceBreakdown): {
@@ -81,9 +85,9 @@ export function formatPriceBreakdown(breakdown: PriceBreakdown): {
   commissionPercentage: string;
 } {
   return {
-    basePrice: formatPrice(breakdown.basePrice, breakdown.currency),
-    commission: formatPrice(breakdown.commission, breakdown.currency),
-    totalPrice: formatPrice(breakdown.totalPrice, breakdown.currency),
+    basePrice: formatPrice(breakdown.basePrice),
+    commission: formatPrice(breakdown.commission),
+    totalPrice: formatPrice(breakdown.totalPrice),
     commissionPercentage: `${(COMMISSION_RATE * 100).toFixed(0)}%`
   };
 }
@@ -101,8 +105,8 @@ export function formatPriceBreakdownWithDiscount(breakdown: PriceBreakdown): {
   
   return {
     ...formatted,
-    originalAmount: formatPrice(breakdown.originalAmount || 0, breakdown.currency),
-    discountAmount: formatPrice(breakdown.discountAmount || 0, breakdown.currency),
+    originalAmount: formatPrice(breakdown.originalAmount || 0),
+    discountAmount: formatPrice(breakdown.discountAmount || 0),
     savingsPercentage: breakdown.originalAmount && breakdown.discountAmount 
       ? `${Math.round((breakdown.discountAmount / breakdown.originalAmount) * 100)}%`
       : undefined

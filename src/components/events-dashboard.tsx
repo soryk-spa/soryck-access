@@ -321,7 +321,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
     actions: [
       {
         label: "Crear Evento",
-        href: "/events/create",
+        href: "/dashboard/events/new",
         icon: Plus,
         variant: "default" as const,
       },
@@ -339,7 +339,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
               Comienza tu viaje como organizador creando tu primer evento. Es fácil y rápido.
             </p>
             <Button size="lg" asChild>
-              <Link href="/events/create">
+              <Link href="/dashboard/events/new">
                 <Plus className="w-5 h-5 mr-2" />
                 Crear Primer Evento
               </Link>

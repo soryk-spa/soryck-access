@@ -12,12 +12,21 @@ export async function GET() {
 
     // Verificar permisos de admin
     const user = await prisma.user.findUnique({
-      where: { id: userId }
+      where: { clerkId: userId }
     });
 
-    if (!user || !canAccessAdmin(user.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
+
+    if (!canAccessAdmin(user.role)) {
+      console.log(`🚫 Usuario ${user.email} con rol ${user.role} intentó acceder a stats de admin`);
+      return NextResponse.json({ 
+        error: `Acceso denegado. Rol actual: ${user.role}. Se requiere: ADMIN` 
+      }, { status: 403 });
+    }
+
+    console.log(`✅ Usuario ${user.email} con rol ${user.role} accediendo a stats de admin`);
 
     // Obtener datos de los últimos 12 meses
     const now = new Date();

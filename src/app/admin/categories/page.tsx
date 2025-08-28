@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import CategoriesManagement from '@/components/categories-management'
+import CategoriesManagement from '@/components/categories-management-modern'
 
 export default async function AdminCategoriesPage() {
   await requireAdmin()
@@ -22,9 +22,5 @@ export default async function AdminCategoriesPage() {
     updatedAt: category.updatedAt.toISOString(),
   }));
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <CategoriesManagement initialCategories={categoriesWithStringDates} />
-    </div>
-  )
+  return <CategoriesManagement initialCategories={categoriesWithStringDates} />
 }

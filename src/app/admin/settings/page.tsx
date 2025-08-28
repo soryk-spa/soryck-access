@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { DashboardPageLayout } from "@/components/dashboard-page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,8 +8,33 @@ import { Settings, Check, Shield, Database, Monitor, Users, Activity, BarChart3 
 export default async function AdminSettingsPage() {
   const user = await requireAdmin();
 
+  // Configuración del header
+  const headerConfig = {
+    title: "Configuración del Sistema",
+    description: "Configuraciones avanzadas de administración y monitoreo del sistema",
+    backgroundIcon: Settings,
+    gradient: "from-indigo-600 to-purple-600",
+    badge: {
+      label: "Admin",
+      variant: "secondary" as const,
+    },
+    stats: [
+      {
+        icon: Shield,
+        label: "Nivel de Acceso",
+        value: "Administrador",
+      },
+      {
+        icon: Activity,
+        label: "Estado",
+        value: "Sistema Activo",
+      },
+    ],
+  };
+
   return (
-    <div className="space-y-6">
+    <DashboardPageLayout header={headerConfig}>
+      <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -310,6 +336,7 @@ export default async function AdminSettingsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </DashboardPageLayout>
   );
 }

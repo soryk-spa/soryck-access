@@ -2,12 +2,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DashboardPageLayout } from "@/components/dashboard-page-layout";
 import { ModernStatCard, StatsGrid } from "@/components/modern-stat-card";
 import { Overview } from "@/components/overview";
 import { DataTable } from "@/components/data-table";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { formatPrice } from "@/lib/commission";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -22,10 +23,10 @@ import {
   UserCheck,
   Building,
   Download,
-  Bell,
   UserPlus,
   Calendar as CalendarIcon,
   Loader2,
+  Shield,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -98,44 +99,61 @@ export function AdminDashboardClient({
   // Usar datos reales si están disponibles, sino usar los props como fallback
   const realMonthlyStats = statsData?.monthlyStats || monthlyStats;
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard de Admin</h1>
-          <p className="text-muted-foreground">
-            Resumen completo de la plataforma SorykPass
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Exportar Datos
-          </Button>
-          <Button variant="outline" size="sm">
-            <Bell className="mr-2 h-4 w-4" />
-            {pendingRequests > 0 && (
-              <Badge className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                {pendingRequests}
-              </Badge>
-            )}
-            Notificaciones
-          </Button>
-          <Button asChild>
-            <Link href="/admin/categories">
-              <Settings className="mr-2 h-4 w-4" />
-              Configuración
-            </Link>
-          </Button>
-        </div>
-      </div>
+  // Configuración del header para DashboardPageLayout
+  const headerConfig = {
+    title: "Dashboard de Admin",
+    description: "Resumen completo de la plataforma SorykPass",
+    backgroundIcon: Shield,
+    gradient: "from-purple-600 to-pink-600",
+    badge: {
+      label: "Admin",
+      variant: "secondary" as const,
+    },
+    stats: [
+      {
+        icon: Users,
+        label: "Total Usuarios",
+        value: totalUsers,
+      },
+      {
+        icon: Calendar,
+        label: "Total Eventos",
+        value: totalEvents,
+      },
+      {
+        icon: DollarSign,
+        label: "Ingresos",
+        value: `$${(totalRevenue / 1000000).toFixed(1)}M`,
+      },
+      {
+        icon: UserCheck,
+        label: "Solicitudes",
+        value: pendingRequests > 0 ? pendingRequests : "Ninguna",
+      },
+    ],
+    actions: [
+      {
+        label: "Configuración",
+        href: "/admin/categories",
+        icon: Settings,
+        variant: "default" as const,
+      },
+      {
+        label: "Exportar Datos",
+        href: "#",
+        icon: Download,
+        variant: "outline" as const,
+      },
+    ],
+  };
 
-      {/* Main Stats */}
+  return (
+    <DashboardPageLayout header={headerConfig}>
+      <div className="space-y-6">{/* Alertas si hay solicitudes pendientes */}
       <StatsGrid>
         <ModernStatCard
           title="Total Usuarios"
-          value={totalUsers.toLocaleString()}
+          value={totalUsers.toString()}
           icon={Users}
           description="Usuarios registrados"
           trend="+12%"
@@ -145,7 +163,7 @@ export function AdminDashboardClient({
         />
         <ModernStatCard
           title="Total Eventos"
-          value={totalEvents.toLocaleString()}
+          value={totalEvents.toString()}
           icon={Calendar}
           description="Eventos creados"
           trend="+8%"
@@ -154,7 +172,7 @@ export function AdminDashboardClient({
         />
         <ModernStatCard
           title="Órdenes Pagadas"
-          value={totalOrders.toLocaleString()}
+          value={totalOrders.toString()}
           icon={Ticket}
           description="Transacciones exitosas"
           trend="+23%"
@@ -163,7 +181,7 @@ export function AdminDashboardClient({
         />
         <ModernStatCard
           title="Ingresos Totales"
-          value={`$${(totalRevenue || 0).toLocaleString()}`}
+          value={formatPrice(totalRevenue || 0)}
           icon={DollarSign}
           description="CLP recaudados"
           trend="+15%"
@@ -436,6 +454,7 @@ export function AdminDashboardClient({
           </Link>
         </Card>
       </div>
-    </div>
+      </div>
+    </DashboardPageLayout>
   );
 }

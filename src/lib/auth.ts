@@ -99,7 +99,7 @@ export async function checkRoutePermissions(route: string) {
     return { hasAccess: false, redirectTo: '/sign-in' }
   }
 
-  const organizerRoutes = ['/events/create', '/events/manage', '/dashboard/events']
+  const organizerRoutes = ['/events/create', '/events/manage', '/dashboard/events', '/dashboard/events/new']
   if (organizerRoutes.some(r => route.startsWith(r))) {
     if (!canOrganizeEvents(user.role)) {
       return { hasAccess: false, redirectTo: '/unauthorized' }

@@ -65,27 +65,27 @@ const StatCard = ({
   color?: "blue" | "green" | "purple" | "orange";
 }) => {
   const colorClasses = {
-    blue: "from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 bg-blue-500 text-blue-600 dark:text-blue-400",
-    green: "from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 bg-green-500 text-green-600 dark:text-green-400",
-    purple: "from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 bg-purple-500 text-purple-600 dark:text-purple-400",
-    orange: "from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 bg-orange-500 text-orange-600 dark:text-orange-400",
+    blue: "from-blue-50 to-blue-100 border-blue-200 dark:from-blue-950 dark:to-blue-900 dark:border-blue-800 bg-gradient-to-r from-blue-500 to-blue-600 text-blue-700 dark:text-blue-300",
+    green: "from-emerald-50 to-green-100 border-green-200 dark:from-emerald-950 dark:to-green-900 dark:border-green-800 bg-gradient-to-r from-emerald-500 to-green-600 text-emerald-700 dark:text-emerald-300",
+    purple: "from-purple-50 to-purple-100 border-purple-200 dark:from-purple-950 dark:to-purple-900 dark:border-purple-800 bg-gradient-to-r from-purple-500 to-purple-600 text-purple-700 dark:text-purple-300",
+    orange: "from-orange-50 to-orange-100 border-orange-200 dark:from-orange-950 dark:to-orange-900 dark:border-orange-800 bg-gradient-to-r from-orange-500 to-orange-600 text-orange-700 dark:text-orange-300",
   };
 
-  const bgClass = colorClasses[color].split(" ")[0] + " " + colorClasses[color].split(" ")[1];
-  const iconBgClass = colorClasses[color].split(" ")[2];
-  const textClass = colorClasses[color].split(" ")[3] + " " + colorClasses[color].split(" ")[4];
+  const bgClass = colorClasses[color].split(" ").slice(0, 6).join(" ");
+  const iconBgClass = colorClasses[color].split(" ").slice(6, 10).join(" ");
+  const textClass = colorClasses[color].split(" ").slice(10).join(" ");
 
   return (
-    <Card className={`border-0 shadow-lg bg-gradient-to-br ${bgClass}`}>
+    <Card className={`shadow-xl bg-gradient-to-br ${bgClass} border-2 hover:shadow-2xl transition-all duration-300 hover:scale-105`}>
       <CardContent className="p-6">
-        <div className="flex items-center gap-3">
-          <div className={`p-2.5 ${iconBgClass} text-white rounded-xl shadow-sm`}>
+        <div className="flex items-center gap-4">
+          <div className={`p-3 ${iconBgClass} text-white rounded-2xl shadow-lg`}>
             {icon}
           </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className={`text-2xl font-bold ${textClass}`}>{value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">{title}</p>
+            <p className={`text-3xl font-bold ${textClass} mb-1`}>{value}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
           </div>
         </div>
       </CardContent>
@@ -130,15 +130,15 @@ export default function CreateEventForm({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold mb-4 shadow-lg">
             <Sparkles className="h-4 w-4" />
             {mode === "create" ? "Crear Nuevo Evento" : "Editar Evento"}
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4">
             {mode === "create" 
               ? "Crea un evento increíble" 
               : `Editando: ${initialData?.title || "Evento"}`
@@ -190,11 +190,13 @@ export default function CreateEventForm({
             {/* Columna izquierda - Información básica */}
             <div className="lg:col-span-2 space-y-6">
               {/* Información básica del evento */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-4">
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5 text-blue-600" />
-                    Información Básica
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                      <Info className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-semibold">Información Básica</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -241,7 +243,7 @@ export default function CreateEventForm({
                         placeholder="Ej: Teatro Municipal, Santiago Centro"
                         value={eventForm.formData.location}
                         onChange={(e) => eventForm.handleInputChange('location', e.target.value)}
-                        className="pl-10"
+                        className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white/50 backdrop-blur-sm"
                       />
                     </div>
                     {eventForm.errors.location && (
@@ -276,11 +278,13 @@ export default function CreateEventForm({
               </Card>
 
               {/* Fechas y horarios */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-4">
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-green-600" />
-                    Fechas y Horarios
+                    <div className="p-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg">
+                      <Calendar className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-semibold">Fechas y Horarios</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -327,17 +331,19 @@ export default function CreateEventForm({
               </Card>
 
               {/* Tipos de tickets */}
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-4">
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-t-lg">
                   <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2">
-                      <Ticket className="h-5 w-5 text-purple-600" />
-                      Tipos de Tickets
+                      <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
+                        <Ticket className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="text-gray-800 dark:text-gray-200 font-semibold">Tipos de Tickets</span>
                     </CardTitle>
                     <Button
                       type="button"
                       onClick={ticketTypesHook.addTicketType}
-                      variant="outline"
+                      className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-lg"
                       size="sm"
                     >
                       <PlusCircle className="h-4 w-4 mr-2" />
@@ -431,11 +437,13 @@ export default function CreateEventForm({
 
             {/* Columna derecha - Imagen */}
             <div className="space-y-6">
-              <Card className="border-0 shadow-lg">
-                <CardHeader className="pb-4">
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5 text-orange-600" />
-                    Imagen del Evento
+                    <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg">
+                      <ImageIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-semibold">Imagen del Evento</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -503,16 +511,21 @@ export default function CreateEventForm({
           )}
 
           {/* Botones de acción */}
-          <div className="flex justify-end gap-4 pt-6 border-t">
+          <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
             <Button
               type="button"
               variant="outline"
               onClick={() => window.history.back()}
               disabled={eventForm.loading}
+              className="px-6 py-3 hover:bg-gray-50 border-gray-300"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={eventForm.loading} className="min-w-32">
+            <Button 
+              type="submit" 
+              disabled={eventForm.loading} 
+              className="min-w-40 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
               {eventForm.loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -42,7 +42,7 @@ export function DashboardNavbarActions({ actions }: DashboardNavbarActionsProps)
           <DropdownMenuLabel>Acciones Rápidas</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/organizer/events/create" className="flex items-center">
+            <Link href="/dashboard/events/new" className="flex items-center">
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Evento
             </Link>
