@@ -111,25 +111,31 @@ export class PromoCodeService {
         return { isValid: false, error: 'Este código no es válido para este tipo de ticket' };
       }
 
-      // Calcular descuento
-      const baseAmount = ticketType.price * quantity;
+      // Calcular descuento POR TICKET y luego multiplicar por cantidad
+      const pricePerTicket = ticketType.price;
+      const totalQuantity = quantity;
       
-      // Verificar monto mínimo
-      if (promoCode.minOrderAmount && baseAmount < promoCode.minOrderAmount) {
+      // Verificar monto mínimo contra el total
+      const totalBaseAmount = pricePerTicket * totalQuantity;
+      if (promoCode.minOrderAmount && totalBaseAmount < promoCode.minOrderAmount) {
         return { 
           isValid: false, 
           error: `Monto mínimo requerido: $${promoCode.minOrderAmount.toLocaleString('es-CL')} ${promoCode.currency}` 
         };
       }
 
-      const calculation = this.calculateDiscount(baseAmount, promoCode);
+      // Calcular descuento por ticket individual
+      const discountPerTicket = this.calculateDiscountPerTicket(pricePerTicket, promoCode);
+      const totalDiscountAmount = discountPerTicket.discountAmount * totalQuantity;
+      const finalAmountPerTicket = discountPerTicket.finalAmount;
+      const totalFinalAmount = finalAmountPerTicket * totalQuantity;
 
       return {
         isValid: true,
         promoCode,
-        discountAmount: calculation.discountAmount,
-        finalAmount: calculation.finalAmount,
-        discountPercentage: calculation.discountAmount > 0 ? (calculation.discountAmount / baseAmount) * 100 : 0
+        discountAmount: totalDiscountAmount,
+        finalAmount: totalFinalAmount,
+        discountPercentage: totalDiscountAmount > 0 ? (totalDiscountAmount / totalBaseAmount) * 100 : 0
       };
 
     } catch (error) {
@@ -138,6 +144,49 @@ export class PromoCodeService {
     }
   }
 
+  // Nuevo método: Calcular descuento por ticket individual
+  static calculateDiscountPerTicket(
+    ticketPrice: number, 
+    promoCode: import('@prisma/client').PromoCode
+  ): { discountAmount: number; finalAmount: number } {
+    let discountAmount = 0;
+
+    switch (promoCode.type) {
+      case PromoCodeType.PERCENTAGE:
+        discountAmount = (ticketPrice * promoCode.value) / 100;
+        // Para porcentajes, aplicar límite máximo POR TICKET si existe
+        if (promoCode.maxDiscountAmount) {
+          discountAmount = Math.min(discountAmount, promoCode.maxDiscountAmount);
+        }
+        break;
+
+      case PromoCodeType.FIXED_AMOUNT:
+        // El descuento fijo se aplica POR TICKET (este era el bug principal)
+        discountAmount = Math.min(promoCode.value, ticketPrice);
+        break;
+
+      case PromoCodeType.FREE:
+        // Ticket gratuito
+        discountAmount = ticketPrice;
+        break;
+
+      default:
+        discountAmount = 0;
+    }
+
+    // Asegurar que el descuento no sea mayor al precio del ticket
+    discountAmount = Math.min(discountAmount, ticketPrice);
+    discountAmount = Math.max(0, discountAmount); // No permitir descuentos negativos
+
+    const finalAmount = Math.max(0, ticketPrice - discountAmount);
+
+    return {
+      discountAmount: Math.round(discountAmount),
+      finalAmount: Math.round(finalAmount)
+    };
+  }
+
+  // Método original mantenido para compatibilidad con código existente
   static calculateDiscount(
     baseAmount: number, 
     promoCode: import('@prisma/client').PromoCode
