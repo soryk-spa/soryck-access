@@ -20,7 +20,13 @@ export async function getCurrentUser() {
 
     if (!user) {
       console.log(`Usuario ${userId} no encontrado en BD, sincronizando desde Clerk...`)
-      user = await syncUserFromClerk(userId)
+      try {
+        user = await syncUserFromClerk(userId)
+      } catch (syncError) {
+        console.error('Error al sincronizar usuario desde Clerk:', syncError)
+        // En caso de error de sincronización, retornar null en lugar de fallar
+        return null
+      }
     }
 
     return user

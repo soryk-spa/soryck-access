@@ -40,8 +40,11 @@ interface UserData {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
   bio: string;
+  producerName: string;
+  websiteUrl: string;
+  twitterUrl: string;
+  instagramUrl: string;
   avatar?: string;
 }
 
@@ -259,12 +262,42 @@ export function SettingsClient({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Teléfono</Label>
+                  <Label htmlFor="producerName">Nombre del Productor</Label>
                   <Input
-                    id="phone"
-                    value={userData.phone}
-                    onChange={(e) => setUserData({...userData, phone: e.target.value})}
-                    placeholder="+56 9 xxxx xxxx"
+                    id="producerName"
+                    value={userData.producerName || ''}
+                    onChange={(e) => setUserData({...userData, producerName: e.target.value})}
+                    placeholder="Nombre de tu empresa o marca"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="websiteUrl">Sitio Web</Label>
+                  <Input
+                    id="websiteUrl"
+                    type="url"
+                    value={userData.websiteUrl || ''}
+                    onChange={(e) => setUserData({...userData, websiteUrl: e.target.value})}
+                    placeholder="https://tuempresa.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="twitterUrl">Twitter</Label>
+                  <Input
+                    id="twitterUrl"
+                    type="url"
+                    value={userData.twitterUrl || ''}
+                    onChange={(e) => setUserData({...userData, twitterUrl: e.target.value})}
+                    placeholder="https://twitter.com/usuario"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="instagramUrl">Instagram</Label>
+                  <Input
+                    id="instagramUrl"
+                    type="url"
+                    value={userData.instagramUrl || ''}
+                    onChange={(e) => setUserData({...userData, instagramUrl: e.target.value})}
+                    placeholder="https://instagram.com/usuario"
                   />
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
+import { cache } from "@/lib/redis";
 
 export async function GET() {
   try {
@@ -9,7 +10,13 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Obtener datos de los últimos 12 meses
+    // Intentar obtener estadísticas desde Redis primero
+    const cachedStats = await cache.getDashboardStats(userId);
+    if (cachedStats) {
+      return NextResponse.json(cachedStats);
+    }
+
+    // Si no está en caché, calcular estadísticas
     const now = new Date();
     const twelveMonthsAgo = new Date(now);
     twelveMonthsAgo.setMonth(now.getMonth() - 11);
@@ -77,6 +84,9 @@ export async function GET() {
         };
       })
     );
+
+    // Guardar en caché por 5 minutos (las estadísticas cambian frecuentemente)
+    await cache.setDashboardStats(userId, monthlyStats, 300);
 
     return NextResponse.json(monthlyStats);
   } catch (error) {

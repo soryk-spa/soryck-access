@@ -9,8 +9,11 @@ export default async function SettingsPage() {
     firstName: user.firstName || "",
     lastName: user.lastName || "",
     email: user.email,
-    phone: "", // Por ahora vacío hasta que se agregue al modelo
     bio: user.bio || "",
+    producerName: user.producerName || "",
+    websiteUrl: user.websiteUrl || "",
+    twitterUrl: user.twitterUrl || "",
+    instagramUrl: user.instagramUrl || "",
     avatar: user.imageUrl || undefined,
   };
 

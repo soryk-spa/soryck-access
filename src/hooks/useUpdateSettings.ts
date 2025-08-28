@@ -4,6 +4,10 @@ interface UpdateSettingsData {
   firstName?: string;
   lastName?: string;
   bio?: string;
+  producerName?: string;
+  websiteUrl?: string;
+  twitterUrl?: string;
+  instagramUrl?: string;
 }
 
 export function useUpdateSettings() {

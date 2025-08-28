@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import { cache } from '@/lib/redis'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,6 +19,15 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
+
+    // Crear clave única para caché basada en los parámetros de búsqueda
+    const cacheKey = `events:public:${searchParams.toString()}`
+    
+    // Intentar obtener desde Redis primero
+    const cachedResult = await cache.get(cacheKey);
+    if (cachedResult) {
+      return NextResponse.json(cachedResult);
+    }
 
     const whereClause: Prisma.EventWhereInput = {
       isPublished: true,
@@ -156,7 +166,7 @@ export async function GET(request: NextRequest) {
       updatedAt: event.updatedAt.toISOString()
     }))
 
-    return NextResponse.json({
+    const result = {
       events: serializedEvents,
       pagination: {
         currentPage: page,
@@ -178,7 +188,12 @@ export async function GET(request: NextRequest) {
         sortBy,
         sortOrder
       }
-    })
+    };
+
+    // Guardar en caché por 10 minutos (eventos públicos no cambian tan frecuentemente)
+    await cache.set(cacheKey, result, 600);
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Error fetching public events:', error)

@@ -22,8 +22,10 @@ import {
   Building,
   Bell,
   HelpCircle,
+  Database,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface SidebarProps {
   className?: string;
@@ -43,12 +45,29 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const { user } = useUser();
+  const { role: userRole, loading: roleLoading } = useUserRole();
 
   // Determinar el tipo de dashboard basado en la ruta
   const isAdmin = pathname.startsWith("/admin");
 
-  // Items de navegación para Dashboard General
-  const dashboardItems: NavItem[] = [
+  // Items de navegación para Cliente (rol básico)
+  const clientItems: NavItem[] = [
+    {
+      title: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
+      description: "Vista general de tu actividad",
+    },
+    {
+      title: "Mis Tickets",
+      href: "/dashboard/tickets",
+      icon: Ticket,
+      description: "Ver mis tickets comprados",
+    },
+  ];
+
+  // Items de navegación para Dashboard de Organizador
+  const organizerItems: NavItem[] = [
     {
       title: "Dashboard",
       href: "/dashboard",
@@ -107,6 +126,12 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       icon: BarChart3,
       description: "Estadísticas y análisis",
     },
+    {
+      title: "Redis",
+      href: "/admin/redis",
+      icon: Database,
+      description: "Monitoreo y configuración de caché",
+    },
   ];
 
   // Items de configuración
@@ -125,8 +150,26 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
-  // Seleccionar items según el dashboard
-  const currentItems = isAdmin ? adminItems : dashboardItems;
+  // Seleccionar items según el dashboard y rol del usuario
+  const getDashboardItems = () => {
+    if (isAdmin) return adminItems;
+    
+    // Si está cargando el rol, mostrar items básicos
+    if (roleLoading) return clientItems;
+    
+    // Determinar items según el rol
+    switch (userRole) {
+      case "ORGANIZER":
+      case "SCANNER":
+      case "ADMIN":
+        return organizerItems;
+      case "CLIENT":
+      default:
+        return clientItems;
+    }
+  };
+
+  const currentItems = getDashboardItems();
 
   const isActiveRoute = (href: string) => {
     if (href === "/dashboard" || href === "/admin") {

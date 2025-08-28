@@ -11,12 +11,36 @@ export async function syncUserFromClerk(clerkId: string) {
       throw new Error('Usuario no encontrado en Clerk')
     }
 
+    // Verificar si el usuario ya existe por clerkId
     const existingUser = await prisma.user.findUnique({
       where: { clerkId }
     })
 
     if (existingUser) {
       return existingUser
+    }
+
+    // Obtener el email del usuario desde Clerk
+    const userEmail = clerkUser.emailAddresses[0]?.emailAddress || ''
+    
+    // También verificar si existe un usuario con el mismo email
+    const existingUserByEmail = await prisma.user.findUnique({
+      where: { email: userEmail }
+    })
+
+    // Si existe un usuario con el mismo email pero diferente clerkId, actualizar el clerkId
+    if (existingUserByEmail && existingUserByEmail.clerkId !== clerkId) {
+      console.log(`Actualizando clerkId para usuario existente: ${userEmail}`)
+      const updatedUser = await prisma.user.update({
+        where: { email: userEmail },
+        data: {
+          clerkId,
+          firstName: clerkUser.firstName || existingUserByEmail.firstName,
+          lastName: clerkUser.lastName || existingUserByEmail.lastName,
+          imageUrl: clerkUser.imageUrl || existingUserByEmail.imageUrl,
+        }
+      })
+      return updatedUser
     }
 
     let userRole: UserRole = UserRole.CLIENT
@@ -36,14 +60,13 @@ export async function syncUserFromClerk(clerkId: string) {
     const organizerEmails = process.env.ORGANIZER_EMAILS?.split(',') || []
     const adminEmails = process.env.ADMIN_EMAILS?.split(',') || []
     
-    const userEmail = clerkUser.emailAddresses[0]?.emailAddress || ''
-    
     if (adminEmails.includes(userEmail)) {
       userRole = UserRole.ADMIN
     } else if (organizerEmails.includes(userEmail)) {
       userRole = UserRole.ORGANIZER
     }
 
+    // Crear el nuevo usuario (ya no hay conflictos posibles)
     const newUser = await prisma.user.create({
       data: {
         clerkId,
