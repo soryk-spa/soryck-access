@@ -183,11 +183,16 @@ export function useEventForm(
         })),
       };
 
+      console.log('📤 Sending eventData to API:', JSON.stringify(eventData, null, 2));
+
       const url = mode === "create" 
         ? "/api/events" 
         : `/api/events/${initialData?.id}`;
       
       const method = mode === "create" ? "POST" : "PUT";
+
+      console.log('🌐 API URL:', url);
+      console.log('🔄 HTTP Method:', method);
 
       const response = await fetch(url, {
         method,

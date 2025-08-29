@@ -210,6 +210,7 @@ export async function PUT(
 
       await prisma.$transaction(async (tx) => {
         // ✅ ACTUALIZAR EVENTO CON FECHAS CORRECTAS
+        console.log('🖼️ Updating imageUrl to:', eventData.imageUrl);
         await tx.event.update({
           where: { id },
           data: {

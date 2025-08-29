@@ -137,11 +137,15 @@ export default function EditEventForm({
 
   // Sincronizar imageUrl con el formulario
   const handleFormImageChange = (newImageUrl: string) => {
+    console.log('🖼️ handleFormImageChange called with:', newImageUrl);
+    console.log('🖼️ Form data before update:', eventForm.formData);
     handleImageChange(newImageUrl);
     eventForm.handleInputChange('imageUrl', newImageUrl);
+    console.log('🖼️ Form data after update:', eventForm.formData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚀 Submitting form with data:', eventForm.formData);
     await eventForm.handleSubmit(e, ticketTypesHook.ticketTypes);
   };
 

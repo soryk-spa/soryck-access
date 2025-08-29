@@ -56,7 +56,9 @@ export default function SimpleImageUpload({
       <UploadButton<OurFileRouter, "eventImageUploader">
         endpoint="eventImageUploader"
         onClientUploadComplete={(res) => {
+          console.log('📷 Image upload completed:', res);
           if (res?.[0]?.url) {
+            console.log('📷 Calling onImageChange with URL:', res[0].url);
             onImageChange(res[0].url);
           }
         }}
