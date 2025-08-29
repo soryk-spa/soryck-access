@@ -135,6 +135,12 @@ export default function EditEventForm({
   // HANDLERS
   // ============================================================================
 
+  // Sincronizar imageUrl con el formulario
+  const handleFormImageChange = (newImageUrl: string) => {
+    handleImageChange(newImageUrl);
+    eventForm.handleInputChange('imageUrl', newImageUrl);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     await eventForm.handleSubmit(e, ticketTypesHook.ticketTypes);
   };
@@ -456,7 +462,7 @@ export default function EditEventForm({
                         type="button"
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleImageChange("")}
+                        onClick={() => handleFormImageChange("")}
                         className="absolute top-2 right-2"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -473,7 +479,7 @@ export default function EditEventForm({
                   
                   <ImageUpload
                     currentImageUrl={imageUrl}
-                    onImageChange={handleImageChange}
+                    onImageChange={handleFormImageChange}
                   />
                 </div>
               </CardContent>
