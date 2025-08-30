@@ -25,6 +25,7 @@ import {
   Zap,
   Award,
   Ticket,
+  Armchair,
 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/date-utils";
 
@@ -284,6 +285,12 @@ const ModernEventCard = ({ event }: { event: Event }) => {
                 <Link href={`/events/${event.id}/edit`}>
                   <Settings className="h-3 w-3 mr-1" />
                   Editar
+                </Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild className="h-8 text-xs">
+                <Link href={`/organizer/events/${event.id}/seating`}>
+                  <Armchair className="h-3 w-3 mr-1" />
+                  Asientos
                 </Link>
               </Button>
             </div>

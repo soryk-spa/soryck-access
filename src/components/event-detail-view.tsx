@@ -50,6 +50,7 @@ type EventDetailViewProps = {
     location: string;
     imageUrl?: string;
     isPublished: boolean;
+    hasSeatingPlan?: boolean;
     category: { name: string };
     organizer: {
       id: string;
@@ -667,14 +668,39 @@ export default function EventDetailView({
                           Entradas agotadas
                         </Button>
                       ) : user ? (
-                        <Button
-                          onClick={() => setShowPurchaseForm(true)}
-                          className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
-                          size="lg"
-                        >
-                          <Ticket className="h-5 w-5 mr-2" />
-                          Comprar Entradas
-                        </Button>
+                        // Show different options based on seating plan availability
+                        event.hasSeatingPlan ? (
+                          <div className="space-y-3">
+                            <Button
+                              asChild
+                              className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
+                              size="lg"
+                            >
+                              <Link href={`/events/${event.id}/tickets/seating`}>
+                                <Ticket className="h-5 w-5 mr-2" />
+                                Seleccionar Asientos
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => setShowPurchaseForm(true)}
+                              variant="outline"
+                              className="w-full"
+                              size="lg"
+                            >
+                              <Ticket className="h-5 w-5 mr-2" />
+                              Compra Rápida (Sin Asiento Específico)
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            onClick={() => setShowPurchaseForm(true)}
+                            className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
+                            size="lg"
+                          >
+                            <Ticket className="h-5 w-5 mr-2" />
+                            Comprar Entradas
+                          </Button>
+                        )
                       ) : (
                         <Button
                           asChild

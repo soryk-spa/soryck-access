@@ -7,7 +7,7 @@ export default function OrganizerLayout({
 }) {
   return (
     <DashboardLayout 
-      title="Panel del Organizador"
+      title="Gestión de Asientos"
       showSearch={true}
     >
       {children}

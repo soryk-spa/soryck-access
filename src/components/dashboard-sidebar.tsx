@@ -23,6 +23,7 @@ import {
   Bell,
   HelpCircle,
   Database,
+  Armchair,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -81,6 +82,12 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       description: "Gestiona tus eventos",
     },
     {
+      title: "Gestión de Asientos",
+      href: "/organizer",
+      icon: Armchair,
+      description: "Configura venues y asientos",
+    },
+    {
       title: "Códigos Promocionales",
       href: "/dashboard/promo-codes",
       icon: Tag,
@@ -119,6 +126,12 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       href: "/admin/categories",
       icon: Building,
       description: "Gestionar categorías de eventos",
+    },
+    {
+      title: "Venues y Asientos",
+      href: "/admin/venues",
+      icon: Armchair,
+      description: "Gestionar venues y plantillas de asientos",
     },
     {
       title: "Reportes",

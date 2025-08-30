@@ -30,6 +30,8 @@ model User {
   roleRequests      RoleRequest[]
   assignedEvents    EventScanner[]   @relation("ScannerEvents")
   assignedScanners  EventScanner[]   @relation("AssignedBy")
+  createdVenues     Venue[]          @relation("CreatedVenues")
+  seatReservations  SeatReservation[]
 
   @@map("users")
 }
@@ -78,17 +80,22 @@ model Event {
   isFree           Boolean        @default(false)
   totalRevenue     Float?
   totalCommissions Float?
+  hasSeatingPlan   Boolean        @default(false)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   organizerId      String
   organizer        User           @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
   categoryId       String
   category         Category       @relation(fields: [categoryId], references: [id])
+  venueId          String?
+  venue            Venue?         @relation(fields: [venueId], references: [id], onDelete: SetNull)
   tickets          Ticket[]
   orders           Order[]
   ticketTypes      TicketType[]
   scanners         EventScanner[]
   promoCodes       PromoCode[]
+  sections         Section[]
+  seatReservations SeatReservation[]
 
   @@map("events")
 }
@@ -110,6 +117,8 @@ model Ticket {
   order        Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTypeId String?
   ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  seatId       String?     // Reference to specific seat
+  seat         EventSeat?  @relation(fields: [seatId], references: [id], onDelete: SetNull)
 
   @@map("tickets")
 }
@@ -285,6 +294,128 @@ model Commission {
   @@map("commissions")
 }
 
+// Seating System Models
+model Venue {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  address     String?
+  capacity    Int?
+  layout      Json?    // Store the venue layout configuration
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String
+  creator     User     @relation("CreatedVenues", fields: [createdBy], references: [id], onDelete: Cascade)
+
+  events   Event[]
+  sections VenueSection[]
+
+  @@map("venues")
+}
+
+model VenueSection {
+  id          String      @id @default(cuid())
+  name        String
+  color       String      @default("#3B82F6") // Default blue color
+  x           Float       // X position in the layout
+  y           Float       // Y position in the layout
+  width       Float       // Width of the section
+  height      Float       // Height of the section
+  rotation    Float       @default(0) // Rotation in degrees
+  seatLayout  Json        // Seat arrangement within section
+  priceZone   String?     // Price zone identifier
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  venueId     String
+  venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  
+  venueSeats  VenueSeat[]
+
+  @@map("venue_sections")
+}
+
+model VenueSeat {
+  id          String       @id @default(cuid())
+  row         String       // Row identifier (A, B, C, 1, 2, 3, etc.)
+  number      String       // Seat number within the row
+  x           Float        // X position within the section
+  y           Float        // Y position within the section
+  status      SeatStatus   @default(AVAILABLE)
+  isAccessible Boolean     @default(false) // For accessibility seats
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sectionId   String
+  section     VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  eventSeats EventSeat[]
+
+  @@unique([sectionId, row, number])
+  @@map("venue_seats")
+}
+
+model Section {
+  id          String     @id @default(cuid())
+  name        String
+  color       String     @default("#3B82F6")
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  rotation    Float      @default(0)
+  priceZone   String?
+  basePrice   Float?     // Base price for this section
+  capacity    Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  eventId     String
+  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  seats       EventSeat[]
+
+  @@map("sections")
+}
+
+model EventSeat {
+  id          String            @id @default(cuid())
+  row         String
+  number      String
+  x           Float
+  y           Float
+  price       Float?
+  status      SeatStatus        @default(AVAILABLE)
+  isAccessible Boolean          @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  sectionId   String
+  section     Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  venueSeatId String?
+  venueSeat   VenueSeat?        @relation(fields: [venueSeatId], references: [id], onDelete: SetNull)
+  
+  tickets     Ticket[]
+  reservations SeatReservation[]
+
+  @@unique([sectionId, row, number])
+  @@map("event_seats")
+}
+
+model SeatReservation {
+  id          String     @id @default(cuid())
+  sessionId   String     // Browser session or user session ID
+  userId      String?    // Optional: if user is logged in
+  expiresAt   DateTime   // When the reservation expires
+  createdAt   DateTime   @default(now())
+  eventId     String
+  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seatId      String
+  seat        EventSeat  @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, seatId]) // One reservation per seat per event
+  @@index([expiresAt]) // For cleanup of expired reservations
+  @@index([sessionId]) // For finding user's reservations
+  @@map("seat_reservations")
+}
+
 enum UserRole {
   CLIENT
   ORGANIZER
@@ -323,4 +454,12 @@ enum CommissionType {
   PROMOTIONAL
 
   @@map("commission_types")
+}
+
+enum SeatStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  BLOCKED
+  MAINTENANCE
 }
