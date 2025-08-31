@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -273,6 +274,25 @@ export default function CreateEventForm({
                     {eventForm.errors.categoryId && (
                       <p className="text-sm text-red-600 mt-1">{eventForm.errors.categoryId}</p>
                     )}
+                  </div>
+
+                  {/* Campo de cortesías */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label htmlFor="allowCourtesy" className="text-sm font-medium">
+                          Permitir Cortesías
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Los usuarios podrán solicitar entradas gratuitas o con descuento
+                        </p>
+                      </div>
+                      <Switch
+                        id="allowCourtesy"
+                        checked={eventForm.formData.allowCourtesy}
+                        onCheckedChange={(checked) => eventForm.handleBooleanChange('allowCourtesy', checked)}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>

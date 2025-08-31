@@ -32,6 +32,7 @@ export interface EventFormData {
   endDate: string;
   categoryId: string;
   imageUrl: string;
+  allowCourtesy: boolean;
 }
 
 export interface EventFormErrors {
@@ -42,6 +43,7 @@ export interface EventFormErrors {
   endDate?: string;
   categoryId?: string;
   imageUrl?: string;
+  allowCourtesy?: string;
   ticketTypes?: string;
   general?: string;
 }
@@ -55,6 +57,7 @@ export interface InitialEventData {
   endDate?: string;
   categoryId?: string;
   imageUrl?: string;
+  allowCourtesy?: boolean;
   ticketTypes?: TicketTypeForm[];
 }
 
@@ -79,6 +82,7 @@ export function useEventForm(
     endDate: initialData?.endDate || "",
     categoryId: initialData?.categoryId || "",
     imageUrl: initialData?.imageUrl || "",
+    allowCourtesy: initialData?.allowCourtesy || false,
   });
 
   // Validaciones del formulario
@@ -142,6 +146,15 @@ export function useEventForm(
   const handleInputChange = useCallback((field: keyof EventFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Limpiar error del campo cuando el usuario empiece a escribir
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  }, [errors]);
+
+  // Manejo de cambios en campos booleanos
+  const handleBooleanChange = useCallback((field: keyof EventFormData, value: boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpiar error del campo cuando el usuario cambie el valor
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -228,6 +241,7 @@ export function useEventForm(
     errors,
     loading,
     handleInputChange,
+    handleBooleanChange,
     handleSubmit,
     setFormData,
     setErrors,

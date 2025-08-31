@@ -26,6 +26,7 @@ import {
   Award,
   Ticket,
   Armchair,
+  Star,
 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/date-utils";
 
@@ -40,6 +41,7 @@ interface Event {
   capacity: number;
   isFree: boolean;
   isPublished: boolean;
+  allowCourtesy: boolean;
   imageUrl: string | null;
   category: {
     id: string;
@@ -293,6 +295,14 @@ const ModernEventCard = ({ event }: { event: Event }) => {
                   Asientos
                 </Link>
               </Button>
+              {event.allowCourtesy && (
+                <Button size="sm" variant="outline" asChild className="h-8 text-xs bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700 dark:bg-purple-900/20 dark:hover:bg-purple-900/30 dark:border-purple-800 dark:text-purple-300">
+                  <Link href={`/dashboard/events/${event.id}/courtesy`}>
+                    <Star className="h-3 w-3 mr-1" />
+                    Cortesías
+                  </Link>
+                </Button>
+              )}
             </div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Activity className="h-3 w-3" />

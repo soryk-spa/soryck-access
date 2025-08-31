@@ -8,30 +8,31 @@ datasource db {
 }
 
 model User {
-  id                String           @id @default(cuid())
-  clerkId           String           @unique
-  email             String           @unique
-  firstName         String?
-  lastName          String?
-  imageUrl          String?
-  role              UserRole         @default(CLIENT)
-  producerName      String?
-  bio               String?
-  websiteUrl        String?
-  twitterUrl        String?
-  instagramUrl      String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  organizedEvents   Event[]          @relation("EventOrganizer")
-  tickets           Ticket[]
-  orders            Order[]
-  createdPromoCodes PromoCode[]      @relation("CreatedPromoCodes")
-  promoCodeUsages   PromoCodeUsage[]
-  roleRequests      RoleRequest[]
-  assignedEvents    EventScanner[]   @relation("ScannerEvents")
-  assignedScanners  EventScanner[]   @relation("AssignedBy")
-  createdVenues     Venue[]          @relation("CreatedVenues")
-  seatReservations  SeatReservation[]
+  id                       String            @id @default(cuid())
+  clerkId                  String            @unique
+  email                    String            @unique
+  firstName                String?
+  lastName                 String?
+  imageUrl                 String?
+  role                     UserRole          @default(CLIENT)
+  producerName             String?
+  bio                      String?
+  websiteUrl               String?
+  twitterUrl               String?
+  instagramUrl             String?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  organizedEvents          Event[]           @relation("EventOrganizer")
+  tickets                  Ticket[]
+  orders                   Order[]
+  createdPromoCodes        PromoCode[]       @relation("CreatedPromoCodes")
+  promoCodeUsages          PromoCodeUsage[]
+  roleRequests             RoleRequest[]
+  assignedEvents           EventScanner[]    @relation("ScannerEvents")
+  assignedScanners         EventScanner[]    @relation("AssignedBy")
+  createdVenues            Venue[]           @relation("CreatedVenues")
+  seatReservations         SeatReservation[]
+  approvedCourtesyRequests CourtesyRequest[] @relation("ApprovedCourtesyRequests")
 
   @@map("users")
 }
@@ -66,29 +67,31 @@ model EventScanner {
 }
 
 model Event {
-  id               String         @id @default(cuid())
+  id               String            @id @default(cuid())
   title            String
   description      String?
   imageUrl         String?
   location         String
   startDate        DateTime
   endDate          DateTime?
-  price            Float          @default(0)
-  currency         String         @default("CLP")
+  price            Float             @default(0)
+  currency         String            @default("CLP")
   capacity         Int
-  isPublished      Boolean        @default(false)
-  isFree           Boolean        @default(false)
+  isPublished      Boolean           @default(false)
+  isFree           Boolean           @default(false)
   totalRevenue     Float?
   totalCommissions Float?
-  hasSeatingPlan   Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  hasSeatingPlan   Boolean           @default(false)
+  allowCourtesy    Boolean           @default(false) // Permitir solicitudes de cortesía
+  courtesyLimit    Int? // Límite de cortesías por evento
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   organizerId      String
-  organizer        User           @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  organizer        User              @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
   categoryId       String
-  category         Category       @relation(fields: [categoryId], references: [id])
+  category         Category          @relation(fields: [categoryId], references: [id])
   venueId          String?
-  venue            Venue?         @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  venue            Venue?            @relation(fields: [venueId], references: [id], onDelete: SetNull)
   tickets          Ticket[]
   orders           Order[]
   ticketTypes      TicketType[]
@@ -96,6 +99,7 @@ model Event {
   promoCodes       PromoCode[]
   sections         Section[]
   seatReservations SeatReservation[]
+  courtesyRequests CourtesyRequest[] @relation("EventCourtesyRequests")
 
   @@map("events")
 }
@@ -117,7 +121,7 @@ model Ticket {
   order        Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   ticketTypeId String?
   ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
-  seatId       String?     // Reference to specific seat
+  seatId       String? // Reference to specific seat
   seat         EventSeat?  @relation(fields: [seatId], references: [id], onDelete: SetNull)
 
   @@map("tickets")
@@ -215,6 +219,48 @@ enum PromoCodeStatus {
   USED_UP
 }
 
+model CourtesyRequest {
+  id            String            @id @default(cuid())
+  eventId       String
+  name          String
+  rut           String
+  email         String
+  phone         String?
+  status        CourtesyStatus    @default(PENDING)
+  code          String?           @unique // Código generado al aprobar
+  codeType      CourtesyCodeType? // Tipo de beneficio
+  discountValue Float? // Valor del descuento si aplica
+  expiresAt     DateTime? // Fecha de expiración del código
+  usedAt        DateTime? // Fecha cuando se usó el código
+  approvedAt    DateTime? // Fecha de aprobación
+  approvedBy    String? // ID del usuario que aprobó
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  event    Event @relation("EventCourtesyRequests", fields: [eventId], references: [id], onDelete: Cascade)
+  approver User? @relation("ApprovedCourtesyRequests", fields: [approvedBy], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, email]) // Un email por evento
+  @@unique([eventId, rut]) // Un RUT por evento
+  @@index([eventId])
+  @@index([email])
+  @@index([code])
+  @@map("courtesy_requests")
+}
+
+enum CourtesyStatus {
+  PENDING // Solicitud pendiente de aprobación
+  APPROVED // Aprobada y código generado
+  REJECTED // Rechazada
+  USED // Código usado
+  EXPIRED // Código expirado
+}
+
+enum CourtesyCodeType {
+  FREE // Entrada gratuita
+  DISCOUNT // Descuento porcentual o fijo
+}
+
 model Payment {
   id                String    @id @default(cuid())
   orderId           String    @unique
@@ -301,7 +347,7 @@ model Venue {
   description String?
   address     String?
   capacity    Int?
-  layout      Json?    // Store the venue layout configuration
+  layout      Json? // Store the venue layout configuration
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdBy   String
@@ -314,38 +360,38 @@ model Venue {
 }
 
 model VenueSection {
-  id          String      @id @default(cuid())
-  name        String
-  color       String      @default("#3B82F6") // Default blue color
-  x           Float       // X position in the layout
-  y           Float       // Y position in the layout
-  width       Float       // Width of the section
-  height      Float       // Height of the section
-  rotation    Float       @default(0) // Rotation in degrees
-  seatLayout  Json        // Seat arrangement within section
-  priceZone   String?     // Price zone identifier
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  venueId     String
-  venue       Venue       @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  
-  venueSeats  VenueSeat[]
+  id         String   @id @default(cuid())
+  name       String
+  color      String   @default("#3B82F6") // Default blue color
+  x          Float // X position in the layout
+  y          Float // Y position in the layout
+  width      Float // Width of the section
+  height     Float // Height of the section
+  rotation   Float    @default(0) // Rotation in degrees
+  seatLayout Json // Seat arrangement within section
+  priceZone  String? // Price zone identifier
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  venueId    String
+  venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+  venueSeats VenueSeat[]
 
   @@map("venue_sections")
 }
 
 model VenueSeat {
-  id          String       @id @default(cuid())
-  row         String       // Row identifier (A, B, C, 1, 2, 3, etc.)
-  number      String       // Seat number within the row
-  x           Float        // X position within the section
-  y           Float        // Y position within the section
-  status      SeatStatus   @default(AVAILABLE)
-  isAccessible Boolean     @default(false) // For accessibility seats
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  sectionId   String
-  section     VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  id           String       @id @default(cuid())
+  row          String // Row identifier (A, B, C, 1, 2, 3, etc.)
+  number       String // Seat number within the row
+  x            Float // X position within the section
+  y            Float // Y position within the section
+  status       SeatStatus   @default(AVAILABLE)
+  isAccessible Boolean      @default(false) // For accessibility seats
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  sectionId    String
+  section      VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   eventSeats EventSeat[]
 
@@ -354,44 +400,44 @@ model VenueSeat {
 }
 
 model Section {
-  id          String     @id @default(cuid())
-  name        String
-  color       String     @default("#3B82F6")
-  x           Float
-  y           Float
-  width       Float
-  height      Float
-  rotation    Float      @default(0)
-  priceZone   String?
-  basePrice   Float?     // Base price for this section
-  capacity    Int        @default(0)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  eventId     String
-  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  
-  seats       EventSeat[]
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#3B82F6")
+  x         Float
+  y         Float
+  width     Float
+  height    Float
+  rotation  Float    @default(0)
+  priceZone String?
+  basePrice Float? // Base price for this section
+  capacity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  seats EventSeat[]
 
   @@map("sections")
 }
 
 model EventSeat {
-  id          String            @id @default(cuid())
-  row         String
-  number      String
-  x           Float
-  y           Float
-  price       Float?
-  status      SeatStatus        @default(AVAILABLE)
-  isAccessible Boolean          @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  sectionId   String
-  section     Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  venueSeatId String?
-  venueSeat   VenueSeat?        @relation(fields: [venueSeatId], references: [id], onDelete: SetNull)
-  
-  tickets     Ticket[]
+  id           String     @id @default(cuid())
+  row          String
+  number       String
+  x            Float
+  y            Float
+  price        Float?
+  status       SeatStatus @default(AVAILABLE)
+  isAccessible Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  sectionId    String
+  section      Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  venueSeatId  String?
+  venueSeat    VenueSeat? @relation(fields: [venueSeatId], references: [id], onDelete: SetNull)
+
+  tickets      Ticket[]
   reservations SeatReservation[]
 
   @@unique([sectionId, row, number])
@@ -399,16 +445,16 @@ model EventSeat {
 }
 
 model SeatReservation {
-  id          String     @id @default(cuid())
-  sessionId   String     // Browser session or user session ID
-  userId      String?    // Optional: if user is logged in
-  expiresAt   DateTime   // When the reservation expires
-  createdAt   DateTime   @default(now())
-  eventId     String
-  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  seatId      String
-  seat        EventSeat  @relation(fields: [seatId], references: [id], onDelete: Cascade)
-  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id        String    @id @default(cuid())
+  sessionId String // Browser session or user session ID
+  userId    String? // Optional: if user is logged in
+  expiresAt DateTime // When the reservation expires
+  createdAt DateTime  @default(now())
+  eventId   String
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  seatId    String
+  seat      EventSeat @relation(fields: [seatId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@unique([eventId, seatId]) // One reservation per seat per event
   @@index([expiresAt]) // For cleanup of expired reservations

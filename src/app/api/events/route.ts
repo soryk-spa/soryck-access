@@ -27,6 +27,7 @@ const createEventSchema = z.object({
   endDate: z.string().optional().nullable(),
   categoryId: z.string().min(1, 'La categoría es requerida'),
   imageUrl: z.string().url("Debe ser una URL válida").optional().or(z.literal('')).nullable(),
+  allowCourtesy: z.boolean().default(false),
   ticketTypes: z.array(ticketTypeSchema).min(1, 'Se requiere al menos un tipo de entrada.'),
 });
 
@@ -42,6 +43,7 @@ const updateEventSchema = z.object({
   endDate: z.string().optional().nullable(),
   categoryId: z.string().min(1, 'La categoría es requerida'),
   imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  allowCourtesy: z.boolean().default(false),
   ticketTypes: z.array(ticketTypeSchema.extend({
     id: z.string().optional(), // Para updates
   })).min(1, 'Se requiere al menos un tipo de entrada.'),
@@ -193,6 +195,7 @@ export async function POST(request: NextRequest) {
         capacity: totalCapacity,
         price: 0, // Ya no es relevante, pero mantenemos para compatibilidad
         isFree: ticketTypes.every(tt => tt.price === 0),
+        allowCourtesy: eventData.allowCourtesy,
         
         ticketTypes: {
           create: ticketTypes.map(tt => ({

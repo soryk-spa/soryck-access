@@ -112,6 +112,7 @@ export default async function EventPage({ params }: EventPageProps) {
     ...event,
     description: event.description ?? undefined,
     imageUrl: event.imageUrl ?? undefined,
+    allowCourtesy: event.allowCourtesy, // Incluir el campo de cortesías
     startDate: event.startDate.toISOString(),
     endDate: event.endDate ? event.endDate.toISOString() : undefined,
     createdAt: event.createdAt.toISOString(),
