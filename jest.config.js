@@ -10,27 +10,46 @@ const config = {
     '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
   ],
   collectCoverageFrom: [
-    'src/lib/utils.ts', // Solo archivos específicos que estamos testeando
-    'src/lib/eventFilters.ts',
-    'src/lib/formValidation.ts',
+    'src/lib/**/*.{ts,tsx}',
+    'src/hooks/**/*.{ts,tsx}',
+    'src/components/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
+    '!src/lib/logger.ts', // Exclude logger from coverage
+    '!src/app/**', // Exclude app directory from coverage
   ],
   coverageThreshold: {
     global: {
-      branches: 10, // Umbral más realista para empezar
-      functions: 10,
-      lines: 10,
-      statements: 10,
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
     },
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  // Performance optimizations
+  maxWorkers: '50%',
+  cache: true,
+  cacheDirectory: '<rootDir>/.jest-cache',
+  
+  // Better error reporting
+  verbose: true,
+  errorOnDeprecated: true,
+  
+  // Module file extensions
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
+  
+  // Transform configuration
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
+  
+  // Test environment options
   testEnvironmentOptions: {
     customExportConditions: [''],
   },
+  
+  // Global configuration for ts-jest
   globals: {
     'ts-jest': {
       useESM: true,

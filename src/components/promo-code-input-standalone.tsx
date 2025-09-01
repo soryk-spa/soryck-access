@@ -60,7 +60,7 @@ export default function PromoCodeInputStandalone({
     setError(null);
 
     try {
-      const response = await fetch("/api/promo-codes/validate", {
+      const response = await fetch("/api/discount-codes/validate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

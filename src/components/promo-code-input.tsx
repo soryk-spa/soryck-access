@@ -60,7 +60,7 @@ export default function PromoCodeInput({
     setError(null);
 
     try {
-      const response = await fetch("/api/promo-codes/validate", {
+      const response = await fetch("/api/discount-codes/validate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -209,7 +209,7 @@ export default function PromoCodeInput({
           <div className="flex items-center gap-2">
             <Ticket className="h-4 w-4 text-blue-500" />
             <Label htmlFor="promo-code" className="text-sm font-medium">
-              ¿Tienes un código promocional?
+              ¿Tienes un código promocional o de cortesía?
             </Label>
           </div>
 
@@ -217,7 +217,7 @@ export default function PromoCodeInput({
             <div className="flex-1">
               <Input
                 id="promo-code"
-                placeholder="Ingresa tu código"
+                placeholder="Código promocional o de cortesía"
                 value={code}
                 onChange={(e) => {
                   setCode(e.target.value.toUpperCase());

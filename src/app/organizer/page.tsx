@@ -1,187 +1,359 @@
 import { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Armchair, Calendar, MapPin, Plus, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Armchair, 
+  Calendar, 
+  MapPin, 
+  Plus, 
+  Settings, 
+  Shield, 
+  TrendingUp,
+  Users,
+  Zap,
+  Star,
+  ArrowRight,
+  Sparkles
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Gestión de Asientos | SorykPass",
-  description: "Administra venues, secciones y asientos para tus eventos",
+  title: "Dashboard Organizador | SorykPass",
+  description: "Centro de control para organizadores de eventos - Gestiona eventos, asientos y validadores",
 };
 
 export default function OrganizerPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Gestión de Asientos</h1>
-        <p className="text-muted-foreground">
-          Configura venues, crea secciones y administra los asientos para tus eventos
-        </p>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Mis Eventos */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <Calendar className="h-6 w-6 text-primary mr-3" />
-            <div>
-              <CardTitle className="text-lg">Mis Eventos</CardTitle>
-              <CardDescription>
-                Ver y configurar asientos para eventos existentes
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Accede a tus eventos para configurar o editar sus sistemas de asientos
-            </p>
-            <Button asChild className="w-full">
-              <Link href="/dashboard/events">
-                <Calendar className="h-4 w-4 mr-2" />
-                Ver Mis Eventos
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Crear Venue */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <MapPin className="h-6 w-6 text-primary mr-3" />
-            <div>
-              <CardTitle className="text-lg">Venues</CardTitle>
-              <CardDescription>
-                Administra tus venues y plantillas reutilizables
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Crea y gestiona venues con configuraciones de asientos reutilizables
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/organizer/venues">
-                <MapPin className="h-4 w-4 mr-2" />
-                Gestionar Venues
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Configuración */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-            <Settings className="h-6 w-6 text-primary mr-3" />
-            <div>
-              <CardTitle className="text-lg">Configuración</CardTitle>
-              <CardDescription>
-                Preferencias y configuración del sistema
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Ajusta las configuraciones predeterminadas para nuevos venues
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/organizer/settings">
-                <Settings className="h-4 w-4 mr-2" />
-                Configuración
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Getting Started Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Armchair className="h-5 w-5" />
-            Guía de Inicio Rápido
-          </CardTitle>
-          <CardDescription>
-            Aprende a configurar tu primer sistema de asientos
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <h4 className="font-medium">1. Configura un Venue</h4>
-              <p className="text-sm text-muted-foreground">
-                Crea un venue con secciones y asientos que puedas reutilizar en múltiples eventos.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">2. Asigna a un Evento</h4>
-              <p className="text-sm text-muted-foreground">
-                Desde la gestión de eventos, asigna un venue y configura precios por sección.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">3. Personaliza Precios</h4>
-              <p className="text-sm text-muted-foreground">
-                Ajusta precios específicos para cada sección según el tipo de evento.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <h4 className="font-medium">4. Publica y Vende</h4>
-              <p className="text-sm text-muted-foreground">
-                Los usuarios podrán seleccionar asientos específicos al comprar tickets.
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0053CC] via-[#01CBFE] to-[#CC66CC] p-8 text-white">
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
+                    Dashboard Organizador
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                    ¡Bienvenido de vuelta!
+                  </h1>
+                  <p className="text-xl text-white/90 max-w-2xl">
+                    Gestiona tus eventos, configura sistemas de asientos y administra validadores desde un solo lugar
+                  </p>
+                </div>
+              </div>
+              <div className="hidden lg:block">
+                <div className="w-32 h-32 bg-white/10 rounded-3xl backdrop-blur-sm flex items-center justify-center">
+                  <TrendingUp className="w-16 h-16 text-white" />
+                </div>
+              </div>
             </div>
           </div>
           
-          <div className="flex gap-2 pt-4">
-            <Button asChild>
-              <Link href="/dashboard/events">
-                <Calendar className="h-4 w-4 mr-2" />
-                Configurar Primer Evento
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/organizer/venues">
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Venue
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
+          <div className="absolute bottom-20 left-20 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+        </section>
 
-      {/* Features Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <Armchair className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h3 className="font-semibold mb-2">Editor Visual</h3>
-            <p className="text-sm text-muted-foreground">
-              Dibuja secciones y genera asientos con herramientas intuitivas
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group overflow-hidden">
+            <CardHeader className="relative z-10 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10 text-[#0053CC] border-[#0053CC]/20">
+                  Principal
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">
+                Mis Eventos
+              </CardTitle>
+              <CardDescription>
+                Gestiona y configura asientos para tus eventos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Accede a todos tus eventos para configurar sistemas de asientos, gestionar ventas y más
+              </p>
+              <Button asChild className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white border-0">
+                <Link href="/dashboard/events">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Ver Mis Eventos
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group overflow-hidden">
+            <CardHeader className="relative z-10 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Shield className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#CC66CC]/10 to-[#FE4F00]/10 text-[#CC66CC] border-[#CC66CC]/20">
+                  Seguridad
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">
+                Validadores
+              </CardTitle>
+              <CardDescription>
+                Gestiona los validadores de tus eventos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Asigna y administra validadores que pueden verificar tickets en tiempo real
+              </p>
+              <Button asChild className="w-full bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] hover:from-[#CC66CC]/90 hover:to-[#FE4F00]/90 text-white border-0">
+                <Link href="/organizer/scanners">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Gestionar Validadores
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group overflow-hidden">
+            <CardHeader className="relative z-10 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#FDBD00] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#FE4F00]/10 to-[#FDBD00]/10 text-[#FE4F00] border-[#FE4F00]/20">
+                  Ubicaciones
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">
+                Venues
+              </CardTitle>
+              <CardDescription>
+                Administra venues y plantillas reutilizables
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Crea y gestiona venues con configuraciones de asientos reutilizables
+              </p>
+              <Button asChild variant="outline" className="w-full border-2 border-[#FE4F00]/30 hover:border-[#FE4F00] hover:bg-[#FE4F00]/10 transition-colors">
+                <Link href="/organizer/venues">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Gestionar Venues
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group overflow-hidden">
+            <CardHeader className="relative z-10 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Settings className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#01CBFE]/10 to-[#CC66CC]/10 text-[#01CBFE] border-[#01CBFE]/20">
+                  Sistema
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">
+                Configuración
+              </CardTitle>
+              <CardDescription>
+                Preferencias y configuración del sistema
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Ajusta configuraciones predeterminadas y preferencias del organizador
+              </p>
+              <Button asChild variant="outline" className="w-full border-2 border-[#01CBFE]/30 hover:border-[#01CBFE] hover:bg-[#01CBFE]/10 transition-colors">
+                <Link href="/organizer/settings">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configuración
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <Card className="border-0 shadow-lg overflow-hidden">
+            <div className="bg-gradient-to-r from-[#0053CC]/10 via-[#01CBFE]/10 to-[#CC66CC]/10 p-6">
+              <CardHeader className="p-0">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                    <Zap className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl flex items-center gap-2">
+                      Guía de Inicio Rápido
+                      <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0">
+                        <Star className="w-3 h-3 mr-1" />
+                        Nuevo
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-base mt-1">
+                      Aprende a configurar tu primer sistema de asientos en 4 pasos sencillos
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </div>
+            
+            <CardContent className="p-6 space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-[#0053CC]/5 to-[#01CBFE]/5 border border-[#0053CC]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      1
+                    </div>
+                    <h4 className="font-semibold text-lg">Configura un Venue</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Crea un venue con secciones y asientos que puedas reutilizar en múltiples eventos. 
+                    Define capacidades, precios base y configuraciones especiales.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-[#CC66CC]/5 to-[#FE4F00]/5 border border-[#CC66CC]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      2
+                    </div>
+                    <h4 className="font-semibold text-lg">Asigna a un Evento</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Desde la gestión de eventos, asigna un venue y configura precios específicos 
+                    por sección según el tipo de evento.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-[#FE4F00]/5 to-[#FDBD00]/5 border border-[#FE4F00]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#FE4F00] to-[#FDBD00] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      3
+                    </div>
+                    <h4 className="font-semibold text-lg">Personaliza Precios</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Ajusta precios específicos para cada sección según el tipo de evento, 
+                    demanda esperada y estrategia de ventas.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 p-4 rounded-xl bg-gradient-to-br from-[#01CBFE]/5 to-[#CC66CC]/5 border border-[#01CBFE]/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      4
+                    </div>
+                    <h4 className="font-semibold text-lg">Publica y Vende</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Los usuarios podrán seleccionar asientos específicos al comprar tickets. 
+                    Monitorea ventas en tiempo real.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button asChild size="lg" className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white border-0">
+                  <Link href="/dashboard/events">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Configurar Primer Evento
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="border-2 border-[#CC66CC]/30 hover:border-[#CC66CC] hover:bg-[#CC66CC]/10">
+                  <Link href="/organizer/venues">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Crear Venue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section>
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold tracking-tight mb-3">
+              Características Principales
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Herramientas poderosas diseñadas para organizadores profesionales
             </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <MapPin className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h3 className="font-semibold mb-2">Venues Reutilizables</h3>
-            <p className="text-sm text-muted-foreground">
-              Crea plantillas que puedes usar en múltiples eventos
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="text-center">
-          <CardContent className="pt-6">
-            <Calendar className="h-12 w-12 mx-auto text-primary mb-4" />
-            <h3 className="font-semibold mb-2">Integración Completa</h3>
-            <p className="text-sm text-muted-foreground">
-              Funciona perfectamente con el sistema de tickets existente
-            </p>
-          </CardContent>
-        </Card>
+          </div>
+          
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group text-center overflow-hidden">
+              <CardContent className="relative z-10 pt-8 pb-6">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Armchair className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="font-bold text-xl mb-3">
+                  Editor Visual Intuitivo
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Dibuja secciones y genera asientos con herramientas visuales fáciles de usar. 
+                  Arrastrar, redimensionar y personalizar nunca fue tan simple.
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full"></div>
+                  <span className="text-xs text-muted-foreground">Drag & Drop</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group text-center overflow-hidden">
+              <CardContent className="relative z-10 pt-8 pb-6">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#FE4F00] to-[#FDBD00] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <MapPin className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="font-bold text-xl mb-3">
+                  Venues Reutilizables
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Crea plantillas de venues que puedes usar en múltiples eventos. 
+                  Ahorra tiempo y mantén consistencia en tus configuraciones.
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-[#FE4F00] to-[#FDBD00] rounded-full"></div>
+                  <span className="text-xs text-muted-foreground">Plantillas</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group text-center overflow-hidden">
+              <CardContent className="relative z-10 pt-8 pb-6">
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-[#CC66CC] to-[#01CBFE] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <Users className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="font-bold text-xl mb-3">
+                  Integración Completa
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Funciona perfectamente con el sistema de tickets existente. 
+                  Ventas, validación y reportes en tiempo real.
+                </p>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-[#CC66CC] to-[#01CBFE] rounded-full"></div>
+                  <span className="text-xs text-muted-foreground">Tiempo Real</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
       </div>
     </div>
   );

@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Calendar,
   MapPin,
   Users,
@@ -27,6 +35,8 @@ import {
   Ticket,
   Armchair,
   Star,
+  Edit,
+  MoreHorizontal,
 } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/date-utils";
 
@@ -284,7 +294,7 @@ const ModernEventCard = ({ event }: { event: Event }) => {
                 </Link>
               </Button>
               <Button size="sm" variant="outline" asChild className="h-8 text-xs">
-                <Link href={`/events/${event.id}/edit`}>
+                <Link href={`/organizer/events/${event.id}/edit`}>
                   <Settings className="h-3 w-3 mr-1" />
                   Editar
                 </Link>
@@ -315,9 +325,130 @@ const ModernEventCard = ({ event }: { event: Event }) => {
   );
 };
 
+// Componente para vista de tabla moderna
+const EventsTable = ({ events }: { events: Event[] }) => {
+  const getEventStatus = (event: Event) => {
+    const now = new Date();
+    const startDate = new Date(event.startDate);
+
+    if (startDate < now) {
+      return { label: "Finalizado", variant: "secondary" as const };
+    }
+    if (event.isPublished) {
+      return { label: "Publicado", variant: "default" as const };
+    }
+    return { label: "Borrador", variant: "secondary" as const };
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-gray-50 dark:bg-gray-900/50">
+            <TableHead className="font-semibold">Evento</TableHead>
+            <TableHead className="font-semibold">Estado</TableHead>
+            <TableHead className="font-semibold">Fecha</TableHead>
+            <TableHead className="font-semibold">Ubicación</TableHead>
+            <TableHead className="font-semibold text-center">Asistentes</TableHead>
+            <TableHead className="font-semibold text-center">Ingresos</TableHead>
+            <TableHead className="font-semibold text-center">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {events.map((event) => {
+            const status = getEventStatus(event);
+            const ticketsSold = event._count.tickets;
+            const occupancy = Math.round((ticketsSold / event.capacity) * 100);
+            const revenue = ticketsSold * event.price;
+            
+            return (
+              <TableRow key={event.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                <TableCell className="py-4">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-foreground line-clamp-1">{event.title}</div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs">
+                        {event.category.name}
+                      </Badge>
+                      {occupancy > 80 && (
+                        <div className="flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                          <Zap className="h-3 w-3" />
+                          Popular
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant={status.variant} className="font-medium">
+                    {status.label}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="font-medium text-sm">{formatDate(event.startDate)}</div>
+                    <div className="text-muted-foreground text-xs">{formatTime(event.startDate)}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm line-clamp-1">{event.location}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-sm">{ticketsSold}/{event.capacity}</div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          occupancy > 80
+                            ? "bg-gradient-to-r from-orange-500 to-red-500"
+                            : occupancy > 50
+                              ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+                              : "bg-gradient-to-r from-green-500 to-blue-500"
+                        }`}
+                        style={{ width: `${Math.min(occupancy, 100)}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-muted-foreground">{occupancy}%</div>
+                  </div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="space-y-1">
+                    <div className="font-semibold text-sm">${revenue.toLocaleString("es-CL")}</div>
+                    <div className="text-xs text-muted-foreground">CLP</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center justify-center gap-1">
+                    <Button size="sm" variant="ghost" asChild className="h-8 w-8 p-0">
+                      <Link href={`/events/${event.id}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button size="sm" variant="ghost" asChild className="h-8 w-8 p-0">
+                      <Link href={`/organizer/events/${event.id}/edit`}>
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+};
+
 export default function EventsDashboard({ initialEvents, organizerName }: EventsDashboardProps) {
   const [events] = useState<Event[]>(initialEvents);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list"); // Cambiar default a lista/tabla
 
   // Calcular estadísticas
   const totalEvents = events.length;
@@ -420,7 +551,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
               className="h-9"
             >
               <Grid3X3 className="h-4 w-4 mr-2" />
-              Grid
+              Tarjetas
             </Button>
             <Button
               variant={viewMode === "list" ? "default" : "outline"}
@@ -429,7 +560,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
               className="h-9"
             >
               <List className="h-4 w-4 mr-2" />
-              Lista
+              Tabla
             </Button>
           </div>
         </div>
@@ -446,11 +577,15 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
       </div>
 
       {/* Lista de eventos */}
-      <div className={viewMode === "grid" ? "grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "space-y-4"}>
-        {events.map((event) => (
-          <ModernEventCard key={event.id} event={event} />
-        ))}
-      </div>
+      {viewMode === "grid" ? (
+        <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          {events.map((event) => (
+            <ModernEventCard key={event.id} event={event} />
+          ))}
+        </div>
+      ) : (
+        <EventsTable events={events} />
+      )}
     </DashboardPageLayout>
   );
 }

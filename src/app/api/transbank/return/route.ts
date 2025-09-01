@@ -171,9 +171,16 @@ async function processSuccessfulPayment(payment: FullPayment, transbankResponse:
     }
 
     await sendTicketEmail({
-        user: payment.order.user,
-        event: payment.order.event,
-        order: updatedOrder
+      userEmail: payment.order.user.email,
+      userName: payment.order.user.firstName || payment.order.user.email.split('@')[0],
+      eventTitle: payment.order.event.title,
+      eventDate: payment.order.event.startDate.toISOString(),
+      eventLocation: payment.order.event.location,
+      orderNumber: updatedOrder.id,
+      tickets: updatedOrder.tickets.map(ticket => ({
+        qrCode: ticket.qrCode!,
+        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` // Placeholder for actual QR image
+      }))
     });
     
   } catch (error) {

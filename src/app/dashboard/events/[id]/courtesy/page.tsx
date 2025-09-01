@@ -42,7 +42,7 @@ export default async function CourtesyManagementPage({ params }: Props) {
             </p>
             <div className="flex gap-4 justify-center">
               <a
-                href={`/events/${event.id}/edit`}
+                href={`/organizer/events/${event.id}/edit`}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Editar Evento

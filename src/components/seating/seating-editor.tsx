@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Badge } from '@/components/ui/badge'
 import { useTheme } from 'next-themes'
 import { 
   Plus, 
@@ -45,8 +46,8 @@ interface SeatingEditorProps {
 }
 
 const COLORS = [
-  '#3B82F6', '#EF4444', '#10B981', '#F59E0B', 
-  '#8B5CF6', '#F97316', '#06B6D4', '#84CC16'
+  '#0053CC', '#01CBFE', '#CC66CC', '#FE4F00', 
+  '#FDBD00', '#10B981', '#8B5CF6', '#06B6D4'
 ]
 
 const SEAT_SIZE = 20
@@ -367,73 +368,100 @@ export function SeatingEditor({ initialSections = [], onSave }: SeatingEditorPro
   }, [redraw])
 
   return (
-    <div className="flex h-screen">
-      {/* Toolbar */}
-      <div className="w-80 bg-background border-r border-border p-4 overflow-y-auto">
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle>Herramientas</CardTitle>
+    <div className="flex h-full bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+      <div className="w-80 bg-background/95 backdrop-blur-sm border-r shadow-lg p-4 overflow-y-auto">
+        <Card className="mb-6 border-0 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                <Move className="w-4 h-4 text-white" />
+              </div>
+              Herramientas
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
+          <CardContent className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 variant={tool === 'select' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTool('select')}
+                className={tool === 'select' 
+                  ? "bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0" 
+                  : "border-2 hover:border-[#0053CC] transition-colors"
+                }
               >
-                <Move className="w-4 h-4" />
+                <Move className="w-4 h-4 mr-1" />
+                Seleccionar
               </Button>
               <Button
                 variant={tool === 'section' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTool('section')}
+                className={tool === 'section' 
+                  ? "bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] text-white border-0" 
+                  : "border-2 hover:border-[#CC66CC] transition-colors"
+                }
               >
-                <Square className="w-4 h-4" />
+                <Square className="w-4 h-4 mr-1" />
+                Sección
               </Button>
             </div>
 
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setScale(prev => Math.min(prev * 1.2, 3))}
-              >
-                <ZoomIn className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setScale(prev => Math.max(prev / 1.2, 0.3))}
-              >
-                <ZoomOut className="w-4 h-4" />
-              </Button>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">Control de zoom</Label>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setScale(prev => Math.min(prev * 1.2, 3))}
+                  className="flex-1 border-2 hover:border-[#01CBFE] transition-colors"
+                >
+                  <ZoomIn className="w-4 h-4 mr-1" />
+                  Acercar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setScale(prev => Math.max(prev / 1.2, 0.3))}
+                  className="flex-1 border-2 hover:border-[#FE4F00] transition-colors"
+                >
+                  <ZoomOut className="w-4 h-4 mr-1" />
+                  Alejar
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {tool === 'section' && (
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle>Nueva Sección</CardTitle>
+          <Card className="mb-6 border-0 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-[#CC66CC]/10 to-[#FE4F00]/10 pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-lg flex items-center justify-center">
+                  <Plus className="w-4 h-4 text-white" />
+                </div>
+                Nueva Sección
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="section-name">Nombre</Label>
+            <CardContent className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="section-name" className="text-sm font-medium">Nombre de la sección</Label>
                 <Input
                   id="section-name"
                   value={newSectionName}
                   onChange={(e) => setNewSectionName(e.target.value)}
-                  placeholder="Ej: Platea Alta"
+                  placeholder="Ej: Platea Alta, VIP, General"
+                  className="border-2 focus:border-[#CC66CC] transition-colors"
                 />
               </div>
-              <div>
-                <Label>Color</Label>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Color de la sección</Label>
                 <div className="grid grid-cols-4 gap-2 mt-2">
                   {COLORS.map(color => (
                     <button
                       key={color}
-                      className={`w-8 h-8 rounded border-2 ${
-                        newSectionColor === color ? 'border-gray-900' : 'border-gray-300'
+                      className={`w-10 h-10 rounded-xl border-2 transition-all hover:scale-105 ${
+                        newSectionColor === color ? 'border-foreground shadow-lg' : 'border-muted-foreground/30'
                       }`}
                       style={{ backgroundColor: color }}
                       onClick={() => setNewSectionColor(color)}
@@ -441,122 +469,184 @@ export function SeatingEditor({ initialSections = [], onSave }: SeatingEditorPro
                   ))}
                 </div>
               </div>
+              <div className="pt-2">
+                <p className="text-xs text-muted-foreground">
+                  💡 Arrastra en el lienzo para crear la sección
+                </p>
+              </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Sections List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Secciones</CardTitle>
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-lg flex items-center justify-center">
+                <Square className="w-4 h-4 text-white" />
+              </div>
+              Secciones
+              {sections.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">
+                  {sections.length}
+                </Badge>
+              )}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {sections.map(section => (
-                <div
-                  key={section.id}
-                  className={`p-3 rounded border cursor-pointer ${
-                    selectedSection === section.id 
-                      ? 'border-primary bg-primary/10' 
-                      : 'border-border'
-                  }`}
-                  onClick={() => setSelectedSection(section.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded"
-                        style={{ backgroundColor: section.color }}
-                      />
-                      <span className="font-medium">{section.name}</span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          generateSeatsForSection(section)
-                        }}
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          deleteSection(section.id)
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+          <CardContent className="pt-4">
+            {sections.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Square className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p className="text-sm">No hay secciones creadas</p>
+                <p className="text-xs mt-1">Selecciona &quot;Sección&quot; y arrastra en el lienzo</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sections.map(section => (
+                  <div
+                    key={section.id}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
+                      selectedSection === section.id 
+                        ? 'border-[#0053CC] bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10 shadow-lg' 
+                        : 'border-muted hover:border-[#0053CC]/50'
+                    }`}
+                    onClick={() => setSelectedSection(section.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-6 h-6 rounded-lg shadow-sm"
+                          style={{ backgroundColor: section.color }}
+                        />
+                        <div>
+                          <span className="font-semibold text-sm">{section.name}</span>
+                          <p className="text-xs text-muted-foreground">
+                            {section.seats.length} asientos
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            generateSeatsForSection(section)
+                          }}
+                          className="h-8 w-8 p-0 border-2 hover:border-green-500 hover:text-green-600"
+                          title="Generar asientos"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            deleteSection(section.id)
+                          }}
+                          className="h-8 w-8 p-0 border-2 hover:border-red-500 hover:text-red-600"
+                          title="Eliminar sección"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {section.seats.length} asientos
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Leyenda de colores */}
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm">Leyenda</CardTitle>
+        <Card className="mt-6 border-0 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <div className="w-6 h-6 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded flex items-center justify-center">
+                <div className="w-2 h-2 bg-white rounded-full"></div>
+              </div>
+              Leyenda de asientos
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <CardContent className="space-y-3 pt-4">
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-4 h-4 rounded-full bg-green-500 shadow-sm"></div>
               <span>Asientos disponibles</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-4 h-4 rounded-full bg-red-500 shadow-sm"></div>
               <span>Asientos bloqueados</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-              <span>Mantenimiento</span>
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-4 h-4 rounded-full bg-amber-500 shadow-sm"></div>
+              <span>En mantenimiento</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <div className="w-3 h-3 rounded border-2 border-muted-foreground"></div>
+            <div className="flex items-center gap-3 text-sm">
+              <div className="w-4 h-4 rounded border-2 border-blue-500 bg-blue-50"></div>
               <span>Accesible (♿)</span>
             </div>
           </CardContent>
         </Card>
 
-        <div className="mt-4 space-y-2">
-          <Button onClick={handleSave} className="w-full">
+        <div className="mt-6 space-y-3">
+          <Button 
+            onClick={handleSave} 
+            className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white border-0 shadow-lg"
+            size="lg"
+          >
             <Save className="w-4 h-4 mr-2" />
             Guardar Configuración
           </Button>
+          <p className="text-xs text-center text-muted-foreground">
+            Los cambios se guardarán automáticamente
+          </p>
         </div>
       </div>
 
-      {/* Canvas */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative bg-background">
         <canvas
           ref={canvasRef}
           width={1200}
           height={800}
-          className="border border-border cursor-crosshair bg-background"
+          className="border-0 cursor-crosshair bg-background shadow-inner"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onContextMenu={(e) => e.preventDefault()}
         />
         
-        <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm p-2 rounded border border-border shadow-md">
-          <div className="text-sm text-foreground">
-            <div>Zoom: {Math.round(scale * 100)}%</div>
-            <div>Herramienta: {tool === 'select' ? 'Seleccionar' : 'Crear Sección'}</div>
-            <div className="text-xs mt-1 text-muted-foreground">
-              Clic medio o Alt+Clic para mover el lienzo
+        <div className="absolute top-6 left-6 bg-background/95 backdrop-blur-sm p-4 rounded-xl border-0 shadow-lg">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full"></div>
+              <span className="font-medium">Zoom: {Math.round(scale * 100)}%</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full"></div>
+              <span className="font-medium">
+                Herramienta: {tool === 'select' ? 'Seleccionar' : 'Crear Sección'}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground mt-3 p-2 bg-muted/50 rounded">
+              💡 Clic medio o Alt+Clic para mover el lienzo
             </div>
           </div>
         </div>
+
+        {sections.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="text-center space-y-4 p-8 bg-background/80 backdrop-blur-sm rounded-2xl border shadow-lg">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-[#0053CC]/20 to-[#01CBFE]/20 rounded-2xl flex items-center justify-center">
+                <Square className="w-8 h-8 text-[#0053CC]" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Comienza a diseñar</h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Selecciona la herramienta &quot;Sección&quot; y arrastra en el lienzo para crear tu primera sección de asientos
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

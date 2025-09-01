@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { webpayPlus } from "@/lib/transbank";
 import { generateUniqueQRCode } from "@/lib/qr";
 import { calculatePriceBreakdown, calculatePriceBreakdownWithDiscount } from "@/lib/commission";
-import { PromoCodeService } from "@/lib/promo-codes";
+import { DiscountCodeService } from "@/lib/discount-codes";
 import { sendTicketEmail } from '@/lib/email';
 import { z } from "zod";
 import { Order, Event, User, TicketType } from "@prisma/client";
@@ -12,7 +12,7 @@ import { Order, Event, User, TicketType } from "@prisma/client";
 const createPaymentSchema = z.object({
   ticketTypeId: z.string().min(1, "Se requiere el tipo de ticket"),
   quantity: z.number().min(1, "La cantidad debe ser al menos 1").max(10, "No puedes comprar más de 10 tickets a la vez."),
-  promoCode: z.string().optional(),
+  promoCode: z.string().optional(), // Ahora incluye códigos de cortesía también
 });
 
 function generateShortBuyOrder(prefix: string = "SP"): string {
@@ -84,39 +84,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let promoCodeValidation = null;
+    let discountCodeValidation = null;
     let finalPriceBreakdown = null;
     
     const basePrice = ticketType.price;
     const baseTotalAmount = basePrice * quantity;
 
     if (promoCode && promoCode.trim()) {
-      console.log(`[PROMO] Validando código promocional: ${promoCode}`);
+      console.log(`[DISCOUNT] Validando código de descuento: ${promoCode}`);
       
-      promoCodeValidation = await PromoCodeService.validatePromoCode(
+      discountCodeValidation = await DiscountCodeService.validateDiscountCode(
         promoCode.trim(),
         user.id,
         ticketTypeId,
         quantity
       );
 
-      if (!promoCodeValidation.isValid) {
+      if (!discountCodeValidation.isValid) {
         return NextResponse.json(
-          { error: promoCodeValidation.error },
+          { error: discountCodeValidation.error },
           { status: 400 }
         );
       }
 
-      console.log(`[PROMO] ✅ Código válido. Descuento: ${promoCodeValidation.discountAmount}`);
+      console.log(`[DISCOUNT] ✅ Código válido (${discountCodeValidation.type}). Descuento: ${discountCodeValidation.discountAmount}`);
       
       // Usar la función correcta para calcular el breakdown con descuento
       finalPriceBreakdown = calculatePriceBreakdownWithDiscount(
         baseTotalAmount,
-        promoCodeValidation.discountAmount || 0,
+        discountCodeValidation.discountAmount || 0,
         event.currency
       );
       
-      finalPriceBreakdown.promoCode = promoCodeValidation.promoCode?.code;
+      finalPriceBreakdown.promoCode = discountCodeValidation.code;
     } else {
       finalPriceBreakdown = calculatePriceBreakdown(baseTotalAmount, event.currency);
       finalPriceBreakdown.originalAmount = baseTotalAmount;
@@ -166,13 +166,12 @@ export async function POST(request: NextRequest) {
     if (isFree) {
       console.log("Entrada gratuita o con descuento del 100%, procesando directamente...");
       
-      // Si hay código promocional, registrar su uso
-      if (promoCodeValidation?.promoCode) {
-        await PromoCodeService.applyPromoCodeToOrder(
-          promoCodeValidation.promoCode.id,
+      // Si hay código de descuento, registrar su uso
+      if (discountCodeValidation && discountCodeValidation.isValid) {
+        await DiscountCodeService.applyCodeUsage(
+          discountCodeValidation,
           user.id,
           order.id,
-          finalPriceBreakdown.discountAmount || 0,
           finalPriceBreakdown.originalAmount || 0,
           finalTotalAmount
         );
@@ -203,11 +202,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Si hay código promocional, guardarlo temporalmente en la orden para aplicarlo después del pago
-    if (promoCodeValidation?.promoCode) {
+    // Si hay código de descuento, guardarlo temporalmente en la orden para aplicarlo después del pago
+    if (discountCodeValidation && discountCodeValidation.isValid) {
       // Podríamos usar un campo temporal o metadata, pero por simplicidad 
       // lo manejaremos en el return de Transbank
-      console.log(`[PROMO] Código ${promoCode} quedará pendiente para aplicar tras pago exitoso`);
+      console.log(`[DISCOUNT] Código ${promoCode} (${discountCodeValidation.type}) quedará pendiente para aplicar tras pago exitoso`);
     }
 
     return NextResponse.json({
@@ -273,8 +272,19 @@ async function handleAndGenerateTickets(order: Order, event: Event, user: User, 
     include: { organizer: true }
   });
 
-  if (eventWithOrganizer) {
-      await sendTicketEmail({ user, event: eventWithOrganizer, order: updatedOrder });
+  if (eventWithOrganizer && user.firstName) {
+    await sendTicketEmail({
+      userEmail: user.email,
+      userName: user.firstName,
+      eventTitle: eventWithOrganizer.title,
+      eventDate: eventWithOrganizer.startDate.toISOString(),
+      eventLocation: eventWithOrganizer.location,
+      orderNumber: updatedOrder.id,
+      tickets: updatedOrder.tickets.map(ticket => ({
+        qrCode: ticket.qrCode!,
+        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` // Placeholder for actual QR image
+      }))
+    });
   }
 
   return NextResponse.json({

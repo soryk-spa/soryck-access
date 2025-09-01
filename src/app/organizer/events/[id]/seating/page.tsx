@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { SeatingEditor } from '@/components/seating/seating-editor'
-import { ArrowLeft, Settings, Users, MapPin } from 'lucide-react'
+import { ArrowLeft, Settings, Users, MapPin, Loader2, CheckCircle, Edit, Layout } from 'lucide-react'
 
 interface Event {
   id: string
@@ -124,11 +124,18 @@ export default function EventSeatingPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p>Cargando configuración de asientos...</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+        <div className="container mx-auto px-4 py-12">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-2xl flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-white animate-spin" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">Cargando configuración</h3>
+                <p className="text-muted-foreground">Preparando el editor de asientos...</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -137,98 +144,152 @@ export default function EventSeatingPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+        <div className="container mx-auto px-4 py-12">
+          <Alert variant="destructive" className="max-w-md mx-auto">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </div>
       </div>
     )
   }
 
   if (!event) {
     return (
-      <div className="container mx-auto p-6">
-        <Alert>
-          <AlertDescription>Evento no encontrado</AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+        <div className="container mx-auto px-4 py-12">
+          <Alert className="max-w-md mx-auto">
+            <AlertDescription>Evento no encontrado</AlertDescription>
+          </Alert>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Volver
-            </Button>
-            
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Configuración de Asientos
-              </h1>
-              <p className="text-sm text-gray-600">
-                {event.title}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <Card className="p-3">
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <span>{event.location}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-gray-500" />
-                  <span>Capacidad: {event.capacity}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-gray-500" />
-                  <span>Asientos configurados: {totalSeats}</span>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 flex flex-col">
+      <div className="bg-background/95 backdrop-blur-sm border-b shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                className="flex items-center gap-2 border-2 hover:border-[#0053CC] transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Volver
+              </Button>
+              
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
+                  Gestión de Asientos
+                </h1>
+                <p className="text-muted-foreground flex items-center gap-2">
+                  <Layout className="w-4 h-4" />
+                  {event.title}
+                </p>
               </div>
-            </Card>
+            </div>
 
-            <Badge variant={event.hasSeatingPlan ? "default" : "secondary"}>
-              {event.hasSeatingPlan ? "Plan configurado" : "Sin configurar"}
-            </Badge>
+            <div className="flex items-center gap-4">
+              <Card className="border-0 shadow-lg bg-background/50 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-lg flex items-center justify-center">
+                        <MapPin className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{event.location}</p>
+                        <p className="text-xs text-muted-foreground">Ubicación</p>
+                      </div>
+                    </div>
+                    
+                    <div className="h-8 w-px bg-border"></div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                        <Users className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{event.capacity}</p>
+                        <p className="text-xs text-muted-foreground">Capacidad</p>
+                      </div>
+                    </div>
+                    
+                    <div className="h-8 w-px bg-border"></div>
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#CC66CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                        <Settings className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{totalSeats}</p>
+                        <p className="text-xs text-muted-foreground">Asientos</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Badge 
+                variant={event.hasSeatingPlan ? "default" : "secondary"}
+                className={event.hasSeatingPlan 
+                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white border-0 px-4 py-2" 
+                  : "bg-muted text-muted-foreground px-4 py-2"
+                }
+              >
+                {event.hasSeatingPlan ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Plan configurado
+                  </>
+                ) : (
+                  <>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Sin configurar
+                  </>
+                )}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Editor */}
-      <div className="flex-1">
+      <div className="flex-1 relative">
         <SeatingEditor
           initialSections={sections}
           onSave={handleSave}
         />
       </div>
 
-      {/* Status Bar */}
-      <div className="bg-white border-t border-gray-200 p-2">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>
-            {sections.length > 0 && (
-              <span>
-                {sections.length} secciones • {totalSeats} asientos totales
-              </span>
-            )}
-          </div>
-          <div>
-            {saving ? (
-              <span className="text-blue-600">Guardando...</span>
-            ) : (
-              <span>Listo</span>
-            )}
+      <div className="bg-background/95 backdrop-blur-sm border-t shadow-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              {sections.length > 0 && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full"></div>
+                  <span>
+                    {sections.length} {sections.length === 1 ? 'sección' : 'secciones'} • {totalSeats} asientos totales
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {saving ? (
+                <div className="flex items-center gap-2 text-[#0053CC]">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="font-medium">Guardando...</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Cambios guardados</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

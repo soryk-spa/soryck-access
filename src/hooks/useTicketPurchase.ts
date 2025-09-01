@@ -135,7 +135,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     setPromoError(null);
 
     try {
-      const response = await fetch(`/api/promo-codes/validate`, {
+      const response = await fetch(`/api/discount-codes/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -159,14 +159,19 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
           percentage: data.discount.percentage,
         };
         setAppliedPromoCode(promoData);
-        toast.success(`¡Código promocional aplicado! ${data.promoCode.name}`);
+        
+        // Mensaje específico según el tipo de código
+        const codeTypeMessage = data.codeType === 'COURTESY_CODE' 
+          ? '¡Código de cortesía aplicado!' 
+          : '¡Código promocional aplicado!';
+        toast.success(`${codeTypeMessage} ${data.promoCode.name}`);
       } else {
-        setPromoError(data.error || "Código promocional inválido");
+        setPromoError(data.error || "Código no válido");
         setAppliedPromoCode(null);
       }
     } catch (error) {
-      console.error("Error validating promo code:", error);
-      setPromoError("Error al validar el código promocional");
+      console.error("Error validating discount code:", error);
+      setPromoError("Error al validar el código");
       setAppliedPromoCode(null);
     } finally {
       setIsValidatingPromo(false);

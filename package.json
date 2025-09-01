@@ -7,11 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
     "postinstall": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "health-check": "node scripts/health-check.js",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "analyze": "ANALYZE=true next build"
   },
   "dependencies": {
     "@clerk/localizations": "^3.20.7",

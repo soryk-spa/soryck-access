@@ -40,7 +40,6 @@ import { CourtesyRequestForm } from "@/components/courtesy-request-form";
 import { formatFullDateTime } from "@/lib/date";
 import { toast } from "sonner";
 
-// Define the props type for EventDetailView
 type EventDetailViewProps = {
   event: {
     id: string;
@@ -51,7 +50,7 @@ type EventDetailViewProps = {
     location: string;
     imageUrl?: string;
     isPublished: boolean;
-    allowCourtesy: boolean; // Campo para cortesías
+    allowCourtesy: boolean;
     hasSeatingPlan?: boolean;
     category: { name: string };
     organizer: {
@@ -112,7 +111,6 @@ export default function EventDetailView({
 
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
-  // Helper to display event price range or "Gratis"
   function getEventPriceDisplay(
     ticketTypes: EventDetailViewProps["event"]["ticketTypes"]
   ) {
@@ -180,13 +178,11 @@ export default function EventDetailView({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-8">
-                {/* Status Badges */}
                 <div className="flex flex-wrap items-center gap-3">
                   <Badge
                     variant="outline"
@@ -225,13 +221,11 @@ export default function EventDetailView({
                   )}
                 </div>
 
-                {/* Title */}
                 <div className="space-y-4">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
                     {event.title}
                   </h1>
 
-                  {/* Quick Info */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 text-lg">
                       <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
@@ -266,7 +260,6 @@ export default function EventDetailView({
 
                   </div>
 
-                  {/* Price and Actions */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 pt-6">
                     <div className="space-y-2">
                       <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
@@ -303,11 +296,9 @@ export default function EventDetailView({
                 </div>
               </div>
 
-              {/* Event Image - Más grande y optimizada para 1080x1080 */}
               <div className="relative">
                 {event.imageUrl ? (
                   <div className="relative w-full max-w-2xl mx-auto">
-                    {/* Contenedor cuadrado que se adapta al contenido */}
                     <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-2xl">
                       <div className="absolute -inset-4 bg-gradient-to-r from-[#0053CC] via-[#01CBFE] to-[#CC66CC] rounded-2xl opacity-20 blur-xl"></div>
                       <Image
@@ -320,7 +311,6 @@ export default function EventDetailView({
                       />
                     </div>
 
-                    {/* Progress indicator for ticket sales */}
                     {!isPast && (
                       <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
                         <div className="flex items-center justify-between text-sm mb-2">
@@ -347,7 +337,6 @@ export default function EventDetailView({
                       </div>
                     </div>
 
-                    {/* Progress indicator for ticket sales */}
                     {!isPast && (
                       <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
                         <div className="flex items-center justify-between text-sm mb-2">
@@ -369,19 +358,15 @@ export default function EventDetailView({
           </div>
         </div>
 
-        {/* Decorative elements */}
         <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-2xl"></div>
         <div className="absolute bottom-20 left-20 w-24 h-24 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
       </section>
 
-      {/* Main Content */}
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-3 gap-8">
-              {/* Main Content */}
               <div className="lg:col-span-2 space-y-8">
-                {/* Description */}
                 {event.description && (
                   <Card className="border-0 shadow-lg">
                     <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
@@ -402,7 +387,6 @@ export default function EventDetailView({
                   </Card>
                 )}
 
-                {/* Ticket Types */}
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-xl">
@@ -429,7 +413,6 @@ export default function EventDetailView({
                             key={ticketType.id}
                             className="relative p-6 border-2 rounded-xl hover:border-[#0053CC] transition-all duration-300 hover:shadow-lg group"
                           >
-                            {/* Ticket type header */}
                             <div className="flex items-start justify-between mb-4">
                               <div className="space-y-2 flex-1">
                                 <div className="flex items-center gap-3">
@@ -461,7 +444,6 @@ export default function EventDetailView({
                               </div>
                             </div>
 
-                            {/* Availability info */}
                             <div className="space-y-3">
                               <div className="flex items-center justify-between text-sm">
                                 <span className="text-muted-foreground">
@@ -476,7 +458,6 @@ export default function EventDetailView({
                                 </span>
                               </div>
 
-                              {/* Progress bar */}
                               <div className="space-y-2">
                                 <div className="w-full bg-muted rounded-full h-2">
                                   <div
@@ -510,8 +491,6 @@ export default function EventDetailView({
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Organizer Info */}
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-xl">
@@ -584,7 +563,6 @@ export default function EventDetailView({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-8 space-y-6">
-                    {/* Price Display */}
                     <div className="text-center p-6 bg-gradient-to-br from-[#0053CC]/5 to-[#01CBFE]/5 rounded-xl border-2 border-[#0053CC]/20">
                       <div className="text-4xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent mb-2">
                         {displayPrice}
@@ -601,7 +579,6 @@ export default function EventDetailView({
                       )}
                     </div>
 
-                    {/* Organizer Actions */}
                     {(isOwner || isAdmin) && (
                       <div className="space-y-4 p-4 bg-gradient-to-r from-muted/30 to-transparent rounded-xl border">
                         <div className="flex items-center gap-2">
@@ -617,7 +594,7 @@ export default function EventDetailView({
                             asChild
                             className="border-2 hover:border-[#0053CC]"
                           >
-                            <Link href={`/events/${event.id}/edit`}>
+                            <Link href={`/organizer/events/${event.id}/edit`}>
                               <Edit className="h-4 w-4 mr-1" />
                               Editar
                             </Link>
@@ -671,7 +648,6 @@ export default function EventDetailView({
                           Entradas agotadas
                         </Button>
                       ) : user ? (
-                        // Show different options based on seating plan availability
                         event.hasSeatingPlan ? (
                           <div className="space-y-3">
                             <Button
@@ -741,7 +717,6 @@ export default function EventDetailView({
                         </div>
                       )}
 
-                      {/* Courtesy Request Section */}
                       {user && event.allowCourtesy && !isPast && (
                         <div className="pt-4 border-t border-muted/30">
                           <Button
@@ -764,7 +739,6 @@ export default function EventDetailView({
                   </CardContent>
                 </Card>
 
-                {/* Event Info */}
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3">
@@ -845,7 +819,6 @@ export default function EventDetailView({
                   </CardContent>
                 </Card>
 
-                {/* SorykPass Guarantees */}
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-lg">
@@ -908,7 +881,6 @@ export default function EventDetailView({
                   </CardContent>
                 </Card>
 
-                {/* Quick Actions */}
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-lg">
@@ -967,7 +939,6 @@ export default function EventDetailView({
         </div>
       </section>
 
-      {/* Enhanced Purchase Modal */}
       {showPurchaseForm && user && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-background rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">
@@ -996,16 +967,15 @@ export default function EventDetailView({
               <TicketPurchaseForm
                 event={{
                   ...event,
-                  // Add missing Event interface properties
                   capacity: totalCapacity,
                   price: event.ticketTypes.length > 0 ? Math.min(...event.ticketTypes.map(t => t.price)) : 0,
                   currency: event.ticketTypes.length > 0 ? event.ticketTypes[0].currency : "CLP",
                   isFree: event.ticketTypes.every(t => t.price === 0),
-                  categoryId: event.category.name, // Using name as ID for now
+                  categoryId: event.category.name,
                   organizerId: event.organizer.id,
                   description: event.description ?? "",
                   category: {
-                    id: event.category.name, // Using name as ID for now
+                    id: event.category.name,
                     name: event.category.name,
                   },
                   organizer: {
@@ -1042,7 +1012,6 @@ export default function EventDetailView({
         </div>
       )}
 
-      {/* Courtesy Request Modal */}
       {showCourtesyForm && user && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-background rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">

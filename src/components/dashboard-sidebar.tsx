@@ -48,10 +48,8 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   const { user } = useUser();
   const { role: userRole, loading: roleLoading } = useUserRole();
 
-  // Determinar el tipo de dashboard basado en la ruta
   const isAdmin = pathname.startsWith("/admin");
 
-  // Items de navegación para Cliente (rol básico)
   const clientItems: NavItem[] = [
     {
       title: "Dashboard",
@@ -67,7 +65,6 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
-  // Items de navegación para Dashboard de Organizador
   const organizerItems: NavItem[] = [
     {
       title: "Dashboard",
@@ -82,7 +79,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       description: "Gestiona tus eventos",
     },
     {
-      title: "Gestión de Asientos",
+      title: "Gestión",
       href: "/organizer",
       icon: Armchair,
       description: "Configura venues y asientos",
@@ -101,7 +98,6 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
-  // Items de navegación para Admin
   const adminItems: NavItem[] = [
     {
       title: "Panel Admin",
@@ -147,7 +143,6 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
-  // Items de configuración
   const settingsItems: NavItem[] = [
     {
       title: "Configuración",
@@ -163,14 +158,11 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
-  // Seleccionar items según el dashboard y rol del usuario
   const getDashboardItems = () => {
     if (isAdmin) return adminItems;
     
-    // Si está cargando el rol, mostrar items básicos
     if (roleLoading) return clientItems;
     
-    // Determinar items según el rol
     switch (userRole) {
       case "ORGANIZER":
       case "SCANNER":
@@ -185,9 +177,23 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   const currentItems = getDashboardItems();
 
   const isActiveRoute = (href: string) => {
+    // Casos exactos para rutas específicas
     if (href === "/dashboard" || href === "/admin") {
       return pathname === href;
     }
+    
+    // Manejo especial para rutas del organizador
+    if (href === "/dashboard/events") {
+      // "Mis Eventos" debe estar activo para todas las rutas de eventos del organizador
+      return pathname.startsWith("/dashboard/events") || pathname.startsWith("/organizer/events");
+    }
+    
+    if (href === "/organizer") {
+      // "Gestión de Asientos" solo debe estar activo para rutas de organizer que NO sean eventos
+      return pathname.startsWith("/organizer") && !pathname.startsWith("/organizer/events");
+    }
+    
+    // Para el resto de rutas, usar la lógica estándar
     return pathname.startsWith(href);
   };
 

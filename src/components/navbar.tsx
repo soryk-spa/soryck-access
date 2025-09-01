@@ -51,7 +51,7 @@ export default function Navbar() {
   const { user: clerkUser, isLoaded } = useUser();
   const [dbUser, setDbUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { scrollY, isAtTop } = useScrollBehavior();
+  const { isAtTop } = useScrollBehavior();
 
   useEffect(() => {
     async function fetchUserData() {
@@ -139,7 +139,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link
-                  href="/tickets"
+                  href="/dashboard/tickets"
                   className="text-foreground hover:text-[#01CBFE] transition-colors font-medium relative group"
                 >
                   Mis Tickets
@@ -147,13 +147,22 @@ export default function Navbar() {
                 </Link>
 
                 {dbUser && canOrganizeEvents(dbUser.role) && (
-                  <Link
-                    href="/events/create"
-                    className="text-foreground hover:text-[#CC66CC] transition-colors font-medium relative group"
-                  >
-                    Crear Evento
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] transition-all group-hover:w-full"></span>
-                  </Link>
+                  <>
+                    <Link
+                      href="/organizer"
+                      className="text-foreground hover:text-[#FDBD00] transition-colors font-medium relative group"
+                    >
+                      Organizar
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#FDBD00] to-[#CC66CC] transition-all group-hover:w-full"></span>
+                    </Link>
+                    <Link
+                      href="/events/create"
+                      className="text-foreground hover:text-[#CC66CC] transition-colors font-medium relative group"
+                    >
+                      Crear Evento
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] transition-all group-hover:w-full"></span>
+                    </Link>
+                  </>
                 )}
 
                 {dbUser && canAccessAdmin(dbUser.role) && (

@@ -32,7 +32,6 @@ import {
   CheckCircle2,
   Activity,
   ArrowLeft,
-  Edit3,
 } from "lucide-react";
 
 // Importaciones optimizadas desde utilidades centralizadas
@@ -154,29 +153,18 @@ export default function EditEventForm({
   // ============================================================================
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* Status Badge and Back Button */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.history.back()}
-            className="flex items-center space-x-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Volver</span>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center space-x-2">
-              <Edit3 className="h-8 w-8 text-blue-600" />
-              <span>Editar Evento</span>
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Modifica los detalles de tu evento
-            </p>
-          </div>
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.history.back()}
+          className="flex items-center space-x-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Volver</span>
+        </Button>
         
         <Badge variant={event.isPublished ? "default" : "secondary"}>
           {event.isPublished ? "Publicado" : "Borrador"}
@@ -184,7 +172,7 @@ export default function EditEventForm({
       </div>
 
       {/* Estadísticas Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<Ticket />}
           title="Tipos de Entrada"
@@ -215,93 +203,95 @@ export default function EditEventForm({
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Columna Principal - Información del Evento */}
-          <div className="lg:col-span-2 space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Columna Principal - Información del Evento (3/4 del ancho en pantallas grandes) */}
+          <div className="xl:col-span-3 space-y-6">
             
             {/* Información Básica */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Info className="h-5 w-5" />
                   <span>Información del Evento</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Título del evento *</Label>
-                  <Input
-                    id="title"
-                    value={eventForm.formData.title}
-                    onChange={(e) => eventForm.handleInputChange("title", e.target.value)}
-                    placeholder="Ej: Conferencia de Tecnología 2024"
-                    className="mt-1"
-                  />
-                  {eventForm.errors.title && (
-                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.title}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Descripción *</Label>
-                  <Textarea
-                    id="description"
-                    value={eventForm.formData.description}
-                    onChange={(e) => eventForm.handleInputChange("description", e.target.value)}
-                    placeholder="Describe tu evento de manera atractiva..."
-                    className="mt-1 min-h-[100px]"
-                  />
-                  {eventForm.errors.description && (
-                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.description}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="location">Ubicación *</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="lg:col-span-2">
+                    <Label htmlFor="title">Título del evento *</Label>
                     <Input
-                      id="location"
-                      value={eventForm.formData.location}
-                      onChange={(e) => eventForm.handleInputChange("location", e.target.value)}
-                      placeholder="Ej: Centro de Convenciones, Santiago"
-                      className="pl-10 mt-1"
+                      id="title"
+                      value={eventForm.formData.title}
+                      onChange={(e) => eventForm.handleInputChange("title", e.target.value)}
+                      placeholder="Ej: Conferencia de Tecnología 2024"
+                      className="mt-1"
                     />
+                    {eventForm.errors.title && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.title}</p>
+                    )}
                   </div>
-                  {eventForm.errors.location && (
-                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.location}</p>
-                  )}
-                </div>
 
-                <div>
-                  <Label htmlFor="categoryId">Categoría *</Label>
-                  <Select 
-                    value={eventForm.formData.categoryId} 
-                    onValueChange={(value) => eventForm.handleInputChange("categoryId", value)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Selecciona una categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {eventForm.errors.categoryId && (
-                    <p className="text-red-500 text-sm mt-1">{eventForm.errors.categoryId}</p>
-                  )}
+                  <div className="lg:col-span-2">
+                    <Label htmlFor="description">Descripción *</Label>
+                    <Textarea
+                      id="description"
+                      value={eventForm.formData.description}
+                      onChange={(e) => eventForm.handleInputChange("description", e.target.value)}
+                      placeholder="Describe tu evento de manera atractiva..."
+                      className="mt-1 min-h-[80px]"
+                    />
+                    {eventForm.errors.description && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.description}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Ubicación *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="location"
+                        value={eventForm.formData.location}
+                        onChange={(e) => eventForm.handleInputChange("location", e.target.value)}
+                        placeholder="Ej: Centro de Convenciones, Santiago"
+                        className="pl-10 mt-1"
+                      />
+                    </div>
+                    {eventForm.errors.location && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.location}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="categoryId">Categoría *</Label>
+                    <Select 
+                      value={eventForm.formData.categoryId} 
+                      onValueChange={(value) => eventForm.handleInputChange("categoryId", value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {eventForm.errors.categoryId && (
+                      <p className="text-red-500 text-sm mt-1">{eventForm.errors.categoryId}</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Fechas y Horarios */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Calendar className="h-5 w-5" />
                   <span>Fechas y Horarios</span>
                 </CardTitle>
@@ -347,8 +337,8 @@ export default function EditEventForm({
 
             {/* Tipos de Entrada */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center justify-between text-lg">
                   <div className="flex items-center space-x-2">
                     <Ticket className="h-5 w-5" />
                     <span>Tipos de Entrada</span>
@@ -367,7 +357,7 @@ export default function EditEventForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 {ticketTypesHook.ticketTypes.map((ticket, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-4">
+                  <div key={index} className="border rounded-lg p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <h4 className="font-medium">Tipo de Entrada #{index + 1}</h4>
                       {ticketTypesHook.ticketTypes.length > 1 && (
@@ -383,9 +373,9 @@ export default function EditEventForm({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                       <div>
-                        <Label>Nombre *</Label>
+                        <Label className="text-sm">Nombre *</Label>
                         <Input
                           value={ticket.name}
                           onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "name", e.target.value)}
@@ -395,7 +385,7 @@ export default function EditEventForm({
                       </div>
 
                       <div>
-                        <Label>Precio (CLP) *</Label>
+                        <Label className="text-sm">Precio (CLP) *</Label>
                         <Input
                           type="number"
                           min="0"
@@ -407,7 +397,7 @@ export default function EditEventForm({
                       </div>
 
                       <div>
-                        <Label>Capacidad *</Label>
+                        <Label className="text-sm">Capacidad *</Label>
                         <Input
                           type="number"
                           min="1"
@@ -419,7 +409,7 @@ export default function EditEventForm({
                       </div>
 
                       <div>
-                        <Label>Por Ticket *</Label>
+                        <Label className="text-sm">Por Ticket *</Label>
                         <Input
                           type="number"
                           min="1"
@@ -431,7 +421,7 @@ export default function EditEventForm({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                    <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
                       <span>Ingresos estimados: {formatCurrency(ticket.price * ticket.capacity)}</span>
                     </div>
                   </div>
@@ -440,15 +430,15 @@ export default function EditEventForm({
             </Card>
           </div>
 
-          {/* Columna Lateral - Imagen y Estadísticas */}
-          <div className="space-y-6">
+          {/* Columna Lateral - Imagen (1/4 del ancho en pantallas grandes) */}
+          <div className="xl:col-span-1 space-y-6">
             
             {/* Imagen del Evento */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <ImageIcon className="h-5 w-5" />
-                  <span>Imagen del Evento</span>
+                  <span>Imagen</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -473,10 +463,10 @@ export default function EditEventForm({
                       </Button>
                     </div>
                   ) : (
-                    <div className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                    <div className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
                       <div className="text-center">
-                        <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500">Sin imagen</p>
+                        <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Sin imagen</p>
                       </div>
                     </div>
                   )}
@@ -489,39 +479,39 @@ export default function EditEventForm({
               </CardContent>
             </Card>
 
-            {/* Resumen de Estadísticas */}
+            {/* Resumen Compacto */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2 text-lg">
                   <Sparkles className="h-5 w-5" />
-                  <span>Resumen del Evento</span>
+                  <span>Resumen</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Tipos de entrada:</span>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Tipos:</span>
                     <Badge variant="outline">{stats.totalTypes}</Badge>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Capacidad total:</span>
-                    <Badge variant="outline">{stats.totalCapacity} personas</Badge>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Capacidad:</span>
+                    <Badge variant="outline">{stats.totalCapacity}</Badge>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Precio promedio:</span>
-                    <p className="font-semibold">{formatCurrency(stats.averagePrice)}</p>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Precio prom.:</span>
+                    <span className="font-medium">{formatCurrency(stats.averagePrice)}</span>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Ingresos potenciales:</span>
-                    <p className="font-semibold text-green-600">{formatCurrency(stats.totalCapacity * stats.averagePrice)}</p>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t">
+                    <span className="text-gray-600">Ingresos pot.:</span>
+                    <span className="font-semibold text-green-600">{formatCurrency(stats.totalCapacity * stats.averagePrice)}</span>
                   </div>
 
                   {event._count?.tickets > 0 && (
-                    <div className="flex justify-between items-center pt-2 border-t">
-                      <span className="text-sm text-gray-600">Entradas vendidas:</span>
+                    <div className="flex justify-between items-center text-sm pt-2 border-t">
+                      <span className="text-gray-600">Vendidas:</span>
                       <Badge variant="default">{event._count.tickets}</Badge>
                     </div>
                   )}
@@ -532,7 +522,7 @@ export default function EditEventForm({
         </div>
 
         {/* Botones de Acción */}
-        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 border-t pt-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 pt-6 border-t bg-gray-50 -mx-6 px-6 py-4 rounded-b-lg">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <span>Los cambios se guardarán automáticamente</span>

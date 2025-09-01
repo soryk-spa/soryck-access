@@ -1,13 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { User, Event, CourtesyRequest } from "@prisma/client";
+import { logger } from "@/lib/logger";
+
+// Importación dinámica del template de tickets
+async function loadTicketEmailComponent() {
+  const { TicketEmail } = await import("@/app/api/_emails/ticket-email");
+  return TicketEmail;
+}
 
 // Importación dinámica del template de cortesía
 async function loadCourtesyEmailComponent() {
   const { CourtesyEmail } = await import("@/app/api/_emails/courtesy-email");
   return CourtesyEmail;
+}
+
+// Importación dinámica del template de invitación de scanner
+async function loadScannerInviteEmailComponent() {
+  const { ScannerInviteEmail } = await import("@/app/api/_emails/scanner-invite-email");
+  return ScannerInviteEmail;
 }
 
 // Importación dinámica de date-utils
@@ -17,9 +29,7 @@ async function loadDateUtils() {
 }
 
 if (!process.env.RESEND_API_KEY) {
-  console.warn(
-    "RESEND_API_KEY no está definida. El envío de correos está deshabilitado."
-  );
+  logger.warn("RESEND_API_KEY no está definida. El envío de correos está deshabilitado.");
 }
 
 const resend = process.env.RESEND_API_KEY
@@ -29,11 +39,74 @@ const resend = process.env.RESEND_API_KEY
 type FullEvent = Event;
 type FullUser = User;
 
-// TODO: Esta función fue movida/refactorizada. Necesita re-implementación si se usa.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function sendTicketEmail(..._args: any[]) {
-  console.warn("sendTicketEmail function needs to be re-implemented");
-  // Implementación temporal vacía para evitar errores de compilación
+// Función para enviar tickets por email
+export async function sendTicketEmail({
+  userEmail,
+  userName,
+  eventTitle,
+  eventDate,
+  eventLocation,
+  orderNumber,
+  tickets,
+}: {
+  userEmail: string;
+  userName: string;
+  eventTitle: string;
+  eventDate: string;
+  eventLocation: string;
+  orderNumber: string;
+  tickets: { qrCode: string; qrCodeImage: string }[];
+}) {
+  if (!resend || !process.env.EMAIL_FROM) {
+    logger.warn("Envío de ticket por email omitido por falta de configuración de Resend.");
+    return;
+  }
+
+  logger.email.processing("ticket", userEmail, {
+    eventTitle,
+    orderNumber,
+    ticketCount: tickets.length
+  });
+
+  try {
+    // Cargar dependencias dinámicamente
+    const TicketEmail = await loadTicketEmailComponent();
+    const { formatFullDateTime } = await loadDateUtils();
+    
+    const formattedDate = formatFullDateTime(new Date(eventDate));
+
+    const emailHtml = await render(
+      React.createElement(TicketEmail, {
+        userName,
+        eventName: eventTitle,
+        eventDate: formattedDate,
+        eventLocation,
+        orderNumber,
+        tickets,
+      })
+    );
+
+    const emailData = {
+      from: process.env.EMAIL_FROM,
+      to: userEmail,
+      subject: `🎫 ${tickets.length > 1 ? 'Tus tickets' : 'Tu ticket'} para ${eventTitle}`,
+      html: emailHtml,
+    };
+
+    await resend.emails.send(emailData);
+
+    logger.email.sent("ticket", userEmail, emailData.subject, {
+      eventTitle,
+      orderNumber,
+      ticketCount: tickets.length
+    });
+  } catch (error) {
+    logger.email.failed("ticket", userEmail, error as Error, {
+      eventTitle,
+      orderNumber
+    });
+    throw error;
+  }
 }
 
 // Función para enviar correos de cortesía
@@ -47,17 +120,15 @@ export async function sendCourtesyEmail({
   courtesyRequest: CourtesyRequest;
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
-    console.log(
-      "Envío de correo de cortesía omitido por falta de configuración de Resend."
-    );
+    logger.warn("Envío de correo de cortesía omitido por falta de configuración de Resend.");
     return;
   }
 
-  console.log(`[COURTESY EMAIL] 🚀 Iniciando proceso para cortesía: ${courtesyRequest.id}`);
-  console.log(`[COURTESY EMAIL] 👤 Usuario: ${user.email}`);
-  console.log(`[COURTESY EMAIL] 🎪 Evento: ${event.title}`);
-  console.log(`[COURTESY EMAIL] 🎫 Código: ${courtesyRequest.code}`);
-  console.log(`[COURTESY EMAIL] 💰 Tipo: ${courtesyRequest.codeType}`);
+  logger.email.processing("courtesy", user.email, {
+    eventTitle: event.title,
+    courtesyCode: courtesyRequest.code,
+    codeType: courtesyRequest.codeType
+  });
 
   try {
     // Cargar dependencias dinámicamente
@@ -88,18 +159,93 @@ export async function sendCourtesyEmail({
       html: emailHtml,
     };
 
-    console.log("[COURTESY EMAIL] 📤 Enviando email...");
-    console.log(`[COURTESY EMAIL]    - Para: ${user.email}`);
-    console.log(`[COURTESY EMAIL]    - Asunto: ${emailData.subject}`);
-    console.log(`[COURTESY EMAIL]    - Código: ${courtesyRequest.code}`);
+    await resend.emails.send(emailData);
+
+    logger.email.sent("courtesy", user.email, emailData.subject, {
+      eventTitle: event.title,
+      courtesyCode: courtesyRequest.code,
+      codeType: courtesyRequest.codeType
+    });
+  } catch (error) {
+    logger.email.failed("courtesy", user.email, error as Error, {
+      eventTitle: event.title,
+      courtesyRequestId: courtesyRequest.id
+    });
+    throw error;
+  }
+}
+
+// Función para enviar invitaciones a validadores
+export async function sendScannerInviteEmail({
+  scannerUser,
+  event,
+  organizer,
+  isNewUser = false,
+}: {
+  scannerUser: FullUser;
+  event: FullEvent;
+  organizer: FullUser;
+  isNewUser?: boolean;
+}) {
+  if (!resend || !process.env.EMAIL_FROM) {
+    console.log(
+      "Envío de invitación de scanner omitido por falta de configuración de Resend."
+    );
+    return;
+  }
+
+  console.log(`[SCANNER INVITE] 🚀 Iniciando proceso de invitación`);
+  console.log(`[SCANNER INVITE] 👤 Scanner: ${scannerUser.email}`);
+  console.log(`[SCANNER INVITE] 🎪 Evento: ${event.title}`);
+  console.log(`[SCANNER INVITE] 👔 Organizador: ${organizer.email}`);
+  console.log(`[SCANNER INVITE] 🆕 Usuario nuevo: ${isNewUser}`);
+
+  try {
+    // Cargar dependencias dinámicamente
+    const ScannerInviteEmail = await loadScannerInviteEmailComponent();
+    const { formatFullDateTime } = await loadDateUtils();
+
+    const scannerName = scannerUser.firstName || scannerUser.email.split("@")[0];
+    const organizerName = organizer.firstName && organizer.lastName 
+      ? `${organizer.firstName} ${organizer.lastName}`
+      : organizer.producerName || organizer.email.split("@")[0];
+    
+    const eventDate = formatFullDateTime(event.startDate);
+    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`;
+    const eventUrl = `${process.env.NEXT_PUBLIC_APP_URL}/events/${event.id}`;
+
+    const emailHtml = await render(
+      React.createElement(ScannerInviteEmail, {
+        scannerName,
+        organizerName,
+        eventName: event.title,
+        eventDate,
+        eventLocation: event.location,
+        loginUrl,
+        eventUrl,
+        isNewUser,
+      })
+    );
+
+    const subjectPrefix = isNewUser ? "🎉 Invitación como validador" : "📋 Nueva asignación de validación";
+    const emailData = {
+      from: process.env.EMAIL_FROM,
+      to: scannerUser.email,
+      subject: `${subjectPrefix} - ${event.title}`,
+      html: emailHtml,
+    };
+
+    console.log("[SCANNER INVITE] 📤 Enviando email de invitación...");
+    console.log(`[SCANNER INVITE]    - Para: ${scannerUser.email}`);
+    console.log(`[SCANNER INVITE]    - Asunto: ${emailData.subject}`);
 
     await resend.emails.send(emailData);
 
-    console.log(`[COURTESY EMAIL] ✅ Correo de cortesía enviado exitosamente`);
-    console.log(`[COURTESY EMAIL] 📋 Código: ${courtesyRequest.code}`);
-    console.log(`[COURTESY EMAIL] 🎫 Tipo: ${courtesyRequest.codeType}`);
+    console.log(`[SCANNER INVITE] ✅ Invitación enviada exitosamente`);
+    console.log(`[SCANNER INVITE] 📧 Para: ${scannerUser.email}`);
+    console.log(`[SCANNER INVITE] 🎪 Evento: ${event.title}`);
   } catch (error) {
-    console.error("[COURTESY EMAIL] ❌ Error al enviar correo de cortesía:", error);
+    console.error("[SCANNER INVITE] ❌ Error al enviar invitación de scanner:", error);
     throw error;
   }
 }

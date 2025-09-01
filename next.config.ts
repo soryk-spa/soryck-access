@@ -1,7 +1,35 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Experimental features for performance
+  experimental: {
+    // Optimize package imports for better tree shaking
+    optimizePackageImports: [
+      '@radix-ui/react-icons', 
+      'lucide-react',
+      '@clerk/nextjs',
+      'sonner',
+      'date-fns',
+      'react-email'
+    ],
+    // Enable turbo mode optimizations
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+
+  // Image optimization configuration
   images: {
+    // Add format optimization
+    formats: ['image/webp', 'image/avif'],
+    // Enable image optimization
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
@@ -71,6 +99,47 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // Webpack optimizations
+  webpack: (config, { isServer }) => {
+    // Optimize bundle splitting
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+    };
+
+    // Only run on client-side builds
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+      };
+    }
+
+    // Optimize React imports
+    config.externals = config.externals || [];
+    if (isServer) {
+      config.externals.push({
+        '@react-email/render': '@react-email/render',
+        'resend': 'resend',
+      });
+    }
+
+    return config;
+  },
+
+  // Performance optimizations
+  swcMinify: true,
+  compiler: {
+    // Remove console.logs in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
+  },
+
+  // Headers for better caching and security
   async headers() {
     return [
       {

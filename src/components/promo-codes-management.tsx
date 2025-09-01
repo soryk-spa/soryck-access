@@ -4,8 +4,24 @@ import { useState } from "react";
 import Link from "next/link";
 import { DashboardPageLayout } from "@/components/dashboard-page-layout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Gift,
   Percent,
@@ -18,14 +34,16 @@ import {
   Activity,
   Filter,
   Search,
-  Grid3X3,
-  List,
   Clock,
   Copy,
   MoreVertical,
   Power,
   Users,
-  Award,
+  Calendar,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Zap,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -68,318 +86,39 @@ interface PromoCodesManagementProps {
   initialPromoCodes: PromoCode[];
 }
 
-// Componente para tarjetas de estadísticas modernas
-const ModernStatCard = ({
+const StatCard = ({
   title,
   value,
   icon: Icon,
   description,
   trend,
-  trendDirection = "up",
-  accentColor = "blue",
+  gradient,
 }: {
   title: string;
   value: string | number;
   icon: React.ElementType;
   description: string;
   trend?: string;
-  trendDirection?: "up" | "down" | "neutral";
-  accentColor?: "blue" | "green" | "purple" | "orange";
+  gradient: string;
 }) => {
-  const colorVariants = {
-    blue: {
-      bg: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900",
-      icon: "bg-blue-500 text-white",
-      accent: "text-blue-600 dark:text-blue-400",
-      trend: "text-blue-500",
-    },
-    green: {
-      bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900",
-      icon: "bg-green-500 text-white",
-      accent: "text-green-600 dark:text-green-400",
-      trend: "text-green-500",
-    },
-    purple: {
-      bg: "bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900",
-      icon: "bg-purple-500 text-white",
-      accent: "text-purple-600 dark:text-purple-400",
-      trend: "text-purple-500",
-    },
-    orange: {
-      bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900",
-      icon: "bg-orange-500 text-white",
-      accent: "text-orange-600 dark:text-orange-400",
-      trend: "text-orange-500",
-    },
-  };
-
-  const colors = colorVariants[accentColor];
-
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-300 border-0 ${colors.bg}`}>
-      <CardContent className="p-6">
+    <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-5`} />
+      <CardContent className="p-6 relative">
         <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
-              <div className={`p-2.5 rounded-xl ${colors.icon} shadow-sm group-hover:scale-110 transition-transform duration-200`}>
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                <p className={`text-2xl font-bold ${colors.accent}`}>{value}</p>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mb-2">{description}</p>
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-3xl font-bold">{value}</p>
+            <p className="text-xs text-muted-foreground">{description}</p>
             {trend && (
-              <div className={`flex items-center gap-1 text-xs font-medium ${colors.trend}`}>
-                <TrendingUp className={`h-3 w-3 ${trendDirection === "down" ? "rotate-180" : ""}`} />
+              <div className="flex items-center gap-1 text-xs text-green-600">
+                <TrendingUp className="h-3 w-3" />
                 {trend}
               </div>
             )}
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-// Componente para tarjeta de código promocional moderno
-const ModernPromoCodeCard = ({ promoCode }: { promoCode: PromoCode }) => {
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return {
-          label: "Activo",
-          color: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-        };
-      case "INACTIVE":
-        return {
-          label: "Inactivo",
-          color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-        };
-      case "EXPIRED":
-        return {
-          label: "Expirado",
-          color: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-        };
-      case "USED_UP":
-        return {
-          label: "Agotado",
-          color: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
-        };
-      default:
-        return {
-          label: status,
-          color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
-        };
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "PERCENTAGE":
-        return { icon: Percent, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900" };
-      case "FIXED_AMOUNT":
-        return { icon: DollarSign, color: "text-green-600 dark:text-green-400", bg: "bg-green-100 dark:bg-green-900" };
-      case "FREE":
-        return { icon: Gift, color: "text-purple-600 dark:text-purple-400", bg: "bg-purple-100 dark:bg-purple-900" };
-      default:
-        return { icon: Target, color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-100 dark:bg-gray-900" };
-    }
-  };
-
-  const formatDiscount = (type: string, value: number | undefined) => {
-    if (!value && value !== 0) return "N/A";
-    
-    switch (type) {
-      case "PERCENTAGE":
-        return `${value}% OFF`;
-      case "FIXED_AMOUNT":
-        return `$${value.toLocaleString("es-CL")} CLP OFF`;
-      case "FREE":
-        return "GRATIS";
-      default:
-        return `${value}`;
-    }
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.error("Error copying to clipboard:", err);
-    }
-  };
-
-  const status = getStatusConfig(promoCode.status);
-  const typeConfig = getTypeIcon(promoCode.type);
-  const TypeIcon = typeConfig.icon;
-  
-  const usagePercentage = (promoCode.usageLimit && promoCode.usedCount !== undefined)
-    ? Math.round((promoCode.usedCount / promoCode.usageLimit) * 100)
-    : 0;
-
-  const isHighUsage = usagePercentage > 80;
-
-  return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02] cursor-pointer overflow-hidden">
-      <CardContent className="p-0">
-        <div className="relative">
-          {/* Header con gradiente */}
-          <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-800 p-6 text-white">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <code className="text-2xl font-bold font-mono bg-white/20 px-3 py-1 rounded-lg">
-                    {promoCode.code}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:bg-white/20"
-                    onClick={() => copyToClipboard(promoCode.code)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  {isHighUsage && (
-                    <div className="flex items-center gap-1 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                      <Clock className="h-3 w-3" />
-                      Casi agotado
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-purple-100 text-sm">
-                  <Badge className={status.color} variant="secondary">
-                    {status.label}
-                  </Badge>
-                  <Badge variant="outline" className="border-purple-200 text-purple-100 bg-purple-500/20">
-                    {formatDiscount(promoCode.type, promoCode.discountValue)}
-                  </Badge>
-                </div>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-purple-200 hover:text-white hover:bg-white/20">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/promo-codes/${promoCode.id}`}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver detalles
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/promo-codes/${promoCode.id}/edit`}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Editar
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Power className="h-4 w-4 mr-2" />
-                    {promoCode.status === "ACTIVE" ? "Desactivar" : "Activar"}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-          {/* Contenido principal */}
-          <div className="p-6 space-y-6">
-            {/* Información del código */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className={`p-2 ${typeConfig.bg} rounded-lg`}>
-                    <TypeIcon className={`h-4 w-4 ${typeConfig.color}`} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">Tipo de descuento</p>
-                    <p className="text-muted-foreground">{formatDiscount(promoCode.type, promoCode.discountValue)}</p>
-                  </div>
-                </div>
-
-                {promoCode.event && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                      <Target className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground line-clamp-1">{promoCode.event.title}</p>
-                      <p className="text-muted-foreground">Evento específico</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <Users className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {promoCode.usedCount}
-                      {promoCode.usageLimit ? `/${promoCode.usageLimit}` : ""} usos
-                    </p>
-                    <p className="text-muted-foreground">
-                      {promoCode.usageLimit ? `${usagePercentage}% utilizado` : "Sin límite"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                    <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {promoCode.validUntil 
-                        ? new Date(promoCode.validUntil).toLocaleDateString("es-CL")
-                        : "Sin fecha límite"
-                      }
-                    </p>
-                    <p className="text-muted-foreground">Válido hasta</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Barra de progreso de uso */}
-            {promoCode.usageLimit && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Uso del código</span>
-                  <span className="font-medium">{usagePercentage}%</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      usagePercentage > 80
-                        ? "bg-gradient-to-r from-orange-500 to-red-500"
-                        : usagePercentage > 50
-                          ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                          : "bg-gradient-to-r from-green-500 to-blue-500"
-                    }`}
-                    style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Información adicional */}
-            <div className="flex justify-between items-center pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-xs text-muted-foreground">
-                {promoCode.description && (
-                  <p className="line-clamp-2">{promoCode.description}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Activity className="h-3 w-3" />
-                {promoCode._count.usages} aplicaciones
-              </div>
-            </div>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+            <Icon className="h-6 w-6 text-white" />
           </div>
         </div>
       </CardContent>
@@ -389,143 +128,364 @@ const ModernPromoCodeCard = ({ promoCode }: { promoCode: PromoCode }) => {
 
 export default function PromoCodesManagement({ initialPromoCodes }: PromoCodesManagementProps) {
   const [promoCodes] = useState<PromoCode[]>(initialPromoCodes);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  // Calcular estadísticas
-  const totalCodes = promoCodes.length;
-  const activeCodes = promoCodes.filter((code) => code.status === "ACTIVE").length;
-  const totalUsages = promoCodes.reduce((sum, code) => sum + (code.usedCount || 0), 0);
-  const totalSavings = promoCodes.reduce((sum, code) => {
-    if (code.type === "FIXED_AMOUNT" && code.discountValue && code.usedCount) {
-      return sum + (code.discountValue * code.usedCount);
+  const filteredPromoCodes = promoCodes.filter((code) => {
+    const matchesSearch = code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         code.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         code.event?.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || code.status === statusFilter;
+    const matchesType = typeFilter === "all" || code.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return (
+          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Activo
+          </Badge>
+        );
+      case "INACTIVE":
+        return (
+          <Badge className="bg-gradient-to-r from-gray-400 to-gray-500 text-white border-0">
+            <XCircle className="h-3 w-3 mr-1" />
+            Inactivo
+          </Badge>
+        );
+      case "EXPIRED":
+        return (
+          <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0">
+            <Clock className="h-3 w-3 mr-1" />
+            Expirado
+          </Badge>
+        );
+      case "USED_UP":
+        return (
+          <Badge className="bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Agotado
+          </Badge>
+        );
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
     }
-    return sum;
-  }, 0);
-
-  // Configuración del header
-  const headerConfig = {
-    title: "Códigos Promocionales",
-    description: "gestiona y monitorea tus códigos de descuento",
-    greeting: "Promociones activas",
-    backgroundIcon: Gift,
-    stats: [
-      { icon: Target, label: "códigos creados", value: totalCodes },
-      { icon: Award, label: "usos totales", value: totalUsages },
-    ],
-    actions: [
-      {
-        label: "Crear Código",
-        href: "/dashboard/promo-codes/create",
-        icon: Plus,
-        variant: "default" as const,
-      },
-    ],
   };
 
-  if (totalCodes === 0) {
-    return (
-      <DashboardPageLayout header={headerConfig}>
-        <Card className="text-center py-16">
-          <CardContent>
-            <Gift className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-2xl font-semibold mb-2">¡Crea tu primer código promocional!</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Incrementa tus ventas con códigos de descuento atractivos para tus eventos.
-            </p>
-            <Button size="lg" asChild>
-              <Link href="/dashboard/promo-codes/create">
-                <Plus className="w-5 h-5 mr-2" />
-                Crear Primer Código
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </DashboardPageLayout>
-    );
-  }
+  const getTypeBadge = (type: string, value: number) => {
+    switch (type) {
+      case "PERCENTAGE":
+        return (
+          <Badge className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white border-0">
+            <Percent className="h-3 w-3 mr-1" />
+            {value}% OFF
+          </Badge>
+        );
+      case "FIXED_AMOUNT":
+        return (
+          <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0">
+            <DollarSign className="h-3 w-3 mr-1" />
+            ${value.toLocaleString("es-CL")} CLP
+          </Badge>
+        );
+      case "FREE":
+        return (
+          <Badge className="bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] text-white border-0">
+            <Gift className="h-3 w-3 mr-1" />
+            GRATIS
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{type}</Badge>;
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const calculateStats = () => {
+    const totalCodes = promoCodes.length;
+    const activeCodes = promoCodes.filter(code => code.status === "ACTIVE").length;
+    const totalUsages = promoCodes.reduce((acc, code) => acc + code.usedCount, 0);
+    const totalSavings = promoCodes.reduce((acc, code) => {
+      if (code.type === "FIXED_AMOUNT") {
+        return acc + (code.discountValue * code.usedCount);
+      }
+      return acc;
+    }, 0);
+
+    return { totalCodes, activeCodes, totalUsages, totalSavings };
+  };
+
+  const stats = calculateStats();
 
   return (
-    <DashboardPageLayout header={headerConfig}>
+    <DashboardPageLayout
+      header={{
+        title: "Códigos Promocionales",
+        description: "Gestiona los descuentos y promociones para tus eventos",
+        actions: [
+          {
+            label: "Crear Código",
+            href: "/dashboard/promo-codes/create",
+            icon: Plus,
+            variant: "default"
+          }
+        ],
+        backgroundIcon: Gift,
+        gradient: "from-[#0053CC] to-[#01CBFE]"
+      }}
+    >
       {/* Estadísticas */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <ModernStatCard
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        <StatCard
           title="Total Códigos"
-          value={totalCodes}
+          value={stats.totalCodes}
           icon={Gift}
           description="Códigos creados"
           trend="+8%"
-          trendDirection="up"
-          accentColor="purple"
+          gradient="from-[#CC66CC] to-[#FE4F00]"
         />
-        <ModernStatCard
+        <StatCard
           title="Códigos Activos"
-          value={activeCodes}
+          value={stats.activeCodes}
           icon={Target}
           description="Disponibles para uso"
           trend="+12%"
-          trendDirection="up"
-          accentColor="green"
+          gradient="from-[#0053CC] to-[#01CBFE]"
         />
-        <ModernStatCard
+        <StatCard
           title="Total Usos"
-          value={totalUsages}
+          value={stats.totalUsages}
           icon={Users}
           description="Aplicaciones totales"
           trend="+18%"
-          trendDirection="up"
-          accentColor="blue"
+          gradient="from-[#01CBFE] to-[#CC66CC]"
         />
-        <ModernStatCard
+        <StatCard
           title="Ahorros Generados"
-          value={`$${totalSavings.toLocaleString("es-CL")}`}
+          value={`$${stats.totalSavings.toLocaleString("es-CL")}`}
           icon={DollarSign}
           description="CLP en descuentos"
           trend="+25%"
-          trendDirection="up"
-          accentColor="orange"
+          gradient="from-[#FDBD00] to-[#FE4F00]"
         />
       </div>
 
-      {/* Controles de vista */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === "grid" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("grid")}
-            >
-              <Grid3X3 className="h-4 w-4 mr-2" />
-              Grid
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4 mr-2" />
-              Lista
-            </Button>
+      {/* Filtros y búsqueda */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Filter className="h-5 w-5 text-[#0053CC]" />
+            Filtros y Búsqueda
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por código, descripción o evento..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="ACTIVE">Activo</SelectItem>
+                <SelectItem value="INACTIVE">Inactivo</SelectItem>
+                <SelectItem value="EXPIRED">Expirado</SelectItem>
+                <SelectItem value="USED_UP">Agotado</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-full md:w-48">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los tipos</SelectItem>
+                <SelectItem value="PERCENTAGE">Porcentaje</SelectItem>
+                <SelectItem value="FIXED_AMOUNT">Monto fijo</SelectItem>
+                <SelectItem value="FREE">Gratis</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
-          </Button>
-          <Button variant="outline" size="sm">
-            <Search className="h-4 w-4 mr-2" />
-            Buscar
-          </Button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Lista de códigos promocionales */}
-      <div className={viewMode === "grid" ? "grid gap-6 md:grid-cols-2 xl:grid-cols-3" : "space-y-4"}>
-        {promoCodes.map((promoCode) => (
-          <ModernPromoCodeCard key={promoCode.id} promoCode={promoCode} />
-        ))}
-      </div>
+      {/* Tabla de códigos promocionales */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-[#0053CC]" />
+            Códigos Promocionales ({filteredPromoCodes.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gradient-to-r from-[#0053CC]/5 to-[#01CBFE]/5">
+                  <TableHead className="font-semibold">Código</TableHead>
+                  <TableHead className="font-semibold">Tipo / Descuento</TableHead>
+                  <TableHead className="font-semibold">Estado</TableHead>
+                  <TableHead className="font-semibold">Evento</TableHead>
+                  <TableHead className="font-semibold">Usos</TableHead>
+                  <TableHead className="font-semibold">Vencimiento</TableHead>
+                  <TableHead className="font-semibold text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPromoCodes.map((promoCode) => {
+                  const usagePercentage = promoCode.usageLimit 
+                    ? Math.round((promoCode.usedCount / promoCode.usageLimit) * 100)
+                    : 0;
+
+                  return (
+                    <TableRow key={promoCode.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="font-mono font-bold text-[#0053CC] bg-[#0053CC]/10 px-3 py-1 rounded-lg">
+                            {promoCode.code}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyToClipboard(promoCode.code)}
+                            className="h-6 w-6 p-0 hover:bg-[#01CBFE]/10"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        {promoCode.description && (
+                          <p className="text-xs text-muted-foreground mt-1 max-w-48 truncate">
+                            {promoCode.description}
+                          </p>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {getTypeBadge(promoCode.type, promoCode.discountValue)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(promoCode.status)}
+                      </TableCell>
+                      <TableCell>
+                        {promoCode.event ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full" />
+                            <span className="text-sm font-medium max-w-32 truncate">
+                              {promoCode.event.title}
+                            </span>
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            <Zap className="h-3 w-3 mr-1" />
+                            General
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {promoCode.usedCount}
+                              {promoCode.usageLimit ? `/${promoCode.usageLimit}` : ""}
+                            </span>
+                            {promoCode.usageLimit && (
+                              <Badge variant="outline" className="text-xs">
+                                {usagePercentage}%
+                              </Badge>
+                            )}
+                          </div>
+                          {promoCode.usageLimit && (
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-1.5 rounded-full transition-all"
+                                style={{ width: `${usagePercentage}%` }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {promoCode.validUntil ? (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-3 w-3 text-muted-foreground" />
+                            {new Date(promoCode.validUntil).toLocaleDateString("es-CL")}
+                          </div>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            Sin límite
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/promo-codes/${promoCode.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver detalles
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/promo-codes/${promoCode.id}/edit`}>
+                                <Settings className="h-4 w-4 mr-2" />
+                                Editar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Power className="h-4 w-4 mr-2" />
+                              {promoCode.status === "ACTIVE" ? "Desactivar" : "Activar"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+          
+          {filteredPromoCodes.length === 0 && (
+            <div className="p-8 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#0053CC]/10 to-[#01CBFE]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Gift className="h-8 w-8 text-[#0053CC]" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">No se encontraron códigos</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm || statusFilter !== "all" || typeFilter !== "all"
+                  ? "Intenta ajustar los filtros de búsqueda"
+                  : "Crea tu primer código promocional para empezar"}
+              </p>
+              <Link href="/dashboard/promo-codes/create">
+                <Button className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Código
+                </Button>
+              </Link>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </DashboardPageLayout>
   );
 }
