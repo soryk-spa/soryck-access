@@ -3,9 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -25,9 +25,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    const { id } = await params;
+
     const venue = await prisma.venue.findFirst({
       where: {
-        id: params.id,
+        id,
         createdBy: user.id,
       },
       include: {
@@ -95,13 +97,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { sections } = body;
 
     // Verificar que el venue existe y pertenece al usuario
     const venue = await prisma.venue.findFirst({
       where: {
-        id: params.id,
+        id,
         createdBy: user.id,
       },
     });
@@ -116,14 +119,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       await tx.venueSeat.deleteMany({
         where: {
           section: {
-            venueId: params.id,
+            venueId: id,
           },
         },
       });
 
       await tx.venueSection.deleteMany({
         where: {
-          venueId: params.id,
+          venueId: id,
         },
       });
 
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             width: section.width,
             height: section.height,
             seatLayout: {},
-            venueId: params.id,
+            venueId: id,
           },
         });
 
@@ -175,7 +178,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       await tx.venue.update({
         where: {
-          id: params.id,
+          id,
         },
         data: {
           capacity: totalSeats,
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ 
       message: "Layout guardado exitosamente",
-      venueId: params.id,
+      venueId: id,
     });
   } catch (error) {
     console.error("Error saving venue layout:", error);

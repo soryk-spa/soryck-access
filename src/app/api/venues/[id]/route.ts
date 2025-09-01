@@ -3,9 +3,9 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -25,9 +25,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    const { id } = await params;
+
     const venue = await prisma.venue.findFirst({
       where: {
-        id: params.id,
+        id,
         createdBy: user.id,
       },
       include: {
@@ -73,13 +75,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     const { name, description, address, capacity } = body;
 
     // Verificar que el venue existe y pertenece al usuario
     const existingVenue = await prisma.venue.findFirst({
       where: {
-        id: params.id,
+        id,
         createdBy: user.id,
       },
     });
@@ -90,7 +93,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     const venue = await prisma.venue.update({
       where: {
-        id: params.id,
+        id,
       },
       data: {
         name: name?.trim() || existingVenue.name,
@@ -127,10 +130,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
+    const { id } = await params;
+
     // Verificar que el venue existe y pertenece al usuario
     const existingVenue = await prisma.venue.findFirst({
       where: {
-        id: params.id,
+        id,
         createdBy: user.id,
       },
     });
@@ -147,7 +152,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     await prisma.venue.delete({
       where: {
-        id: params.id,
+        id,
       },
     });
 
