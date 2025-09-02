@@ -12,15 +12,6 @@ const nextConfig: NextConfig = {
       'date-fns',
       'react-email'
     ],
-    // Enable turbo mode optimizations
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
   },
 
   // Image optimization configuration
@@ -100,14 +91,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Webpack optimizations
+  // Webpack optimizations - simplified for React 19 compatibility
   webpack: (config, { isServer }) => {
-    // Optimize bundle splitting
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react/jsx-runtime': 'react/jsx-runtime.js',
-    };
-
     // Only run on client-side builds
     if (!isServer) {
       config.resolve.fallback = {
@@ -118,20 +103,10 @@ const nextConfig: NextConfig = {
       };
     }
 
-    // Optimize React imports
-    config.externals = config.externals || [];
-    if (isServer) {
-      config.externals.push({
-        '@react-email/render': '@react-email/render',
-        'resend': 'resend',
-      });
-    }
-
     return config;
   },
 
-  // Performance optimizations
-  swcMinify: true,
+  // Remove problematic options for React 19
   compiler: {
     // Remove console.logs in production
     removeConsole: process.env.NODE_ENV === 'production' ? {
