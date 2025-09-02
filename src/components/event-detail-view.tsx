@@ -36,7 +36,6 @@ import {
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
-import { CourtesyRequestForm } from "@/components/courtesy-request-form";
 import { formatFullDateTime } from "@/lib/date";
 import { toast } from "sonner";
 
@@ -88,7 +87,6 @@ export default function EventDetailView({
   userTicketsCount,
 }: EventDetailViewProps) {
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
-  const [showCourtesyForm, setShowCourtesyForm] = useState(false);
   const [isPublished, setIsPublished] = useState(event.isPublished);
   const [loadingPublish, setLoadingPublish] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -716,25 +714,6 @@ export default function EventDetailView({
                           </Button>
                         </div>
                       )}
-
-                      {user && event.allowCourtesy && !isPast && (
-                        <div className="pt-4 border-t border-muted/30">
-                          <Button
-                            onClick={() => setShowCourtesyForm(true)}
-                            variant="outline"
-                            className="w-full bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30"
-                            size="lg"
-                          >
-                            <Star className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
-                            <span className="text-purple-700 dark:text-purple-300">
-                              Solicitar Cortesía
-                            </span>
-                          </Button>
-                          <p className="text-xs text-muted-foreground text-center mt-2">
-                            Solicita entrada gratuita o con descuento
-                          </p>
-                        </div>
-                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1006,42 +985,6 @@ export default function EventDetailView({
                   ticketsGenerated: 1,
                   _count: t._count,
                 }))}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showCourtesyForm && user && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-background rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 shadow-2xl">
-            <div className="sticky top-0 bg-background/95 backdrop-blur-sm p-6 border-b z-10">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    Solicitar Cortesía
-                  </h2>
-                  <p className="text-muted-foreground">
-                    {event.title} • {formatFullDateTime(startDate)}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowCourtesyForm(false)}
-                  className="h-12 w-12 rounded-full hover:bg-muted"
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <CourtesyRequestForm
-                eventId={event.id}
-                eventTitle={event.title}
-                isCourtesyEnabled={event.allowCourtesy}
-                onSuccess={() => setShowCourtesyForm(false)}
               />
             </div>
           </div>

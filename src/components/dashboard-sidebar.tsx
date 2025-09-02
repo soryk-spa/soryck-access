@@ -80,9 +80,9 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
     {
       title: "Gestión",
-      href: "/organizer",
+      href: "/dashboard/organizer",
       icon: Armchair,
-      description: "Configura venues y asientos",
+      description: "Venues, scanners y configuración",
     },
     {
       title: "Códigos Promocionales",
@@ -188,9 +188,10 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       return pathname.startsWith("/dashboard/events") || pathname.startsWith("/organizer/events");
     }
     
-    if (href === "/organizer") {
-      // "Gestión de Asientos" solo debe estar activo para rutas de organizer que NO sean eventos
-      return pathname.startsWith("/organizer") && !pathname.startsWith("/organizer/events");
+    if (href === "/dashboard/organizer") {
+      // "Gestión" debe estar activo para rutas de organizer dashboard y legacy organizer
+      return pathname.startsWith("/dashboard/organizer") || 
+             (pathname.startsWith("/organizer") && !pathname.startsWith("/organizer/events"));
     }
     
     // Para el resto de rutas, usar la lógica estándar

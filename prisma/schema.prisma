@@ -22,17 +22,18 @@ model User {
   instagramUrl             String?
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
-  organizedEvents          Event[]           @relation("EventOrganizer")
+  organizedEvents          Event[]               @relation("EventOrganizer")
   tickets                  Ticket[]
   orders                   Order[]
-  createdPromoCodes        PromoCode[]       @relation("CreatedPromoCodes")
+  createdPromoCodes        PromoCode[]           @relation("CreatedPromoCodes")
   promoCodeUsages          PromoCodeUsage[]
   roleRequests             RoleRequest[]
-  assignedEvents           EventScanner[]    @relation("ScannerEvents")
-  assignedScanners         EventScanner[]    @relation("AssignedBy")
-  createdVenues            Venue[]           @relation("CreatedVenues")
+  assignedEvents           EventScanner[]        @relation("ScannerEvents")
+  assignedScanners         EventScanner[]        @relation("AssignedBy")
+  createdVenues            Venue[]               @relation("CreatedVenues")
   seatReservations         SeatReservation[]
-  approvedCourtesyRequests CourtesyRequest[] @relation("ApprovedCourtesyRequests")
+  approvedCourtesyRequests CourtesyRequest[]     @relation("ApprovedCourtesyRequests")
+  createdCourtesyInvitations CourtesyInvitation[] @relation("CreatedCourtesyInvitations")
 
   @@map("users")
 }
@@ -91,15 +92,16 @@ model Event {
   categoryId       String
   category         Category          @relation(fields: [categoryId], references: [id])
   venueId          String?
-  venue            Venue?            @relation(fields: [venueId], references: [id], onDelete: SetNull)
-  tickets          Ticket[]
-  orders           Order[]
-  ticketTypes      TicketType[]
-  scanners         EventScanner[]
-  promoCodes       PromoCode[]
-  sections         Section[]
-  seatReservations SeatReservation[]
-  courtesyRequests CourtesyRequest[] @relation("EventCourtesyRequests")
+  venue              Venue?              @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  tickets            Ticket[]
+  orders             Order[]
+  ticketTypes        TicketType[]
+  scanners           EventScanner[]
+  promoCodes         PromoCode[]
+  sections           Section[]
+  seatReservations   SeatReservation[]
+  courtesyRequests   CourtesyRequest[]   @relation("EventCourtesyRequests")
+  courtesyInvitations CourtesyInvitation[] @relation("EventCourtesyInvitations")
 
   @@map("events")
 }
@@ -123,6 +125,7 @@ model Ticket {
   ticketType   TicketType? @relation(fields: [ticketTypeId], references: [id], onDelete: SetNull)
   seatId       String? // Reference to specific seat
   seat         EventSeat?  @relation(fields: [seatId], references: [id], onDelete: SetNull)
+  courtesyInvitation CourtesyInvitation? @relation("CourtesyInvitationTicket")
 
   @@map("tickets")
 }
@@ -259,6 +262,41 @@ enum CourtesyStatus {
 enum CourtesyCodeType {
   FREE // Entrada gratuita
   DISCOUNT // Descuento porcentual o fijo
+}
+
+model CourtesyInvitation {
+  id             String                     @id @default(cuid())
+  eventId        String
+  invitedEmail   String
+  invitedName    String?
+  message        String?
+  status         CourtesyInvitationStatus   @default(PENDING)
+  invitationCode String?                    @unique
+  sentAt         DateTime?
+  acceptedAt     DateTime?
+  expiresAt      DateTime?
+  ticketId       String?                    @unique
+  createdBy      String
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+
+  event   Event   @relation("EventCourtesyInvitations", fields: [eventId], references: [id], onDelete: Cascade)
+  creator User    @relation("CreatedCourtesyInvitations", fields: [createdBy], references: [id], onDelete: Cascade)
+  ticket  Ticket? @relation("CourtesyInvitationTicket", fields: [ticketId], references: [id], onDelete: SetNull)
+
+  @@unique([eventId, invitedEmail])
+  @@index([eventId])
+  @@index([invitedEmail])
+  @@index([invitationCode])
+  @@index([status])
+  @@map("courtesy_invitations")
+}
+
+enum CourtesyInvitationStatus {
+  PENDING  // Invitación pendiente de envío
+  SENT     // Invitación enviada
+  ACCEPTED // Invitación aceptada (ticket generado)
+  EXPIRED  // Invitación expirada
 }
 
 model Payment {

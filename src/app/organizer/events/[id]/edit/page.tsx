@@ -2,8 +2,12 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { canAccessEvent } from "@/lib/auth";
 import EditEventForm from "@/components/edit-event-form";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { formatToChileDatetimeLocal } from "@/lib/date-utils";
+import { Mail, QrCode, Settings, Users } from "lucide-react";
 
 export async function generateMetadata({
   params,
@@ -106,6 +110,66 @@ export default async function EditEventPage({
             Modifica los detalles de tu evento: {event.title}
           </p>
         </div>
+      </div>
+
+      {/* Enlaces de navegación rápida */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Mail className="w-4 h-4" />
+              Invitaciones de Cortesía
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Gestiona invitaciones gratuitas para tu evento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href={`/organizer/events/${event.id}/courtesy`}>
+              <Button variant="outline" className="w-full">
+                Gestionar Cortesías
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <QrCode className="w-4 h-4" />
+              Escáner de Tickets
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Valida tickets y cortesías en el evento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href={`/organizer/events/${event.id}/scan`}>
+              <Button variant="outline" className="w-full">
+                Abrir Escáner
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Validadores
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Administra los validadores del evento
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/organizer/scanners">
+              <Button variant="outline" className="w-full">
+                Gestionar Validadores
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
       </div>
 
       <EditEventForm

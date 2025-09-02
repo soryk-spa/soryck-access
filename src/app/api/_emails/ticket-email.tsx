@@ -3,7 +3,9 @@ import * as React from "react";
 
 interface Ticket {
   qrCode: string;
-  qrCodeImage: string; // Data URL: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+  qrCodeImage: string; // Content-ID (cid:qrcode) o Data URL (data:image/png;base64,...)
+  qrCodeUrl?: string; // URL de verificación como fallback
+  backupCode?: string; // Código de respaldo
 }
 
 interface TicketEmailProps {
@@ -235,74 +237,184 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             código al personal del evento
                           </div>
 
-                          {/* QR Code Image con Data URL */}
+                          {/* QR Code Image con múltiples estrategias de compatibilidad */}
                           {ticket.qrCodeImage ? (
-                            <div style={{ margin: "20px 0" }}>
-                              <img
-                                src={ticket.qrCodeImage}
-                                alt={`Código QR para ${eventName}`}
+                            <div style={{ margin: "20px 0", textAlign: "center" }}>
+                              {/* Mensaje de instrucciones mejorado */}
+                              <div
                                 style={{
-                                  display: "block",
-                                  margin: "0 auto",
-                                  width: "200px",
-                                  height: "200px",
-                                  border: "2px solid #ddd",
-                                  borderRadius: "8px",
-                                  backgroundColor: "#fff",
-                                  padding: "8px",
+                                  marginBottom: "15px",
+                                  padding: "10px",
+                                  backgroundColor: "#e3f2fd",
+                                  borderRadius: "6px",
+                                  fontSize: "14px",
+                                  color: "#1565c0",
+                                  border: "1px solid #bbdefb",
                                 }}
-                                width="200"
-                                height="200"
-                              />
+                              >
+                                📱 <strong>Tu código QR está listo</strong><br />
+                                Usa este código para acceder al evento
+                              </div>
+                              
+                              {/* QR Image optimizada para emails */}
+                              <div
+                                style={{
+                                  backgroundColor: "#ffffff",
+                                  padding: "15px",
+                                  borderRadius: "12px",
+                                  border: "3px solid #e0e0e0",
+                                  display: "inline-block",
+                                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                }}
+                              >
+                                <img
+                                  src={ticket.qrCodeImage}
+                                  alt={`Código QR para acceder a ${eventName}`}
+                                  title={`Tu ticket para ${eventName}`}
+                                  style={{
+                                    display: "block",
+                                    margin: "0 auto",
+                                    width: "200px",
+                                    height: "200px",
+                                    maxWidth: "200px",
+                                    maxHeight: "200px",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    backgroundColor: "#ffffff",
+                                    outline: "none",
+                                  }}
+                                  width="200"
+                                  height="200"
+                                />
+                              </div>
+                              
+                              {/* Mensaje adicional para clientes que bloquean imágenes */}
+                              <div
+                                style={{
+                                  marginTop: "15px",
+                                  padding: "10px",
+                                  backgroundColor: "#fff3e0",
+                                  borderRadius: "6px",
+                                  fontSize: "12px",
+                                  color: "#ef6c00",
+                                  border: "1px solid #ffcc02",
+                                }}
+                              >
+                                💡 <strong>¿No ves el código QR?</strong><br />
+                                Habilita la visualización de imágenes en tu email o usa el código de respaldo abajo
+                              </div>
                             </div>
                           ) : (
                             <div
                               style={{
-                                width: "200px",
-                                height: "200px",
+                                width: "220px",
+                                height: "220px",
                                 margin: "20px auto",
                                 backgroundColor: "#f8f9fa",
                                 border: "2px dashed #ccc",
-                                borderRadius: "8px",
+                                borderRadius: "12px",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
                                 color: "#666",
                                 fontSize: "14px",
+                                textAlign: "center",
+                                padding: "20px",
+                                boxSizing: "border-box",
                               }}
                             >
-                              ⚠️ QR no disponible
+                              <div>
+                                ⚠️ <strong>QR no disponible</strong><br />
+                                <div style={{ fontSize: "12px", marginTop: "8px" }}>
+                                  Usa el código de respaldo abajo
+                                </div>
+                              </div>
                             </div>
                           )}
 
-                          {/* Backup Code */}
+                          {/* Código de Respaldo Mejorado */}
                           <div
                             style={{
-                              fontSize: "12px",
-                              color: "#666",
-                              fontFamily: "Courier, monospace",
-                              padding: "12px",
+                              margin: "20px 0",
+                              padding: "16px",
                               backgroundColor: "#f8f9fa",
-                              borderRadius: "6px",
-                              wordBreak: "break-all",
-                              border: "1px solid #e9ecef",
-                              margin: "16px 0",
+                              borderRadius: "8px",
+                              border: "1px solid #dee2e6",
                             }}
                           >
-                            <strong>Código de respaldo:</strong>
-                            <br />
-                            {ticket.qrCode}
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                color: "#495057",
+                                marginBottom: "8px",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              🔢 Código de Respaldo
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "16px",
+                                color: "#212529",
+                                fontFamily: "'Courier New', Courier, monospace",
+                                padding: "12px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "6px",
+                                wordBreak: "break-all",
+                                border: "2px solid #e9ecef",
+                                letterSpacing: "1px",
+                                fontWeight: "bold",
+                                textAlign: "center",
+                              }}
+                            >
+                              {ticket.backupCode || ticket.qrCode}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "12px",
+                                color: "#6c757d",
+                                marginTop: "8px",
+                                textAlign: "center",
+                              }}
+                            >
+                              💡 Muestra este código al personal si el QR no funciona
+                            </div>
                           </div>
 
+                          {/* Instrucciones de uso */}
                           <div
                             style={{
-                              fontSize: "12px",
-                              color: "#666",
-                              fontStyle: "italic",
+                              marginTop: "20px",
+                              padding: "15px",
+                              backgroundColor: "#e8f5e8",
+                              borderRadius: "8px",
+                              border: "1px solid #c3e6c3",
                             }}
                           >
-                            💡 Si el QR no se ve, muestra el código de respaldo
-                            al personal
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                color: "#155724",
+                                fontWeight: "bold",
+                                marginBottom: "8px",
+                              }}
+                            >
+                              ✅ Instrucciones de Uso
+                            </div>
+                            <ul
+                              style={{
+                                fontSize: "13px",
+                                color: "#155724",
+                                margin: "0",
+                                paddingLeft: "20px",
+                                lineHeight: "1.5",
+                              }}
+                            >
+                              <li>Llega al evento con este email en tu teléfono</li>
+                              <li>Muestra el código QR al personal de entrada</li>
+                              <li>Si hay problemas, usa el código de respaldo</li>
+                              <li>Ten tu identificación lista para verificar</li>
+                            </ul>
                           </div>
                         </div>
                       </div>

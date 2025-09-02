@@ -2,19 +2,20 @@ import { Metadata } from "next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Armchair, 
-  Calendar, 
-  MapPin, 
-  Plus, 
-  Settings, 
-  Shield, 
+import {
+  Armchair,
+  Calendar,
+  MapPin,
+  Plus,
+  Settings,
+  Shield,
   TrendingUp,
   Users,
   Zap,
   Star,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Mail,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -182,6 +183,82 @@ export default function OrganizerPage() {
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Nueva sección destacada para cortesías */}
+        <section>
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+            <div className="bg-gradient-to-r from-[#CC66CC]/10 via-[#FE4F00]/10 to-[#FDBD00]/10 p-6">
+              <CardHeader className="p-0">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                      <Mail className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        Sistema de Cortesías
+                        <Badge className="bg-gradient-to-r from-green-500 to-green-600 text-white border-0">
+                          Nuevo
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription className="text-base">
+                        Gestiona invitaciones gratuitas para tus eventos
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <div className="hidden md:block">
+                    <div className="w-20 h-20 bg-white/20 rounded-2xl backdrop-blur-sm flex items-center justify-center">
+                      <Mail className="w-10 h-10 text-[#CC66CC]" />
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+            </div>
+            <CardContent className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Características principales
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Invitaciones individuales y masivas</li>
+                    <li>• QR tickets enviados automáticamente por email</li>
+                    <li>• Validación en tiempo real con escáner</li>
+                    <li>• No requiere registro del invitado</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    Cómo usar
+                  </h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>1. Ve a la gestión de tu evento</li>
+                    <li>2. Habilita cortesías en configuración</li>
+                    <li>3. Agrega emails de invitados</li>
+                    <li>4. Los QR se envían automáticamente</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button asChild className="bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] hover:from-[#CC66CC]/90 hover:to-[#FE4F00]/90 text-white border-0">
+                  <Link href="/dashboard/events">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Ver Mis Eventos
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="border-2 border-[#CC66CC]/30 hover:border-[#CC66CC] hover:bg-[#CC66CC]/10">
+                  <Link href="/organizer/scanners">
+                    <Users className="h-4 w-4 mr-2" />
+                    Configurar Validadores
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </section>

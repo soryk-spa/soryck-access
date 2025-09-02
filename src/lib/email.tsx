@@ -175,6 +175,98 @@ export async function sendCourtesyEmail({
   }
 }
 
+// Función para enviar invitaciones de cortesía con ticket QR
+export async function sendCourtesyInvitationEmail({
+  invitation,
+  event,
+  ticket,
+}: {
+  invitation: any; // CourtesyInvitation with relations
+  event: FullEvent;
+  ticket: any; // Ticket with QR code
+}) {
+  if (!resend || !process.env.EMAIL_FROM) {
+    logger.warn("Envío de invitación de cortesía omitido por falta de configuración de Resend.");
+    return;
+  }
+
+  logger.email.processing("courtesy_invitation", invitation.invitedEmail, {
+    eventTitle: event.title,
+    invitationId: invitation.id
+  });
+
+  try {
+    // Cargar dependencias dinámicamente  
+    const TicketEmail = await loadTicketEmailComponent();
+    const { formatFullDateTime } = await loadDateUtils();
+    
+    // Importar función de generación de QR
+    const { generateQRCodeBase64 } = await import('@/lib/qr-generator');
+
+    const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
+    const eventDate = formatFullDateTime(event.startDate);
+    
+    // Generar QR code como base64 para mejor compatibilidad con emails
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
+    const qrCodeImage = await generateQRCodeBase64(ticket.qrCode, verificationUrl);
+
+    logger.email.processing("courtesy_invitation_qr", invitation.invitedEmail, {
+      qrSize: Math.ceil(qrCodeImage.length / 1024), // Tamaño en KB
+      verificationUrl
+    });
+
+    // Convertir base64 a buffer para attachment
+    const qrBase64Data = qrCodeImage.replace(/^data:image\/png;base64,/, '');
+    const qrBuffer = Buffer.from(qrBase64Data, 'base64');
+
+    const emailHtml = await render(
+      React.createElement(TicketEmail, {
+        userName,
+        eventName: event.title,
+        eventDate,
+        eventLocation: event.location,
+        orderNumber: `CORTESÍA-${invitation.id.slice(-8).toUpperCase()}`,
+        tickets: [{
+          qrCode: ticket.qrCode,
+          qrCodeImage: qrCodeImage, // Base64 directo para mejor visualización
+          backupCode: ticket.qrCode
+        }],
+      })
+    );
+
+    const emailData = {
+      from: process.env.EMAIL_FROM,
+      to: invitation.invitedEmail,
+      subject: `🎉 Invitación gratuita para ${event.title}`,
+      html: emailHtml,
+      // QR como attachment para fácil descarga
+      attachments: [
+        {
+          filename: `sorykpass-ticket-${ticket.qrCode.slice(-8)}.png`,
+          content: qrBuffer,
+          contentType: 'image/png',
+          contentDisposition: 'attachment'
+        }
+      ]
+    };
+
+    await resend.emails.send(emailData);
+
+    logger.email.sent("courtesy_invitation", invitation.invitedEmail, emailData.subject, {
+      eventTitle: event.title,
+      invitationId: invitation.id,
+      ticketQR: ticket.qrCode,
+      qrMethod: 'base64'
+    });
+  } catch (error) {
+    logger.email.failed("courtesy_invitation", invitation.invitedEmail, error as Error, {
+      eventTitle: event.title,
+      invitationId: invitation.id
+    });
+    throw error;
+  }
+}
+
 // Función para enviar invitaciones a validadores
 export async function sendScannerInviteEmail({
   scannerUser,

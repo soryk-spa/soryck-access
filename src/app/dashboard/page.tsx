@@ -49,7 +49,7 @@ export default async function DashboardPage() {
   const totalEvents = events.length;
   const publishedEvents = events.filter(event => event.isPublished).length;
   const revenue = totalRevenue._sum.totalAmount || 0;
-
+  
   const recentEventsData = recentEvents.map(event => ({
     id: event.id,
     title: event.title,

@@ -15,7 +15,8 @@ export default function Layout({
   const organizerRoutes = [
     "/dashboard/events",
     "/dashboard/promo-codes", 
-    "/dashboard/organizer-profile"
+    "/dashboard/organizer-profile",
+    "/dashboard/organizer"
   ];
 
   // Verificar si la ruta actual requiere permisos de organizador
