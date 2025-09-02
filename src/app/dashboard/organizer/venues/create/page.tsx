@@ -62,8 +62,8 @@ export default function CreateVenuePage() {
       
       toast.success("Venue creado exitosamente");
       
-      // Redirigir al editor de asientos del venue
-      router.push(`/organizer/venues/${venue.id}/editor`);
+      // Redirigir al editor de asientos del venue con la ruta actualizada
+      router.push(`/dashboard/organizer/venues/${venue.id}/editor`);
       
     } catch (error) {
       console.error("Error creating venue:", error);
@@ -78,7 +78,7 @@ export default function CreateVenuePage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/organizer/venues">
+          <Link href="/dashboard/organizer/venues">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -167,7 +167,7 @@ export default function CreateVenuePage() {
                 )}
               </Button>
               <Button type="button" variant="outline" asChild>
-                <Link href="/organizer/venues">
+                <Link href="/dashboard/organizer/venues">
                   Cancelar
                 </Link>
               </Button>

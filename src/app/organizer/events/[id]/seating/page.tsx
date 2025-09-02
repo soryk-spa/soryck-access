@@ -19,6 +19,7 @@ interface Event {
 
 interface Section {
   id: string
+  type: 'section'
   name: string
   color: string
   x: number
@@ -69,7 +70,12 @@ export default function EventSeatingPage() {
         const seatingResponse = await fetch(`/api/events/${eventId}/seating`)
         if (seatingResponse.ok) {
           const seatingData = await seatingResponse.json()
-          setSections(seatingData.sections || [])
+          // Agregar la propiedad type a todas las secciones para compatibilidad
+          const sectionsWithType = (seatingData.sections || []).map((section: any) => ({
+            ...section,
+            type: 'section' as const
+          }))
+          setSections(sectionsWithType)
         }
       } catch (err) {
         console.error('Error fetching data:', err)

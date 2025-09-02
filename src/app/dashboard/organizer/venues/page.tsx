@@ -50,7 +50,7 @@ export default async function VenuesPage() {
             Administra tus espacios y configuraciones de asientos
           </p>
         </div>
-        <Link href="/dashboard/organizer/venues/new">
+        <Link href="/dashboard/organizer/venues/create">
           <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Venue
@@ -71,7 +71,7 @@ export default async function VenuesPage() {
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
               Los venues te permiten gestionar espacios, configurar asientos y organizar eventos de manera eficiente
             </p>
-            <Link href="/dashboard/organizer/venues/new">
+            <Link href="/dashboard/organizer/venues/create">
               <Button size="lg" className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
                 <Plus className="w-5 h-5 mr-2" />
                 Crear Primer Venue
@@ -97,7 +97,7 @@ export default async function VenuesPage() {
                       </Badge>
                     </div>
                   </div>
-                  <Link href={`/dashboard/organizer/venues/${venue.id}/edit`}>
+                  <Link href={`/dashboard/organizer/venues/${venue.id}/editor`}>
                     <Button variant="ghost" size="sm">
                       <Settings className="w-4 h-4" />
                     </Button>
@@ -155,7 +155,7 @@ export default async function VenuesPage() {
                       Ver Detalles
                     </Button>
                   </Link>
-                  <Link href={`/dashboard/organizer/venues/${venue.id}/edit`}>
+                  <Link href={`/dashboard/organizer/venues/${venue.id}/editor`}>
                     <Button variant="outline" size="sm">
                       <Edit className="w-4 h-4" />
                     </Button>

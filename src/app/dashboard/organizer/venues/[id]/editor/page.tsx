@@ -20,6 +20,7 @@ interface Seat {
 
 interface Section {
   id: string;
+  type: 'section';
   name: string;
   color: string;
   x: number;
@@ -57,7 +58,15 @@ export default function VenueEditorPage() {
         const layoutResponse = await fetch(`/api/venues/${venueId}/layout`);
         if (layoutResponse.ok) {
           const data = await layoutResponse.json();
-          setLayoutData(data);
+          // Agregar la propiedad type a todas las secciones para compatibilidad
+          const sectionsWithType = (data.sections || []).map((section: any) => ({
+            ...section,
+            type: 'section' as const
+          }));
+          setLayoutData({
+            ...data,
+            sections: sectionsWithType
+          });
         } else {
           // Si no hay layout, crear uno vacío
           setLayoutData({
@@ -108,7 +117,7 @@ export default function VenueEditorPage() {
 
   const handleFinish = () => {
     toast.success("Venue configurado exitosamente");
-    router.push("/organizer/venues");
+    router.push("/dashboard/organizer/venues");
   };
 
   if (isLoading) {
@@ -125,7 +134,7 @@ export default function VenueEditorPage() {
       <div className="container mx-auto py-6 text-center">
         <p>Error al cargar el venue</p>
         <Button asChild className="mt-4">
-          <Link href="/organizer/venues">
+          <Link href="/dashboard/organizer/venues">
             Volver a Venues
           </Link>
         </Button>
@@ -140,7 +149,7 @@ export default function VenueEditorPage() {
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
-              <Link href="/organizer/venues">
+              <Link href="/dashboard/organizer/venues">
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>

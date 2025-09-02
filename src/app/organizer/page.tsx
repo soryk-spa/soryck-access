@@ -146,7 +146,7 @@ export default function OrganizerPage() {
                 Crea y gestiona venues con configuraciones de asientos reutilizables
               </p>
               <Button asChild variant="outline" className="w-full border-2 border-[#FE4F00]/30 hover:border-[#FE4F00] hover:bg-[#FE4F00]/10 transition-colors">
-                <Link href="/organizer/venues">
+                <Link href="/dashboard/organizer/venues">
                   <MapPin className="h-4 w-4 mr-2" />
                   Gestionar Venues
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -351,7 +351,7 @@ export default function OrganizerPage() {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="border-2 border-[#CC66CC]/30 hover:border-[#CC66CC] hover:bg-[#CC66CC]/10">
-                  <Link href="/organizer/venues">
+                  <Link href="/dashboard/organizer/venues">
                     <Plus className="h-4 w-4 mr-2" />
                     Crear Venue
                     <ArrowRight className="h-4 w-4 ml-2" />
