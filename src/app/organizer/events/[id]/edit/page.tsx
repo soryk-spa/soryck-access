@@ -90,6 +90,8 @@ export default async function EditEventPage({
     description: event.description === null ? "" : event.description,
     startDate: formatToChileDatetimeLocal(event.startDate),
     endDate: event.endDate ? formatToChileDatetimeLocal(event.endDate) : undefined,
+    allowCourtesy: event.allowCourtesy,
+    courtesyLimit: event.courtesyLimit,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
     ticketTypes: event.ticketTypes.map((tt) => ({

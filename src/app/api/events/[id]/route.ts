@@ -29,6 +29,8 @@ const updateEventSchema = z.object({
   endDate: z.string().optional().nullable(),
   categoryId: z.string().min(1, 'La categoría es requerida'),
   imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  allowCourtesy: z.boolean().default(false),
+  courtesyLimit: z.number().min(1).nullable().optional(),
   ticketTypes: z.array(ticketTypeEditSchema).min(1, 'Se requiere al menos un tipo de entrada.').optional(),
 }).refine((data) => {
   if (data.endDate) {
@@ -44,6 +46,15 @@ const updateEventSchema = z.object({
 }, {
   message: 'La fecha de fin debe ser posterior a la fecha de inicio',
   path: ['endDate']
+}).refine((data) => {
+  // Validar que si allowCourtesy es true, courtesyLimit debe estar presente y ser mayor a 0
+  if (data.allowCourtesy && (!data.courtesyLimit || data.courtesyLimit <= 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'El límite de cortesías debe ser mayor a 0 cuando están habilitadas',
+  path: ['courtesyLimit']
 });
 
 export async function GET(
@@ -222,7 +233,9 @@ export async function PUT(
             categoryId: eventData.categoryId,
             capacity: totalCapacity,
             isFree: ticketTypes.every(tt => tt.price === 0),
-            imageUrl: eventData.imageUrl || null
+            imageUrl: eventData.imageUrl || null,
+            allowCourtesy: eventData.allowCourtesy,
+            courtesyLimit: eventData.allowCourtesy ? eventData.courtesyLimit : null,
           }
         });
 
@@ -275,6 +288,22 @@ export async function PUT(
           await tx.ticketType.deleteMany({
             where: { id: { in: typesToDelete.map(tt => tt.id) } }
           });
+        }
+      });
+    } else {
+      // Actualizar solo los campos básicos del evento cuando no se envían tipos de tickets
+      await prisma.event.update({
+        where: { id },
+        data: {
+          title: eventData.title,
+          description: eventData.description,
+          location: eventData.location,
+          startDate: startDate,
+          endDate: endDate,
+          categoryId: eventData.categoryId,
+          imageUrl: eventData.imageUrl || null,
+          allowCourtesy: eventData.allowCourtesy,
+          courtesyLimit: eventData.allowCourtesy ? eventData.courtesyLimit : null,
         }
       });
     }

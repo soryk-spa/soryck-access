@@ -32,6 +32,7 @@ import {
   CheckCircle2,
   Activity,
   ArrowLeft,
+  Gift,
 } from "lucide-react";
 
 // Importaciones optimizadas desde utilidades centralizadas
@@ -426,6 +427,72 @@ export default function EditEventForm({
                     </div>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Sistema de Cortesías */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center space-x-2 text-lg">
+                  <Gift className="h-5 w-5" />
+                  <span>Sistema de Cortesías</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="allowCourtesy"
+                    checked={eventForm.formData.allowCourtesy}
+                    onChange={(e) => 
+                      eventForm.handleBooleanChange("allowCourtesy", e.target.checked)
+                    }
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <Label htmlFor="allowCourtesy" className="text-sm font-medium leading-none cursor-pointer">
+                    Habilitar cortesías para este evento
+                  </Label>
+                </div>
+
+                {eventForm.formData.allowCourtesy && (
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <Label htmlFor="courtesyLimit" className="text-sm font-medium">
+                        Límite de cortesías
+                      </Label>
+                      <Input
+                        id="courtesyLimit"
+                        type="number"
+                        min="1"
+                        value={eventForm.formData.courtesyLimit || ""}
+                        onChange={(e) => {
+                          const value = e.target.value === "" ? null : parseInt(e.target.value);
+                          eventForm.handleNumberChange("courtesyLimit", value);
+                        }}
+                        placeholder="Ej: 50"
+                        className="mt-1"
+                      />
+                      {eventForm.errors.courtesyLimit && (
+                        <p className="text-red-500 text-sm mt-1">{eventForm.errors.courtesyLimit}</p>
+                      )}
+                      <p className="text-gray-500 text-xs mt-1">
+                        Número máximo de entradas gratuitas que se pueden solicitar
+                      </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start space-x-2">
+                        <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                        <div className="text-sm text-blue-800">
+                          <p className="font-medium">¿Cómo funcionan las cortesías?</p>
+                          <p className="mt-1">
+                            Los usuarios podrán solicitar entradas gratuitas que deberás aprobar manualmente desde el panel de administración.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

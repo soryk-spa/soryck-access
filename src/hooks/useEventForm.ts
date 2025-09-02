@@ -33,6 +33,7 @@ export interface EventFormData {
   categoryId: string;
   imageUrl: string;
   allowCourtesy: boolean;
+  courtesyLimit: number | null;
 }
 
 export interface EventFormErrors {
@@ -44,6 +45,7 @@ export interface EventFormErrors {
   categoryId?: string;
   imageUrl?: string;
   allowCourtesy?: string;
+  courtesyLimit?: string;
   ticketTypes?: string;
   general?: string;
 }
@@ -58,6 +60,7 @@ export interface InitialEventData {
   categoryId?: string;
   imageUrl?: string;
   allowCourtesy?: boolean;
+  courtesyLimit?: number | null;
   ticketTypes?: TicketTypeForm[];
 }
 
@@ -83,6 +86,7 @@ export function useEventForm(
     categoryId: initialData?.categoryId || "",
     imageUrl: initialData?.imageUrl || "",
     allowCourtesy: initialData?.allowCourtesy || false,
+    courtesyLimit: initialData?.courtesyLimit || null,
   });
 
   // Validaciones del formulario
@@ -128,6 +132,11 @@ export function useEventForm(
       newErrors.categoryId = "La categoría es requerida";
     }
 
+    // Validación del sistema de cortesías
+    if (data.allowCourtesy && (!data.courtesyLimit || data.courtesyLimit <= 0)) {
+      newErrors.courtesyLimit = "El límite de cortesías debe ser mayor a 0 cuando están habilitadas";
+    }
+
     if (tickets.length === 0) {
       newErrors.ticketTypes = "Debe agregar al menos un tipo de ticket";
     } else {
@@ -153,6 +162,15 @@ export function useEventForm(
 
   // Manejo de cambios en campos booleanos
   const handleBooleanChange = useCallback((field: keyof EventFormData, value: boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpiar error del campo cuando el usuario cambie el valor
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  }, [errors]);
+
+  // Manejo de cambios en campos numéricos
+  const handleNumberChange = useCallback((field: keyof EventFormData, value: number | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Limpiar error del campo cuando el usuario cambie el valor
     if (errors[field]) {
@@ -189,6 +207,8 @@ export function useEventForm(
         endDate: toChileISOString(endDate),
         categoryId: formData.categoryId,
         imageUrl: formData.imageUrl || undefined,
+        allowCourtesy: formData.allowCourtesy,
+        courtesyLimit: formData.allowCourtesy ? formData.courtesyLimit : null,
         ticketTypes: ticketTypes.map(ticket => ({
           name: ticket.name.trim(),
           price: ticket.price,
@@ -242,6 +262,7 @@ export function useEventForm(
     loading,
     handleInputChange,
     handleBooleanChange,
+    handleNumberChange,
     handleSubmit,
     setFormData,
     setErrors,
