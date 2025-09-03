@@ -279,7 +279,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                     }}
                   >
                     Saludos,<br />
-                    <strong>El equipo de SoryPass</strong>
+                    <strong>El equipo de SorykPass</strong>
                   </p>
                 </td>
               </tr>
@@ -301,7 +301,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                       margin: "0 0 5px 0",
                     }}
                   >
-                    © 2025 SoryPass. Todos los derechos reservados.
+                    © 2025 SorykPass. Todos los derechos reservados.
                   </p>
                   <p
                     style={{

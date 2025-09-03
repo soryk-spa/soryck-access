@@ -308,17 +308,12 @@ export async function sendScannerInviteEmail({
   isNewUser?: boolean;
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
-    console.log(
+    logger.warn(
       "Envío de invitación de scanner omitido por falta de configuración de Resend."
     );
     return;
   }
-
-  console.log(`[SCANNER INVITE] 🚀 Iniciando proceso de invitación`);
-  console.log(`[SCANNER INVITE] 👤 Scanner: ${scannerUser.email}`);
-  console.log(`[SCANNER INVITE] 🎪 Evento: ${event.title}`);
-  console.log(`[SCANNER INVITE] 👔 Organizador: ${organizer.email}`);
-  console.log(`[SCANNER INVITE] 🆕 Usuario nuevo: ${isNewUser}`);
+  logger.info('[SCANNER INVITE] 🚀 Iniciando proceso de invitación', { scanner: scannerUser.email, event: event.title, organizer: organizer.email, isNewUser });
 
   try {
     // Cargar dependencias dinámicamente
@@ -355,17 +350,13 @@ export async function sendScannerInviteEmail({
       html: emailHtml,
     };
 
-    console.log("[SCANNER INVITE] 📤 Enviando email de invitación...");
-    console.log(`[SCANNER INVITE]    - Para: ${scannerUser.email}`);
-    console.log(`[SCANNER INVITE]    - Asunto: ${emailData.subject}`);
+  logger.info('[SCANNER INVITE] 📤 Enviando email de invitación...', { to: scannerUser.email, subject: emailData.subject });
 
     await resend.emails.send(emailData);
 
-    console.log(`[SCANNER INVITE] ✅ Invitación enviada exitosamente`);
-    console.log(`[SCANNER INVITE] 📧 Para: ${scannerUser.email}`);
-    console.log(`[SCANNER INVITE] 🎪 Evento: ${event.title}`);
+  logger.info('[SCANNER INVITE] ✅ Invitación enviada exitosamente', { to: scannerUser.email, event: event.title });
   } catch (error) {
-    console.error("[SCANNER INVITE] ❌ Error al enviar invitación de scanner:", error);
+  logger.error("[SCANNER INVITE] ❌ Error al enviar invitación de scanner:", error as Error);
     throw error;
   }
 }

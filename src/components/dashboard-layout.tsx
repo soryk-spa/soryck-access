@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import DashboardNavbar from "@/components/dashboard-navbar";
+import { SidebarProvider, useSidebar } from "@/components/sidebar-context";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -11,19 +12,20 @@ interface DashboardLayoutProps {
   actions?: React.ReactNode;
 }
 
-export function DashboardLayout({ 
+function DashboardLayoutContent({ 
   children, 
   title = "Dashboard",
   showSearch = true,
   actions 
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { collapsed } = useSidebar();
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
       {/* Sidebar for desktop */}
       <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className="w-64">
+        <div className={`transition-all duration-300 ease-in-out ${collapsed ? 'w-16' : 'w-64'}`}>
           <DashboardSidebar />
         </div>
       </div>
@@ -51,13 +53,23 @@ export function DashboardLayout({
           actions={actions}
         />
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto pt-16">
+        {/* Page content with responsive margin and top padding for fixed navbar */}
+        <main className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out pt-16 ${
+          collapsed ? 'lg:ml-0' : 'lg:ml-0'
+        }`}>
           <div className="container mx-auto p-4 lg:p-6 max-w-full">
             {children}
           </div>
         </main>
       </div>
     </div>
+  );
+}
+
+export function DashboardLayout(props: DashboardLayoutProps) {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent {...props} />
+    </SidebarProvider>
   );
 }

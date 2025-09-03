@@ -105,6 +105,15 @@ export default async function MyTicketsPage() {
     }
   };
 
+  // Calculate stats
+  const upcomingTickets = tickets.filter(ticket => {
+    const eventDate = new Date(ticket.event.startDate);
+    return eventDate > new Date();
+  }).length;
+
+  const pastTickets = tickets.length - upcomingTickets;
+  const activeTickets = tickets.filter(ticket => ticket.status === "ACTIVE").length;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -118,6 +127,56 @@ export default async function MyTicketsPage() {
           {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
         </Badge>
       </div>
+
+      {/* Stats Cards */}
+      {tickets.length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total Tickets</p>
+                  <p className="text-2xl font-bold">{tickets.length}</p>
+                </div>
+                <Ticket className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Próximos</p>
+                  <p className="text-2xl font-bold">{upcomingTickets}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Activos</p>
+                  <p className="text-2xl font-bold">{activeTickets}</p>
+                </div>
+                <QrCode className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Finalizados</p>
+                  <p className="text-2xl font-bold">{pastTickets}</p>
+                </div>
+                <Clock className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {tickets.length === 0 ? (
         <Card className="text-center p-8">

@@ -239,7 +239,10 @@ export function useEventForm(
         })),
       };
 
-      console.log('📤 Sending eventData to API:', JSON.stringify(eventData, null, 2));
+  // Use structured logging for API submissions
+  // Import logger lazily to avoid client-side bundling in hooks
+  const { logger } = await import('@/lib/logger');
+  logger.debug('📤 Sending eventData to API', { eventData });
 
       const url = mode === "create" 
         ? "/api/events" 
@@ -247,8 +250,8 @@ export function useEventForm(
       
       const method = mode === "create" ? "POST" : "PUT";
 
-      console.log('🌐 API URL:', url);
-      console.log('🔄 HTTP Method:', method);
+  logger.debug('🌐 API URL', { url });
+  logger.debug('🔄 HTTP Method', { method });
 
       const response = await fetch(url, {
         method,
@@ -269,7 +272,8 @@ export function useEventForm(
         throw new Error(data.error || `Error al ${mode === "create" ? "crear" : "actualizar"} el evento`);
       }
     } catch (error) {
-      console.error(`Error ${mode === "create" ? "creating" : "updating"} event:`, error);
+  const { logger } = await import('@/lib/logger');
+  logger.error(`Error ${mode === "create" ? "creating" : "updating"} event:`, error as Error);
       setErrors({ 
         general: error instanceof Error ? error.message : "Error inesperado" 
       });

@@ -27,6 +27,13 @@ export const metadata: Metadata = {
 };
 
 export default function HelpPage() {
+  const slugify = (s: string) =>
+    encodeURIComponent(
+      s
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-_]/g, '')
+    );
   const helpCategories = [
     {
       icon: Calendar,
@@ -188,10 +195,12 @@ export default function HelpPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {quickActions.map((action, index) => (
+          {quickActions.map((action, index) => {
+            const href = action.link && action.link !== '#' ? action.link : `/help/articles/${slugify(action.title)}`;
+            return (
             <Link
               key={index}
-              href={action.link}
+              href={href}
               className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-200 hover:-translate-y-1"
             >
               <div className={`p-3 rounded-lg ${action.color} w-fit mb-4`}>
@@ -208,7 +217,8 @@ export default function HelpPage() {
                 <ChevronRight className="h-4 w-4" />
               </div>
             </Link>
-          ))}
+          );
+          })}
         </div>
 
         {/* Help Categories */}
@@ -230,10 +240,12 @@ export default function HelpPage() {
               </div>
               
               <div className="space-y-2">
-                {category.articles.map((article, articleIndex) => (
+                {category.articles.map((article, articleIndex) => {
+                  const href = article.link && article.link !== '#' ? article.link : `/help/articles/${slugify(article.title)}`;
+                  return (
                   <Link
                     key={articleIndex}
-                    href={article.link}
+                    href={href}
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors group"
                   >
                     <span className="text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
@@ -241,12 +253,13 @@ export default function HelpPage() {
                     </span>
                     <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
                   </Link>
-                ))}
+                );
+                })}
               </div>
               
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Link
-                  href="#"
+                  href="/help/articles"
                   className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline text-sm font-medium"
                 >
                   Ver todos los artículos
@@ -269,10 +282,12 @@ export default function HelpPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {popularArticles.map((article, index) => (
+            {popularArticles.map((article, index) => {
+              const href = `/help/articles/${slugify(article)}`;
+              return (
               <Link
                 key={index}
-                href="#"
+                href={href}
                 className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group"
               >
                 <div className="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-lg p-2 text-sm font-bold min-w-fit">
@@ -287,7 +302,8 @@ export default function HelpPage() {
                   </p>
                 </div>
               </Link>
-            ))}
+            );
+            })}
           </div>
         </div>
 
@@ -305,7 +321,7 @@ export default function HelpPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
-              href="#"
+              href={`/help/articles/${slugify('Comenzar Tutorial')}`}
               className="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition-colors flex items-center gap-2 w-fit"
             >
               <Play className="h-4 w-4" />

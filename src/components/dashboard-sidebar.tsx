@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Calendar,
   ChevronLeft,
@@ -27,6 +32,7 @@ import {
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useSidebar } from "@/components/sidebar-context";
 
 interface SidebarProps {
   className?: string;
@@ -43,7 +49,7 @@ interface NavItem {
 }
 
 export function DashboardSidebar({ className, onClose }: SidebarProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const { collapsed, toggleCollapsed } = useSidebar();
   const pathname = usePathname();
   const { user } = useUser();
   const { role: userRole, loading: roleLoading } = useUserRole();
@@ -67,12 +73,6 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
 
   const organizerItems: NavItem[] = [
     {
-      title: "Dashboard",
-      href: "/dashboard",
-      icon: Home,
-      description: "Vista general de tu actividad",
-    },
-    {
       title: "Mis Eventos",
       href: "/dashboard/events",
       icon: Calendar,
@@ -80,7 +80,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
     },
     {
       title: "Gestión",
-      href: "/dashboard/organizer",
+      href: "/dashboard",
       icon: Armchair,
       description: "Venues, scanners y configuración",
     },
@@ -167,7 +167,11 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       case "ORGANIZER":
       case "SCANNER":
       case "ADMIN":
-        return organizerItems;
+        // Para organizadores, combinamos dashboard principal + elementos específicos
+        return [
+          ...clientItems,  // Incluye Dashboard y Mis Tickets
+          ...organizerItems.filter(item => item.href !== "/dashboard") // Evita duplicar dashboard
+        ];
       case "CLIENT":
       default:
         return clientItems;
@@ -188,9 +192,9 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       return pathname.startsWith("/dashboard/events") || pathname.startsWith("/organizer/events");
     }
     
-    if (href === "/dashboard/organizer") {
-      // "Gestión" debe estar activo para rutas de organizer dashboard y legacy organizer
-      return pathname.startsWith("/dashboard/organizer") || 
+    if (href === "/dashboard") {
+      // "Gestión" debe estar activo para dashboard principal
+      return pathname === "/dashboard" || 
              (pathname.startsWith("/organizer") && !pathname.startsWith("/organizer/events"));
     }
     
@@ -201,8 +205,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex h-full flex-col bg-background border-r border-border transition-all duration-300",
-        collapsed ? "w-16" : "w-64",
+        "flex h-full flex-col bg-background border-r border-border",
         className
       )}
     >
@@ -224,7 +227,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={toggleCollapsed}
           className="h-8 w-8 shrink-0"
         >
           {collapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -308,28 +311,52 @@ function SidebarItem({ item, isActive, collapsed, onClose }: SidebarItemProps) {
     }
   };
 
+  const buttonContent = (
+    <Button
+      variant={isActive ? "secondary" : "ghost"}
+      className={cn(
+        "w-full justify-start gap-3 h-10",
+        collapsed && "px-2",
+        isActive && "bg-accent font-medium"
+      )}
+    >
+      <Icon className="h-4 w-4 flex-shrink-0" />
+      {!collapsed && (
+        <>
+          <span className="flex-1 text-left truncate">{item.title}</span>
+          {item.badge && (
+            <Badge variant="secondary" className="text-xs">
+              {item.badge}
+            </Badge>
+          )}
+        </>
+      )}
+    </Button>
+  );
+
+  if (collapsed) {
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <Link href={item.href} onClick={handleClick}>
+              {buttonContent}
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-medium">
+            <p>{item.title}</p>
+            {item.description && (
+              <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+            )}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   return (
     <Link href={item.href} onClick={handleClick}>
-      <Button
-        variant={isActive ? "secondary" : "ghost"}
-        className={cn(
-          "w-full justify-start gap-3 h-10",
-          collapsed && "px-2",
-          isActive && "bg-accent font-medium"
-        )}
-      >
-        <Icon className="h-4 w-4 flex-shrink-0" />
-        {!collapsed && (
-          <>
-            <span className="flex-1 text-left truncate">{item.title}</span>
-            {item.badge && (
-              <Badge variant="secondary" className="text-xs">
-                {item.badge}
-              </Badge>
-            )}
-          </>
-        )}
-      </Button>
+      {buttonContent}
     </Link>
   );
 }

@@ -1,4 +1,5 @@
 import { Redis } from 'ioredis';
+import { logger } from './logger';
 
 // Types
 export interface UserProfile {
@@ -67,15 +68,15 @@ const redis = process.env.REDIS_URL
 
 // Event listeners para logging
 redis.on('connect', () => {
-  console.log('✅ Redis connected successfully');
+  logger.info('✅ Redis connected successfully');
 });
 
 redis.on('error', (error) => {
-  console.error('❌ Redis connection error:', error);
+  logger.error('❌ Redis connection error', error);
 });
 
 redis.on('close', () => {
-  console.log('🔌 Redis connection closed');
+  logger.info('🔌 Redis connection closed');
 });
 
 // Cache utilities
@@ -100,7 +101,7 @@ export class CacheService {
       const cached = await this.redis.get(key);
       return cached ? JSON.parse(cached) : null;
     } catch (error) {
-      console.error(`Error getting cache key ${key}:`, error);
+  logger.error(`Error getting cache key ${key}`, error as Error);
       return null;
     }
   }
@@ -114,7 +115,7 @@ export class CacheService {
         await this.redis.set(key, serialized);
       }
     } catch (error) {
-      console.error(`Error setting cache key ${key}:`, error);
+  logger.error(`Error setting cache key ${key}`, error as Error);
     }
   }
 
@@ -122,7 +123,7 @@ export class CacheService {
     try {
       await this.redis.del(key);
     } catch (error) {
-      console.error(`Error deleting cache key ${key}:`, error);
+  logger.error(`Error deleting cache key ${key}`, error as Error);
     }
   }
 
@@ -133,7 +134,7 @@ export class CacheService {
         await this.redis.del(...keys);
       }
     } catch (error) {
-      console.error(`Error invalidating pattern ${pattern}:`, error);
+  logger.error(`Error invalidating pattern ${pattern}`, error as Error);
     }
   }
 
@@ -199,7 +200,7 @@ export class CacheService {
         remaining: Math.max(0, limit - current)
       };
     } catch (error) {
-      console.error(`Error checking rate limit for ${key}:`, error);
+  logger.error(`Error checking rate limit for ${key}`, error as Error);
       return { allowed: true, remaining: limit };
     }
   }
@@ -223,7 +224,7 @@ export class CacheService {
       const response = await this.redis.ping();
       return response === 'PONG';
     } catch (error) {
-      console.error('Redis ping failed:', error);
+  logger.error('Redis ping failed', error as Error);
       return false;
     }
   }
@@ -233,7 +234,7 @@ export class CacheService {
     try {
       await this.redis.quit();
     } catch (error) {
-      console.error('Error disconnecting from Redis:', error);
+  logger.error('Error disconnecting from Redis:', error as Error);
     }
   }
 }

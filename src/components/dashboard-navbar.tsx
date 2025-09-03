@@ -9,9 +9,12 @@ import { DashboardNavbarActions } from "@/components/dashboard-navbar-actions";
 import {
   Search,
   Menu,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { useScrollBehavior } from "@/hooks/use-scroll-behavior";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/components/sidebar-context";
 
 interface DashboardNavbarProps {
   onMenuClick?: () => void;
@@ -28,12 +31,13 @@ export default function DashboardNavbar({
 }: DashboardNavbarProps) {
   const { user } = useUser();
   const { isAtTop } = useScrollBehavior();
+  const { collapsed, toggleCollapsed } = useSidebar();
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <nav className={cn(
-      "fixed top-0 right-0 z-[100] h-16 border-b transition-all duration-200",
-      "left-0 lg:left-64", // Ajustamos para dejar espacio a la sidebar en desktop
+      "fixed top-0 right-0 z-[100] h-16 border-b transition-all duration-300",
+      collapsed ? "left-0 lg:left-16" : "left-0 lg:left-64", // Responsive positioning based on sidebar state
       isAtTop 
         ? "bg-background/80 backdrop-blur-sm" 
         : "bg-background/95 backdrop-blur-md shadow-sm"
@@ -41,6 +45,16 @@ export default function DashboardNavbar({
       <div className="flex h-full items-center justify-between px-4 lg:px-6">
         {/* Left section */}
         <div className="flex items-center gap-4">
+          {/* Desktop sidebar toggle button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden lg:flex"
+            onClick={toggleCollapsed}
+          >
+            {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </Button>
+          
           {/* Mobile menu button */}
           <Button
             variant="ghost"

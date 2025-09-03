@@ -500,7 +500,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
 
   return (
     <DashboardPageLayout header={headerConfig}>
-      {/* Estadísticas */}
+      {/* Estadísticas Mejoradas */}
       <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         <ModernStatCard
           title="Total Eventos"
@@ -530,8 +530,8 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
           accentColor="purple"
         />
         <ModernStatCard
-          title="Ingresos Totales"
-          value={`$${totalRevenue.toLocaleString("es-CL")}`}
+          title="Ingresos"
+          value={`$${totalRevenue.toLocaleString()}`}
           icon={DollarSign}
           description="CLP generados"
           trend="+15%"

@@ -10,13 +10,9 @@ import {
   Shield,
   CreditCard,
   Globe,
-  Calendar,
   Mail,
-  Phone,
-  MapPin,
   ExternalLink,
   Save,
-  CheckCircle,
   AlertCircle,
   Info,
 } from "lucide-react";
@@ -61,8 +57,8 @@ export default async function SettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Configuración</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
+          <p className="text-muted-foreground mt-1">
             Gestiona tu perfil y preferencias de organizador
           </p>
         </div>
@@ -71,7 +67,7 @@ export default async function SettingsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Perfil del Organizador */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="w-5 h-5" />
@@ -85,38 +81,38 @@ export default async function SettingsPage() {
               {/* Información Personal */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-slate-700">Nombre</label>
-                  <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                  <label className="text-sm font-medium">Nombre</label>
+                  <div className="mt-1 p-3 border rounded-lg bg-muted/50">
                     {user.firstName || "No especificado"}
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700">Apellido</label>
-                  <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                  <label className="text-sm font-medium">Apellido</label>
+                  <div className="mt-1 p-3 border rounded-lg bg-muted/50">
                     {user.lastName || "No especificado"}
                   </div>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="text-sm font-medium text-slate-700">Email</label>
-                  <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                  <label className="text-sm font-medium">Email</label>
+                  <div className="mt-1 p-3 border rounded-lg bg-muted/50">
                     {user.email}
                   </div>
                 </div>
               </div>
 
               {/* Información de Productor */}
-              <div className="border-t border-slate-200 pt-6">
-                <h3 className="text-lg font-medium text-slate-900 mb-4">Información del Productor</h3>
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Información del Productor</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-700">Nombre del Productor</label>
-                    <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50">
+                    <label className="text-sm font-medium">Nombre del Productor</label>
+                    <div className="mt-1 p-3 border rounded-lg bg-muted/50">
                       {user.producerName || "No especificado"}
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700">Biografía</label>
-                    <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50 min-h-[80px]">
+                    <label className="text-sm font-medium">Biografía</label>
+                    <div className="mt-1 p-3 border rounded-lg bg-muted/50 min-h-[80px]">
                       {user.bio || "No especificado"}
                     </div>
                   </div>
@@ -124,39 +120,39 @@ export default async function SettingsPage() {
               </div>
 
               {/* Redes Sociales */}
-              <div className="border-t border-slate-200 pt-6">
-                <h3 className="text-lg font-medium text-slate-900 mb-4">Redes Sociales</h3>
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-medium mb-4">Redes Sociales</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium text-slate-700">Sitio Web</label>
-                    <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50 flex items-center justify-between">
+                    <label className="text-sm font-medium">Sitio Web</label>
+                    <div className="mt-1 p-3 border rounded-lg bg-muted/50 flex items-center justify-between">
                       <span>{user.websiteUrl || "No especificado"}</span>
                       {user.websiteUrl && (
                         <Link href={user.websiteUrl} target="_blank">
-                          <ExternalLink className="w-4 h-4 text-slate-400" />
+                          <ExternalLink className="w-4 h-4 text-muted-foreground" />
                         </Link>
                       )}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-slate-700">Twitter</label>
-                      <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50 flex items-center justify-between">
+                      <label className="text-sm font-medium">Twitter</label>
+                      <div className="mt-1 p-3 border rounded-lg bg-muted/50 flex items-center justify-between">
                         <span>{user.twitterUrl || "No especificado"}</span>
                         {user.twitterUrl && (
                           <Link href={user.twitterUrl} target="_blank">
-                            <ExternalLink className="w-4 h-4 text-slate-400" />
+                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
                           </Link>
                         )}
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-700">Instagram</label>
-                      <div className="mt-1 p-3 border border-slate-200 rounded-lg bg-slate-50 flex items-center justify-between">
+                      <label className="text-sm font-medium">Instagram</label>
+                      <div className="mt-1 p-3 border rounded-lg bg-muted/50 flex items-center justify-between">
                         <span>{user.instagramUrl || "No especificado"}</span>
                         {user.instagramUrl && (
                           <Link href={user.instagramUrl} target="_blank">
-                            <ExternalLink className="w-4 h-4 text-slate-400" />
+                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
                           </Link>
                         )}
                       </div>
@@ -177,7 +173,7 @@ export default async function SettingsPage() {
           </Card>
 
           {/* Configuración de Notificaciones */}
-          <Card className="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="w-5 h-5" />
@@ -189,34 +185,34 @@ export default async function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium text-slate-900">Nuevas Ventas</h4>
-                    <p className="text-sm text-slate-500">Recibe notificaciones cuando se vendan tickets</p>
+                    <h4 className="font-medium">Nuevas Ventas</h4>
+                    <p className="text-sm text-muted-foreground">Recibe notificaciones cuando se vendan tickets</p>
                   </div>
                   <Badge variant="default">Activado</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium text-slate-900">Recordatorios de Eventos</h4>
-                    <p className="text-sm text-slate-500">Alertas antes de que inicien tus eventos</p>
+                    <h4 className="font-medium">Recordatorios de Eventos</h4>
+                    <p className="text-sm text-muted-foreground">Alertas antes de que inicien tus eventos</p>
                   </div>
                   <Badge variant="default">Activado</Badge>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium text-slate-900">Reportes Semanales</h4>
-                    <p className="text-sm text-slate-500">Resumen semanal de ventas y estadísticas</p>
+                    <h4 className="font-medium">Reportes Semanales</h4>
+                    <p className="text-sm text-muted-foreground">Resumen semanal de ventas y estadísticas</p>
                   </div>
                   <Badge variant="secondary">Desactivado</Badge>
                 </div>
 
-                <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div>
-                    <h4 className="font-medium text-slate-900">Promociones</h4>
-                    <p className="text-sm text-slate-500">Información sobre nuevas funciones y ofertas</p>
+                    <h4 className="font-medium">Promociones</h4>
+                    <p className="text-sm text-muted-foreground">Información sobre nuevas funciones y ofertas</p>
                   </div>
                   <Badge variant="secondary">Desactivado</Badge>
                 </div>
@@ -235,28 +231,28 @@ export default async function SettingsPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Resumen de Cuenta */}
-          <Card className="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle className="text-lg">Resumen de Cuenta</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Eventos Creados</span>
+                <span className="text-sm text-muted-foreground">Eventos Creados</span>
                 <span className="font-semibold">{stats?._count.organizedEvents || 0}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Eventos Activos</span>
+                <span className="text-sm text-muted-foreground">Eventos Activos</span>
                 <span className="font-semibold">{activeEvents}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Tickets Vendidos</span>
+                <span className="text-sm text-muted-foreground">Tickets Vendidos</span>
                 <span className="font-semibold">{totalTicketsSold}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-600">Venues Creados</span>
+                <span className="text-sm text-muted-foreground">Venues Creados</span>
                 <span className="font-semibold">{stats?._count.createdVenues || 0}</span>
               </div>
-              <div className="pt-2 border-t border-slate-200">
+              <div className="pt-2 border-t">
                 <div className="flex items-center space-x-2">
                   <Badge variant={user.role === "ORGANIZER" ? "default" : "secondary"}>
                     {user.role === "ORGANIZER" ? "Organizador Verificado" : "Usuario"}
@@ -267,7 +263,7 @@ export default async function SettingsPage() {
           </Card>
 
           {/* Acciones Rápidas */}
-          <Card className="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
             </CardHeader>
@@ -293,7 +289,7 @@ export default async function SettingsPage() {
                 </Button>
               </Link>
               
-              <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
+              <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
                 <AlertCircle className="w-4 h-4 mr-2" />
                 Eliminar Cuenta
               </Button>
@@ -301,7 +297,7 @@ export default async function SettingsPage() {
           </Card>
 
           {/* Información de Ayuda */}
-          <Card className="border-slate-200">
+          <Card>
             <CardHeader>
               <CardTitle className="text-lg">¿Necesitas Ayuda?</CardTitle>
             </CardHeader>
@@ -309,8 +305,8 @@ export default async function SettingsPage() {
               <div className="flex items-start space-x-3">
                 <Info className="w-5 h-5 text-blue-500 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-slate-900">Centro de Ayuda</h4>
-                  <p className="text-sm text-slate-600">
+                  <h4 className="font-medium">Centro de Ayuda</h4>
+                  <p className="text-sm text-muted-foreground">
                     Encuentra respuestas a preguntas frecuentes
                   </p>
                 </div>
@@ -319,8 +315,8 @@ export default async function SettingsPage() {
               <div className="flex items-start space-x-3">
                 <Mail className="w-5 h-5 text-green-500 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-slate-900">Contacto</h4>
-                  <p className="text-sm text-slate-600">
+                  <h4 className="font-medium">Contacto</h4>
+                  <p className="text-sm text-muted-foreground">
                     Escríbenos para soporte personalizado
                   </p>
                 </div>
