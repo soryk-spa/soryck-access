@@ -45,9 +45,9 @@ export async function generateQRCodeBase64(
  * @returns Promise<Array> - Array de tickets con qrCodeImage base64
  */
 export async function generateMultipleQRCodesBase64(
-  tickets: Array<{ qrCode: string; [key: string]: any }>,
+  tickets: Array<{ qrCode: string; [key: string]: unknown }>,
   baseUrl?: string
-): Promise<Array<{ qrCode: string; qrCodeImage: string; [key: string]: any }>> {
+): Promise<Array<{ qrCode: string; qrCodeImage: string; [key: string]: unknown }>> {
   try {
     const ticketsWithImages = await Promise.all(
       tickets.map(async (ticket) => {

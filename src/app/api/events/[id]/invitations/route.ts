@@ -128,7 +128,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     
     // Determinar si es una invitación única o múltiple
-    let invitationsToCreate: any[] = [];
+    let invitationsToCreate: Array<{
+      invitedEmail: string;
+      invitedName?: string;
+      message?: string;
+    }> = [];
 
     if (body.invitations) {
       // Múltiples invitaciones

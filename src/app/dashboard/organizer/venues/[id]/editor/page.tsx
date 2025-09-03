@@ -59,7 +59,11 @@ export default function VenueEditorPage() {
         if (layoutResponse.ok) {
           const data = await layoutResponse.json();
           // Agregar la propiedad type a todas las secciones para compatibilidad
-          const sectionsWithType = (data.sections || []).map((section: any) => ({
+          const sectionsWithType = (data.sections || []).map((section: {
+            id: string;
+            name: string;
+            [key: string]: unknown;
+          }) => ({
             ...section,
             type: 'section' as const
           }));

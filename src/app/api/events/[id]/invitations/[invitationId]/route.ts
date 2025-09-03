@@ -286,7 +286,35 @@ export async function DELETE(
 }
 
 // Función auxiliar para generar ticket de cortesía
-async function generateCourtesyTicket(invitation: any) {
+async function generateCourtesyTicket(invitation: {
+  id: string;
+  eventId: string;
+  invitedEmail: string;
+  invitedName?: string | null;
+  message?: string | null;
+  status: string;
+  invitationCode?: string | null;
+  sentAt?: Date | null;
+  acceptedAt?: Date | null;
+  expiresAt?: Date | null;
+  ticketId?: string | null;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  event: {
+    id: string;
+    title: string;
+    organizerId: string;
+    currency: string;
+    [key: string]: unknown;
+  };
+  ticket?: {
+    id: string;
+    qrCode: string;
+    isUsed: boolean;
+    [key: string]: unknown;
+  } | null;
+}) {
   // Buscar o crear usuario para la invitación
   let invitedUser = await prisma.user.findUnique({
     where: { email: invitation.invitedEmail },

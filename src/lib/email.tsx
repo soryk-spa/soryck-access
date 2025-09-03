@@ -181,9 +181,37 @@ export async function sendCourtesyInvitationEmail({
   event,
   ticket,
 }: {
-  invitation: any; // CourtesyInvitation with relations
+  invitation: {
+    id: string;
+    eventId: string;
+    invitedEmail: string;
+    invitedName?: string | null;
+    message?: string | null;
+    status: string;
+    invitationCode?: string | null;
+    sentAt?: Date | null;
+    acceptedAt?: Date | null;
+    expiresAt?: Date | null;
+    ticketId?: string | null;
+    createdBy: string;
+    createdAt: Date;
+    updatedAt: Date;
+  };
   event: FullEvent;
-  ticket: any; // Ticket with QR code
+  ticket: {
+    id: string;
+    qrCode: string;
+    isUsed: boolean;
+    usedAt?: Date | null;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+    eventId: string;
+    userId: string;
+    orderId: string;
+    ticketTypeId?: string | null;
+    seatId?: string | null;
+  };
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
     logger.warn("Envío de invitación de cortesía omitido por falta de configuración de Resend.");

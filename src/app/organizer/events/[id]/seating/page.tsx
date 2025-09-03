@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -71,7 +71,11 @@ export default function EventSeatingPage() {
         if (seatingResponse.ok) {
           const seatingData = await seatingResponse.json()
           // Agregar la propiedad type a todas las secciones para compatibilidad
-          const sectionsWithType = (seatingData.sections || []).map((section: any) => ({
+          const sectionsWithType = (seatingData.sections || []).map((section: {
+            id: string;
+            name: string;
+            [key: string]: unknown;
+          }) => ({
             ...section,
             type: 'section' as const
           }))

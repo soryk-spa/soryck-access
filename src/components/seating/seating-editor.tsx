@@ -1735,7 +1735,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             break
           }
         } else if ('width' in element && 'height' in element) {
-          const rectElem = element as any
+          const rectElem = element as unknown as {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+          }
           if (x >= rectElem.x && x <= rectElem.x + rectElem.width &&
               y >= rectElem.y && y <= rectElem.y + rectElem.height) {
             clickedElement = element
@@ -2133,7 +2138,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       key={type}
                       variant={entranceType === type ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setEntranceType(type as any)}
+                      onClick={() => setEntranceType(type as keyof typeof ENTRANCE_COLORS)}
                       className={entranceType === type 
                         ? `text-white border-0` 
                         : `border-2 transition-colors`
@@ -2490,7 +2495,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       <p className="text-sm font-mono">
                         {element.type === 'polygon' 
                           ? Math.round((element as Polygon).points.reduce((sum, p) => sum + p.x, 0) / (element as Polygon).points.length)
-                          : Math.round((element as any).x)
+                          : Math.round((element as unknown as { x: number }).x)
                         }
                       </p>
                     </div>
@@ -2499,7 +2504,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       <p className="text-sm font-mono">
                         {element.type === 'polygon' 
                           ? Math.round((element as Polygon).points.reduce((sum, p) => sum + p.y, 0) / (element as Polygon).points.length)
-                          : Math.round((element as any).y)
+                          : Math.round((element as unknown as { y: number }).y)
                         }
                       </p>
                     </div>
