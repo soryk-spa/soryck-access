@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 import type { Metadata } from "next";
 import { formatToChileDatetimeLocal } from "@/lib/date-utils";
-import { Mail, QrCode, Settings, Users } from "lucide-react";
+import { Mail, QrCode, Users } from "lucide-react";
 
 export async function generateMetadata({
   params,

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { canAccessEvent } from "@/lib/auth";
 import CourtesyInvitationsManagement from "@/components/courtesy-invitations-management";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -81,7 +82,7 @@ export default async function EventCourtesyPage({
     notFound();
   }
 
-  const { event, user } = result;
+  const { event } = result;
 
   // Verificar si las cortesías están habilitadas para este evento
   if (!event.allowCourtesy) {
@@ -102,12 +103,12 @@ export default async function EventCourtesyPage({
             >
               Editar Evento
             </a>
-            <a
+            <Link
               href="/organizer"
               className="inline-flex items-center px-4 py-2 border border-input bg-background hover:bg-accent rounded-md transition-colors"
             >
               Volver al Dashboard
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -118,11 +119,11 @@ export default async function EventCourtesyPage({
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-        <a href="/organizer" className="hover:text-foreground">Dashboard</a>
+        <Link href="/organizer" className="hover:text-foreground">Dashboard</Link>
         <span>/</span>
-        <a href={`/organizer/events/${event.id}/edit`} className="hover:text-foreground">
+        <Link href={`/organizer/events/${event.id}/edit`} className="hover:text-foreground">
           {event.title}
-        </a>
+        </Link>
         <span>/</span>
         <span className="text-foreground">Cortesías</span>
       </nav>

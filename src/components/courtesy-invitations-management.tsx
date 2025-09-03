@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -78,18 +78,13 @@ export default function CourtesyInvitationsManagement({
   const [loading, setLoading] = useState(true);
   const [isAddingInvitation, setIsAddingInvitation] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
-  const [selectedInvitations, setSelectedInvitations] = useState<string[]>([]);
 
   // Form states
   const [singleEmail, setSingleEmail] = useState('');
   const [singleName, setSingleName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
 
-  useEffect(() => {
-    fetchInvitations();
-  }, [eventId]);
-
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/invitations`);
       if (response.ok) {
@@ -114,7 +109,11 @@ export default function CourtesyInvitationsManagement({
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchInvitations();
+  }, [fetchInvitations]);
 
   const addSingleInvitation = async () => {
     if (!singleEmail.trim()) {

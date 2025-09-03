@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,7 @@ import { formatFullDateTime } from '@/lib/date-utils';
 interface TicketScannerProps {
   eventId: string;
   eventTitle: string;
-  onScanResult?: (result: any) => void;
+  onScanResult?: (result: ScanResult) => void;
 }
 
 interface ScanResult {
@@ -69,22 +69,33 @@ interface ScanResult {
   status: 'SUCCESS' | 'ALREADY_USED' | 'INACTIVE' | 'EVENT_ENDED' | 'ERROR';
 }
 
+interface ScanStats {
+  eventId: string;
+  eventTitle: string;
+  tickets: {
+    total: number;
+    used: number;
+    unused: number;
+    usagePercentage: number;
+  };
+  courtesy: {
+    total: number;
+    pending: number;
+    sent: number;
+    accepted: number;
+    expired: number;
+  };
+  lastUpdated: string;
+}
+
 export default function TicketScanner({ eventId, eventTitle, onScanResult }: TicketScannerProps) {
   const [manualCode, setManualCode] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanResult, setLastScanResult] = useState<ScanResult | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<ScanStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchStats();
-    // Auto-focus en el input para facilitar el escaneo manual
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [eventId]);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/scan`);
       if (response.ok) {
@@ -94,7 +105,15 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
-  };
+  }, [eventId]);
+
+  useEffect(() => {
+    fetchStats();
+    // Auto-focus en el input para facilitar el escaneo manual
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [fetchStats]);
 
   const scanTicket = async (qrCode: string) => {
     if (!qrCode.trim()) {

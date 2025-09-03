@@ -3,15 +3,13 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   UserCheck,
   Plus,
-  Mail,
   Shield,
   Calendar,
   QrCode,
-  Clock,
   CheckCircle,
   AlertCircle,
   Users,
@@ -52,6 +50,7 @@ export default async function ScannersPage() {
       scanner: true,
       event: {
         select: {
+          id: true,
           title: true,
           startDate: true,
         }
@@ -61,19 +60,38 @@ export default async function ScannersPage() {
   });
 
   // Agrupar scanners únicos por usuario
-  const uniqueScanners = allScanners.reduce((acc: Record<string, any>, scanner) => {
+  const uniqueScanners = allScanners.reduce((acc: Record<string, {
+    user: {
+      id: string;
+      firstName: string | null;
+      lastName: string | null;
+      email: string;
+    };
+    events: Array<{
+      id: string;
+      title: string;
+      createdAt: Date;
+      startDate?: Date;
+    }>;
+    lastActivity: Date;
+    totalEvents: number;
+  }>, scanner) => {
     const userId = scanner.scanner.id;
     if (!acc[userId]) {
       acc[userId] = {
         user: scanner.scanner,
         events: [],
         lastActivity: scanner.createdAt,
+        totalEvents: 0,
       };
     }
     acc[userId].events.push({
+      id: scanner.event.id,
       title: scanner.event.title,
+      createdAt: scanner.createdAt,
       startDate: scanner.event.startDate,
     });
+    acc[userId].totalEvents = acc[userId].events.length;
     return acc;
   }, {});
 
@@ -174,7 +192,22 @@ export default async function ScannersPage() {
           <CardContent>
             {scannerList.length > 0 ? (
               <div className="space-y-4">
-                {scannerList.map((scanner: any) => (
+                {scannerList.map((scanner: {
+                  user: {
+                    id: string;
+                    firstName: string | null;
+                    lastName: string | null;
+                    email: string;
+                  };
+                  events: Array<{
+                    id: string;
+                    title: string;
+                    createdAt: Date;
+                    startDate?: Date;
+                  }>;
+                  lastActivity: Date;
+                  totalEvents: number;
+                }) => (
                   <div key={scanner.user.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                     <Avatar>
                       <AvatarFallback>
