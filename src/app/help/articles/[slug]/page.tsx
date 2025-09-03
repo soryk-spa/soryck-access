@@ -2,15 +2,17 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { BookOpen, Mail, ChevronLeft } from 'lucide-react';
 
-export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
-  const title = decodeURIComponent(params.slug).replace(/-/g, ' ');
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const title = decodeURIComponent(slug).replace(/-/g, ' ');
   return {
     title: `${title} | Centro de Ayuda - SorykPass`,
   };
 }
 
-export default function HelpArticle({ params }: { params: { slug: string } }) {
-  const title = decodeURIComponent(params.slug).replace(/-/g, ' ');
+export default async function HelpArticle({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const title = decodeURIComponent(slug).replace(/-/g, ' ');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-gray-900 dark:to-gray-800">
