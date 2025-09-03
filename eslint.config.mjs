@@ -18,7 +18,9 @@ const eslintConfig = [
       "@typescript-eslint/no-this-alias": "warn",
       "@typescript-eslint/no-require-imports": "warn",
     },
-    ignorePatterns: [
+  },
+  {
+    ignores: [
       "node_modules/",
       ".next/",
       "out/",
