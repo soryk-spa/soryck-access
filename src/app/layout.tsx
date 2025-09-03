@@ -15,6 +15,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  // Used to resolve absolute URLs for OpenGraph/Twitter images
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "SorykPass - La Puerta de Entrada al Presente",
   description:
     "Plataforma digital que funciona como una tarjeta de acceso inteligente o pase digital. Un sistema ágil, confiable y sin fricciones para eventos.",

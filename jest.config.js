@@ -1,4 +1,15 @@
 /** @type {import('jest').Config} */
+module.exports = {
+  testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
+  moduleFileExtensions: ['ts', 'tsx', 'js'],
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { isolatedModules: true } }],
+  },
+  setupFiles: [],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+};
+/** @type {import('jest').Config} */
 const config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],

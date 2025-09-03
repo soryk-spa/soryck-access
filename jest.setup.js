@@ -20,7 +20,8 @@ if (typeof jest !== 'undefined' && process.env.NODE_ENV === 'test') {
   jest.mock('next/image', () => ({
     __esModule: true,
     default: (props) => {
-      return React.createElement('img', { ...props, alt: props.alt || '' });
+      const ReactLocal = require('react');
+      return ReactLocal.createElement('img', { ...props, alt: props.alt || '' });
     },
   }));
 
@@ -43,7 +44,10 @@ if (typeof jest !== 'undefined' && process.env.NODE_ENV === 'test') {
     }),
     SignedIn: ({ children }) => children,
     SignedOut: () => null,
-    UserButton: () => React.createElement('div', {}, 'User Button'),
+    UserButton: () => {
+      const ReactLocal = require('react');
+      return ReactLocal.createElement('div', {}, 'User Button');
+    },
     SignInButton: ({ children }) => children,
   }));
 
@@ -89,4 +93,9 @@ if (typeof jest !== 'undefined' && process.env.NODE_ENV === 'test') {
       readText: jest.fn().mockResolvedValue(''),
     },
   });
+
+  // Mock URL.createObjectURL for Blob handling in tests
+  if (!('createObjectURL' in URL)) {
+    URL.createObjectURL = jest.fn(() => 'blob:mock-url');
+  }
 }
