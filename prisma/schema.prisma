@@ -85,6 +85,8 @@ model Event {
   hasSeatingPlan   Boolean           @default(false)
   allowCourtesy    Boolean           @default(false) // Permitir solicitudes de cortesía
   courtesyLimit    Int? // Límite de cortesías por evento
+  courtesyValidUntil String? // Hora límite para cortesías (formato HH:mm)
+  courtesyPriceAfter Float? // Precio fijo después de la hora límite
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   organizerId      String

@@ -34,6 +34,8 @@ export interface EventFormData {
   imageUrl: string;
   allowCourtesy: boolean;
   courtesyLimit: number | null;
+  courtesyValidUntil: string | null;
+  courtesyPriceAfter: number | null;
 }
 
 export interface EventFormErrors {
@@ -46,6 +48,8 @@ export interface EventFormErrors {
   imageUrl?: string;
   allowCourtesy?: string;
   courtesyLimit?: string;
+  courtesyValidUntil?: string;
+  courtesyPriceAfter?: string;
   ticketTypes?: string;
   general?: string;
 }
@@ -61,6 +65,8 @@ export interface InitialEventData {
   imageUrl?: string;
   allowCourtesy?: boolean;
   courtesyLimit?: number | null;
+  courtesyValidUntil?: string | null;
+  courtesyPriceAfter?: number | null;
   ticketTypes?: TicketTypeForm[];
 }
 
@@ -87,6 +93,8 @@ export function useEventForm(
     imageUrl: initialData?.imageUrl || "",
     allowCourtesy: initialData?.allowCourtesy || false,
     courtesyLimit: initialData?.courtesyLimit || null,
+    courtesyValidUntil: initialData?.courtesyValidUntil || null,
+    courtesyPriceAfter: initialData?.courtesyPriceAfter || null,
   });
 
   // Validaciones del formulario
@@ -135,6 +143,19 @@ export function useEventForm(
     // Validación del sistema de cortesías
     if (data.allowCourtesy && (!data.courtesyLimit || data.courtesyLimit <= 0)) {
       newErrors.courtesyLimit = "El límite de cortesías debe ser mayor a 0 cuando están habilitadas";
+    }
+
+    // Validar hora límite de cortesía
+    if (data.allowCourtesy && data.courtesyValidUntil) {
+      const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(data.courtesyValidUntil)) {
+        newErrors.courtesyValidUntil = "Formato de hora inválido (use HH:mm)";
+      }
+    }
+
+    // Validar precio después de cortesía
+    if (data.allowCourtesy && data.courtesyValidUntil && (!data.courtesyPriceAfter || data.courtesyPriceAfter < 0)) {
+      newErrors.courtesyPriceAfter = "El precio después de la hora límite debe ser mayor o igual a 0";
     }
 
     if (tickets.length === 0) {
@@ -209,6 +230,8 @@ export function useEventForm(
         imageUrl: formData.imageUrl || undefined,
         allowCourtesy: formData.allowCourtesy,
         courtesyLimit: formData.allowCourtesy ? formData.courtesyLimit : null,
+        courtesyValidUntil: formData.allowCourtesy ? formData.courtesyValidUntil : null,
+        courtesyPriceAfter: formData.allowCourtesy && formData.courtesyValidUntil ? formData.courtesyPriceAfter : null,
         ticketTypes: ticketTypes.map(ticket => ({
           name: ticket.name.trim(),
           price: ticket.price,

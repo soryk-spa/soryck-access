@@ -480,13 +480,71 @@ export default function EditEventForm({
                       </p>
                     </div>
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="courtesyValidUntil" className="text-sm font-medium">
+                          Válido hasta (opcional)
+                        </Label>
+                        <Input
+                          id="courtesyValidUntil"
+                          type="time"
+                          value={eventForm.formData.courtesyValidUntil || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? null : e.target.value;
+                            eventForm.handleInputChange("courtesyValidUntil", value || "");
+                          }}
+                          className="mt-1"
+                        />
+                        {eventForm.errors.courtesyValidUntil && (
+                          <p className="text-red-500 text-sm mt-1">{eventForm.errors.courtesyValidUntil}</p>
+                        )}
+                        <p className="text-gray-500 text-xs mt-1">
+                          Hora límite para solicitar cortesías gratuitas
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="courtesyPriceAfter" className="text-sm font-medium">
+                          Precio después de la hora límite
+                        </Label>
+                        <Input
+                          id="courtesyPriceAfter"
+                          type="number"
+                          min="0"
+                          step="100"
+                          value={eventForm.formData.courtesyPriceAfter || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? null : parseFloat(e.target.value);
+                            eventForm.handleNumberChange("courtesyPriceAfter", value);
+                          }}
+                          placeholder="Ej: 6000"
+                          className="mt-1"
+                          disabled={!eventForm.formData.courtesyValidUntil}
+                        />
+                        {eventForm.errors.courtesyPriceAfter && (
+                          <p className="text-red-500 text-sm mt-1">{eventForm.errors.courtesyPriceAfter}</p>
+                        )}
+                        <p className="text-gray-500 text-xs mt-1">
+                          Precio fijo después de la hora límite (en CLP)
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <div className="flex items-start space-x-2">
                         <Info className="h-4 w-4 text-blue-600 mt-0.5" />
                         <div className="text-sm text-blue-800">
                           <p className="font-medium">¿Cómo funcionan las cortesías?</p>
                           <p className="mt-1">
-                            Los usuarios podrán solicitar entradas gratuitas que deberás aprobar manualmente desde el panel de administración.
+                            Los usuarios podrán solicitar entradas que deberás aprobar manualmente desde el panel de administración.
+                            {eventForm.formData.courtesyValidUntil ? (
+                              <>
+                                <br /><strong>Horario especial:</strong> Las cortesías serán gratuitas hasta las {eventForm.formData.courtesyValidUntil}, 
+                                después tendrán un costo de {eventForm.formData.courtesyPriceAfter ? `$${eventForm.formData.courtesyPriceAfter.toLocaleString()}` : '$0'}.
+                              </>
+                            ) : (
+                              " Las cortesías serán siempre gratuitas."
+                            )}
                           </p>
                         </div>
                       </div>

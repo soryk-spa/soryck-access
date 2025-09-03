@@ -31,6 +31,8 @@ const updateEventSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
   allowCourtesy: z.boolean().default(false),
   courtesyLimit: z.number().min(1).nullable().optional(),
+  courtesyValidUntil: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato de hora inválido (use HH:mm)').nullable().optional(),
+  courtesyPriceAfter: z.number().min(0, 'El precio debe ser mayor o igual a 0').nullable().optional(),
   ticketTypes: z.array(ticketTypeEditSchema).min(1, 'Se requiere al menos un tipo de entrada.').optional(),
 }).refine((data) => {
   if (data.endDate) {
@@ -55,6 +57,15 @@ const updateEventSchema = z.object({
 }, {
   message: 'El límite de cortesías debe ser mayor a 0 cuando están habilitadas',
   path: ['courtesyLimit']
+}).refine((data) => {
+  // Validar que si se define hora límite, también se debe definir precio
+  if (data.allowCourtesy && data.courtesyValidUntil && (!data.courtesyPriceAfter || data.courtesyPriceAfter < 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'El precio después de la hora límite es requerido cuando se define una hora límite para cortesías',
+  path: ['courtesyPriceAfter']
 });
 
 export async function GET(
@@ -236,6 +247,8 @@ export async function PUT(
             imageUrl: eventData.imageUrl || null,
             allowCourtesy: eventData.allowCourtesy,
             courtesyLimit: eventData.allowCourtesy ? eventData.courtesyLimit : null,
+            courtesyValidUntil: eventData.allowCourtesy ? eventData.courtesyValidUntil : null,
+            courtesyPriceAfter: eventData.allowCourtesy && eventData.courtesyValidUntil ? eventData.courtesyPriceAfter : null,
           }
         });
 
@@ -304,6 +317,8 @@ export async function PUT(
           imageUrl: eventData.imageUrl || null,
           allowCourtesy: eventData.allowCourtesy,
           courtesyLimit: eventData.allowCourtesy ? eventData.courtesyLimit : null,
+          courtesyValidUntil: eventData.allowCourtesy ? eventData.courtesyValidUntil : null,
+          courtesyPriceAfter: eventData.allowCourtesy && eventData.courtesyValidUntil ? eventData.courtesyPriceAfter : null,
         }
       });
     }
