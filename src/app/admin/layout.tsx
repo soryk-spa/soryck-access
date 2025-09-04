@@ -6,11 +6,13 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardLayout 
-      title="Panel de Administración"
-      showSearch={true}
-    >
-      {children}
-    </DashboardLayout>
+    <div className="font-inter">
+      <DashboardLayout 
+        title="Panel de Administración"
+        showSearch={true}
+      >
+        {children}
+      </DashboardLayout>
+    </div>
   );
 }

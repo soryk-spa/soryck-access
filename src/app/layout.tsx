@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Inter, Roboto } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -7,11 +7,28 @@ import ConditionalLayout from "@/components/conditional-layout";
 import { esMX } from "@clerk/localizations";
 import { Toaster } from "sonner";
 
+// Fuente principal para homepage y público general
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
   display: "swap",
   weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+// Fuente para admin - más profesional y técnica
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+// Fuente para organizador - moderna y amigable
+const roboto = Roboto({
+  subsets: ["latin"],
+  variable: "--font-roboto",
+  display: "swap",
+  weight: ["300", "400", "500", "700", "900"],
 });
 
 export const metadata: Metadata = {
@@ -108,7 +125,7 @@ export default function RootLayout({
           <meta name="msapplication-TileColor" content="#0053CC" />
         </head>
         <body
-          className={`${montserrat.variable} font-montserrat antialiased`}
+          className={`${montserrat.variable} ${inter.variable} ${roboto.variable} font-montserrat antialiased`}
         >
           <ThemeProvider
               attribute="class"

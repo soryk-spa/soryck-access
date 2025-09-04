@@ -13,6 +13,8 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-montserrat)", "ui-sans-serif", "system-ui"],
         montserrat: ["var(--font-montserrat)", "ui-sans-serif", "system-ui"],
+        inter: ["var(--font-inter)", "ui-sans-serif", "system-ui"],
+        roboto: ["var(--font-roboto)", "ui-sans-serif", "system-ui"],
         mono: ["ui-monospace", "SFMono-Regular", "SF Mono", "Monaco", "Consolas", "Liberation Mono", "Courier New", "monospace"],
       },
       fontWeight: {

@@ -3,14 +3,9 @@ import { prisma } from "@/lib/prisma";
 import PublicEventsList from "@/components/public-events-list";
 import type { Metadata } from "next";
 import { Prisma } from "@prisma/client";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Calendar,
   MapPin,
-  Users,
-  Sparkles,
-  TrendingUp,
   Clock,
 } from "lucide-react";
 
@@ -196,58 +191,38 @@ async function getCategories() {
   });
 }
 
-async function getEventStats() {
-  const [totalEvents, upcomingEvents, categoriesCount] = await Promise.all([
-    prisma.event.count({
-      where: { isPublished: true },
-    }),
-    prisma.event.count({
-      where: {
-        isPublished: true,
-        startDate: { gte: new Date() },
-      },
-    }),
-    prisma.category.count(),
-  ]);
-
-  return {
-    totalEvents,
-    upcomingEvents,
-    categoriesCount,
-  };
-}
-
 function EventsPageSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-8">
-        {/* Header skeleton */}
-        <div className="text-center space-y-4">
-          <div className="h-12 bg-muted rounded w-96 mx-auto animate-pulse"></div>
-          <div className="h-6 bg-muted rounded w-[600px] mx-auto animate-pulse"></div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-20">
+        <div className="space-y-16">
+          {/* Categories skeleton */}
+          <div className="space-y-6">
+            <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
+            <div className="flex flex-wrap gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-10 w-24 bg-muted border border-border rounded-full animate-pulse"
+                ></div>
+              ))}
+            </div>
+          </div>
 
-        {/* Stats skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-32 bg-muted rounded-xl animate-pulse"
-            ></div>
-          ))}
-        </div>
-
-        {/* Filters skeleton */}
-        <div className="h-32 bg-muted rounded-xl animate-pulse"></div>
-
-        {/* Events grid skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-96 bg-muted rounded-xl animate-pulse"
-            ></div>
-          ))}
+          {/* Events grid skeleton */}
+          <div className="space-y-6">
+            <div className="h-10 bg-muted rounded w-80 animate-pulse"></div>
+            <div className="bg-muted/50 border border-border rounded-3xl p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-96 bg-muted border border-border rounded-2xl animate-pulse"
+                  ></div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -257,10 +232,9 @@ function EventsPageSkeleton() {
 async function EventsPageContent({ searchParams }: EventsPageProps) {
   const params = await searchParams;
 
-  const [{ events, pagination }, categories, stats] = await Promise.all([
+  const [{ events, pagination }, categories] = await Promise.all([
     getPublicEvents(params),
     getCategories(),
-    getEventStats(),
   ]);
 
   const initialFilters = {
@@ -279,143 +253,37 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5 border-b">
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center space-y-6 max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-background/80 backdrop-blur-sm border rounded-full px-4 py-2 mb-4">
-              <Sparkles className="w-4 h-4 text-[#0053CC]" />
-              <span className="text-sm font-medium text-[#0053CC]">
-                Descubre experiencias únicas
-              </span>
-            </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-              Encuentra tu próximo
-              <span className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
-                {" "}
-                evento favorito
-              </span>
-            </h1>
-
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Desde conciertos íntimos hasta festivales masivos, conferencias
-              inspiradoras y experiencias gastronómicas. Tu próxima aventura te
-              está esperando.
-            </p>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-xl flex items-center justify-center">
-                      <Calendar className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold">
-                        {stats.upcomingEvents}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Eventos próximos
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-xl flex items-center justify-center">
-                      <Users className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold">
-                        {stats.categoriesCount}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Categorías
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 bg-background/60 backdrop-blur-sm shadow-lg">
-                <CardContent className="pt-6">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-xl flex items-center justify-center">
-                      <TrendingUp className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold">{stats.totalEvents}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Total eventos
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-
-        {/* Decorative elements */}
-        <div className="absolute top-20 right-20 w-24 h-24 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] rounded-full opacity-10 blur-xl"></div>
-        <div className="absolute bottom-20 left-20 w-32 h-32 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-full opacity-10 blur-xl"></div>
-      </section>
-
-      {/* Quick Categories */}
-      <section className="py-8 border-b bg-muted/30">
+      {/* Events Section */}
+      <section className="py-12">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#0053CC]" />
-              Explora por categoría
-            </h2>
-            <Badge variant="outline" className="text-xs">
-              {categories.length} categorías disponibles
-            </Badge>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            {categories.slice(0, 8).map((category) => (
-              <Badge
-                key={category.id}
-                variant="outline"
-                className="cursor-pointer hover:bg-[#0053CC] hover:text-white transition-colors px-4 py-2 text-sm"
-              >
-                {category.name}
-              </Badge>
-            ))}
-            {categories.length > 8 && (
-              <Badge variant="outline" className="text-muted-foreground">
-                +{categories.length - 8} más
-              </Badge>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] rounded-xl flex items-center justify-center">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold text-foreground">Eventos disponibles</h2>
+                <p className="text-muted-foreground text-sm">Encuentra tu próxima experiencia</p>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-[#0053CC]" />
-              <h2 className="text-2xl font-bold">Eventos disponibles</h2>
+              <Badge 
+                variant="secondary" 
+                className="px-4 py-2"
+              >
+                {pagination.totalCount} resultados
+              </Badge>
             </div>
-            <Badge variant="secondary" className="text-sm">
-              {pagination.totalCount} resultados
-            </Badge>
           </div>
 
-          <PublicEventsList
-            initialEvents={events}
-            initialPagination={pagination}
-            categories={categories}
-            initialFilters={initialFilters}
-          />
+          <div className="bg-muted/50 border border-border rounded-3xl p-8">
+            <PublicEventsList
+              initialEvents={events}
+              initialPagination={pagination}
+              categories={categories}
+              initialFilters={initialFilters}
+            />
+          </div>
         </div>
       </section>
     </div>

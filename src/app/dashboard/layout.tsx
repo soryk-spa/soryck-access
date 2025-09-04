@@ -25,17 +25,19 @@ export default function Layout({
   );
 
   return (
-    <DashboardLayout 
-      title="Dashboard del Organizador"
-      showSearch={true}
-    >
-      {requiresOrganizer ? (
-        <RouteProtection requiredRole="ORGANIZER">
-          {children}
-        </RouteProtection>
-      ) : (
-        children
-      )}
-    </DashboardLayout>
+    <div className="font-roboto">
+      <DashboardLayout 
+        title="Dashboard del Organizador"
+        showSearch={true}
+      >
+        {requiresOrganizer ? (
+          <RouteProtection requiredRole="ORGANIZER">
+            {children}
+          </RouteProtection>
+        ) : (
+          children
+        )}
+      </DashboardLayout>
+    </div>
   );
 }

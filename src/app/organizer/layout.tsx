@@ -6,11 +6,13 @@ export default function OrganizerLayout({
   children: React.ReactNode;
 }) {
   return (
-    <DashboardLayout 
-      title="Gestión de Organizador"
-      showSearch={true}
-    >
-      {children}
-    </DashboardLayout>
+    <div className="font-roboto">
+      <DashboardLayout 
+        title="Gestión de Organizador"
+        showSearch={true}
+      >
+        {children}
+      </DashboardLayout>
+    </div>
   );
 }
