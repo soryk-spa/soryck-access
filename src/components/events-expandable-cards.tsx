@@ -1,17 +1,9 @@
 "use client"
+
 import Image from "next/image"
 import React, { useEffect, useId, useRef, useState } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { useOutsideClick } from "@/hooks/use-outside-click"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import {
-  Calendar,
-  MapPin,
-  Users,
-  Tag,
-} from "lucide-react"
 
 interface Event {
   id: string
@@ -46,24 +38,33 @@ interface Event {
   }
 }
 
-interface EventCardData {
-  id: string
-  title: string
-  description: string
-  location: string
-  startDate: string
-  category: string
-  price: string
-  imageUrl: string
-  capacity: number
-  soldTickets: number
-  organizer: string
-  ctaLink: string
-  content: () => React.ReactNode
-}
+export function EventsExpandableCards({ events }: { events?: Event[] }) {
+  // map incoming events into the card shape the component expects
+  const transformEventsToCards = (evts: Event[]) =>
+    evts.map((e) => ({
+      title: e.title,
+      description: e.description ?? "",
+      src: e.imageUrl ?? "/sorykpass_1.jpg",
+      ctaText: e.isFree ? "Gratis" : e.price ? `$${e.price}` : "Ver",
+      ctaLink: `/events/${e.id}`,
+      content: () => (
+        <div className="space-y-2">
+          <p>{e.description}</p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            {new Date(e.startDate).toLocaleString()} • {e.location}
+          </p>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">
+            Organizador: {e.organizer.firstName} {e.organizer.lastName}
+          </p>
+        </div>
+      ),
+    }))
 
-export function EventsExpandableCards({ events }: { events: Event[] }) {
-  const [active, setActive] = useState<EventCardData | boolean | null>(null)
+  const cards: CardItem[] = events && events.length ? transformEventsToCards(events) : demoCards
+
+  const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(
+    null
+  )
   const ref = useRef<HTMLDivElement>(null)
   const id = useId()
 
@@ -76,10 +77,8 @@ export function EventsExpandableCards({ events }: { events: Event[] }) {
 
     if (active && typeof active === "object") {
       document.body.style.overflow = "hidden"
-      document.body.style.paddingRight = "0px" // Prevent layout shift
     } else {
       document.body.style.overflow = "auto"
-      document.body.style.paddingRight = ""
     }
 
     window.addEventListener("keydown", onKeyDown)
@@ -87,197 +86,6 @@ export function EventsExpandableCards({ events }: { events: Event[] }) {
   }, [active])
 
   useOutsideClick(ref, () => setActive(null))
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString("es-ES", { month: "short" }),
-      weekday: date.toLocaleDateString("es-ES", { weekday: "short" }),
-      time: date.toLocaleTimeString("es-ES", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-      full: date.toLocaleDateString("es-ES", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-    }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-      minimumFractionDigits: 0,
-    }).format(price)
-  }
-
-  const getEventPriceDisplay = (event: Event) => {
-    if (event.isFree || !event.ticketTypes.length) {
-      return "Gratis"
-    }
-
-    const prices = event.ticketTypes
-      .map(t => t.price)
-      .filter(p => p > 0)
-
-    if (prices.length === 0) {
-      return "Gratis"
-    }
-
-    const minPrice = Math.min(...prices)
-    const maxPrice = Math.max(...prices)
-
-    if (minPrice === maxPrice) {
-      return formatPrice(minPrice)
-    }
-
-    return `Desde ${formatPrice(minPrice)}`
-  }
-
-  const getAvailability = (event: Event) => {
-    const available = event.capacity - event._count.tickets
-    const percentage = ((event.capacity - available) / event.capacity) * 100
-
-    if (available === 0) {
-      return {
-        status: "sold-out",
-        text: "Agotado",
-        color: "bg-red-500/10 text-red-400 border border-red-500/20",
-      }
-    } else if (percentage > 80) {
-      return {
-        status: "limited",
-        text: "Últimas entradas",
-        color: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
-      }
-    } else {
-      return {
-        status: "available",
-        text: "Disponible",
-        color: "bg-green-500/10 text-green-400 border border-green-500/20",
-      }
-    }
-  }
-
-  const transformEventsToCards = (events: Event[]): EventCardData[] => {
-    return events.map((event) => {
-      const startDate = formatDate(event.startDate)
-      const availability = getAvailability(event)
-      const priceDisplay = getEventPriceDisplay(event)
-      const organizerName = event.organizer.firstName && event.organizer.lastName 
-        ? `${event.organizer.firstName} ${event.organizer.lastName}`
-        : event.organizer.email
-
-      return {
-        id: event.id,
-        title: event.title,
-        description: `${startDate.weekday}, ${startDate.day} ${startDate.month} • ${event.location}`,
-        location: event.location,
-        startDate: event.startDate,
-        category: event.category.name,
-        price: priceDisplay,
-        imageUrl: event.imageUrl || "/sorykpass_black.png",
-        capacity: event.capacity,
-        soldTickets: event._count.tickets,
-        organizer: organizerName,
-        ctaLink: `/events/${event.id}`,
-        content: () => (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <Calendar className="h-4 w-4" />
-                  <span>Fecha</span>
-                </div>
-                <p className="font-medium">{startDate.full}</p>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">{startDate.time}</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <MapPin className="h-4 w-4" />
-                  <span>Ubicación</span>
-                </div>
-                <p className="font-medium">{event.location}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <Users className="h-4 w-4" />
-                  <span>Capacidad</span>
-                </div>
-                <p className="font-medium">{event.capacity} personas</p>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {event._count.tickets} tickets vendidos
-                </p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
-                  <Tag className="h-4 w-4" />
-                  <span>Precio</span>
-                </div>
-                <p className="font-medium text-lg">{priceDisplay}</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Badge variant="outline" className={availability.color}>
-                  {availability.text}
-                </Badge>
-                <Badge variant="secondary">
-                  {event.category.name}
-                </Badge>
-              </div>
-            </div>
-
-            {event.description && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Descripción</h4>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                  {event.description}
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <h4 className="font-medium">Organizador</h4>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {organizerName}
-              </p>
-            </div>
-          </div>
-        ),
-      }
-    })
-  }
-
-  const cards = transformEventsToCards(events)
-
-  if (events.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-6">
-          <Calendar className="h-8 w-8 text-neutral-400" />
-        </div>
-        <h3 className="text-2xl font-bold mb-4 text-neutral-900 dark:text-neutral-100">
-          No hay eventos próximos
-        </h3>
-        <p className="text-neutral-600 dark:text-neutral-400 mb-8">
-          ¡Mantente atento! Pronto habrán nuevos eventos emocionantes.
-        </p>
-        <Button asChild>
-          <Link href="/events">Ver todos los eventos</Link>
-        </Button>
-      </div>
-    )
-  }
 
   return (
     <>
@@ -287,53 +95,54 @@ export function EventsExpandableCards({ events }: { events: Event[] }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm h-full w-full z-10"
-            onClick={() => setActive(null)}
+            className="fixed inset-0 bg-black/20 h-full w-full z-10"
           />
         )}
       </AnimatePresence>
-
       <AnimatePresence>
-        {active && typeof active === "object" && (
-          <div className="fixed inset-0 grid place-items-center z-[100] p-4">
+        {active && typeof active === "object" ? (
+          <div className="fixed inset-0  grid place-items-center z-[100]">
             <motion.button
-              key={`button-close-${active.title}-${id}`}
+              key={`button-${active.title}-${id}`}
               layout
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.05 } }}
-              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white dark:bg-neutral-800 rounded-full h-8 w-8 z-10"
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+                transition: {
+                  duration: 0.05,
+                },
+              }}
+              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white rounded-full h-6 w-6"
               onClick={() => setActive(null)}
             >
               <CloseIcon />
             </motion.button>
-
             <motion.div
               layoutId={`card-${active.title}-${id}`}
               ref={ref}
-              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900 sm:rounded-3xl overflow-hidden shadow-2xl"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="w-full max-w-[500px]  h-full md:h-fit md:max-h-[90%]  flex flex-col bg-white dark:bg-neutral-900 sm:rounded-3xl overflow-hidden"
             >
               <motion.div layoutId={`image-${active.title}-${id}`}>
                 <Image
-                  priority
-                  width={500}
-                  height={300}
-                  src={active.imageUrl}
+                  width={200}
+                  height={200}
+                  src={active.src}
                   alt={active.title}
-                  className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-center"
+                  className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
                 />
               </motion.div>
 
-              <div className="flex flex-col h-full">
-                <div className="flex justify-between items-start p-6 border-b border-neutral-200 dark:border-neutral-700">
-                  <div className="flex-1">
+              <div>
+                <div className="flex justify-between items-start p-4">
+                  <div className="">
                     <motion.h3
                       layoutId={`title-${active.title}-${id}`}
-                      className="font-bold text-xl text-neutral-900 dark:text-neutral-100 mb-2"
+                      className="font-bold text-neutral-700 dark:text-neutral-200"
                     >
                       {active.title}
                     </motion.h3>
@@ -345,108 +154,66 @@ export function EventsExpandableCards({ events }: { events: Event[] }) {
                     </motion.p>
                   </div>
 
-                  <motion.div
+                  <motion.a
                     layoutId={`button-${active.title}-${id}`}
-                    className="ml-4"
+                    href={active.ctaLink}
+                    target="_blank"
+                    className="px-4 py-3 text-sm rounded-full font-bold bg-green-500 text-white"
                   >
-                    <Button asChild size="lg" className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] hover:from-[#FE4F00]/90 hover:to-[#CC66CC]/90">
-                      <Link href={active.ctaLink}>
-                        Ver Evento
-                      </Link>
-                    </Button>
-                  </motion.div>
+                    {active.ctaText}
+                  </motion.a>
                 </div>
-
-                <div className="flex-1 p-6 overflow-auto">
+                <div className="pt-4 relative px-4">
                   <motion.div
                     layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-neutral-600 dark:text-neutral-400"
+                    className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]"
                   >
-                    {active.content()}
+                    {typeof active.content === "function"
+                      ? active.content()
+                      : active.content}
                   </motion.div>
                 </div>
               </div>
             </motion.div>
           </div>
-        )}
+        ) : null}
       </AnimatePresence>
-      
-      {/* Grid layout like the test component */}
-      <ul className="max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cards.map((card) => (
+      <ul className="max-w-2xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 items-start gap-4">
+  {cards.map((card: CardItem) => (
           <motion.div
             layoutId={`card-${card.title}-${id}`}
-            key={`card-${card.title}-${id}`}
+            key={card.title}
             onClick={() => setActive(card)}
-            className="group p-6 flex flex-col hover:bg-white/5 dark:hover:bg-neutral-800/50 rounded-2xl cursor-pointer transition-all duration-300 border border-white/10 hover:border-white/20 backdrop-blur-sm"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="p-4 flex flex-col  hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
           >
-            <div className="flex gap-4 mb-4">
-              <motion.div
-                layoutId={`image-${card.title}-${id}`}
-                className="flex-shrink-0"
-              >
+            <div className="flex gap-4 flex-col  w-full">
+              <motion.div layoutId={`image-${card.title}-${id}`}>
                 <Image
-                  width={120}
-                  height={120}
-                  src={card.imageUrl}
+                  width={400}
+                  height={240}
+                  src={card.src}
                   alt={card.title}
-                  className="h-24 w-24 rounded-xl object-cover object-center"
+                  className="h-60 w-full  rounded-lg object-cover object-top"
                 />
-                <div className="absolute -top-2 -right-2">
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-white/90 text-neutral-800">
-                    {card.category}
-                  </Badge>
-                </div>
               </motion.div>
-
-              <div className="flex-1 min-w-0">
+              <div className="flex justify-center items-center flex-col">
                 <motion.h3
                   layoutId={`title-${card.title}-${id}`}
-                  className="font-bold text-lg text-white group-hover:text-white/90 transition-colors mb-2 truncate"
+                  className="font-medium text-neutral-800 dark:text-neutral-200 text-center md:text-left text-base"
                 >
                   {card.title}
                 </motion.h3>
                 <motion.p
                   layoutId={`description-${card.description}-${id}`}
-                  className="text-white/60 text-sm mb-3 line-clamp-2"
+                  className="text-neutral-600 dark:text-neutral-400 text-center md:text-left text-base"
                 >
                   {card.description}
                 </motion.p>
-
-                <div className="flex items-center gap-4 text-xs text-white/50">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    <span className="truncate max-w-[120px]">{card.location}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    <span>{card.soldTickets}/{card.capacity}</span>
-                  </div>
-                </div>
               </div>
             </div>
-
-            <motion.div
-              layoutId={`button-${card.title}-${id}`}
-              className="mt-auto"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-lg font-bold text-white">{card.price}</p>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white hover:text-white group-hover:bg-gradient-to-r group-hover:from-[#FE4F00] group-hover:to-[#CC66CC] transition-all duration-300"
-                >
-                  Ver más
-                </Button>
-              </div>
-            </motion.div>
           </motion.div>
         ))}
       </ul>
@@ -457,9 +224,18 @@ export function EventsExpandableCards({ events }: { events: Event[] }) {
 export const CloseIcon = () => {
   return (
     <motion.svg
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.05 } }}
+      initial={{
+        opacity: 0,
+      }}
+      animate={{
+        opacity: 1,
+      }}
+      exit={{
+        opacity: 0,
+        transition: {
+          duration: 0.05,
+        },
+      }}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
@@ -469,11 +245,135 @@ export const CloseIcon = () => {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4 text-black dark:text-white"
+      className="h-4 w-4 text-black"
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-      <path d="m18 6 -12 12" />
-      <path d="m6 6 12 12" />
+      <path d="M18 6l-12 12" />
+      <path d="M6 6l12 12" />
     </motion.svg>
   )
 }
+
+type CardItem = {
+  title: string
+  description: string
+  src: string
+  ctaText: string
+  ctaLink: string
+  content: string | (() => React.ReactNode)
+}
+
+const demoCards: CardItem[] = [
+  {
+    description: "Lana Del Rey",
+    title: "Summertime Sadness",
+    src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Lana Del Rey, an iconic American singer-songwriter, is celebrated for
+          her melancholic and cinematic music style. Born Elizabeth Woolridge
+          Grant in New York City, she has captivated audiences worldwide with
+          her haunting voice and introspective lyrics. <br /> <br /> Her songs
+          often explore themes of tragic romance, glamour, and melancholia,
+          drawing inspiration from both contemporary and vintage pop culture.
+          With a career that has seen numerous critically acclaimed albums, Lana
+          Del Rey has established herself as a unique and influential figure in
+          the music industry, earning a dedicated fan base and numerous
+          accolades.
+        </p>
+      )
+    },
+  },
+  {
+    description: "Babbu Maan",
+    title: "Mitran Di Chhatri",
+    src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Babu Maan, a legendary Punjabi singer, is renowned for his soulful
+          voice and profound lyrics that resonate deeply with his audience. Born
+          in the village of Khant Maanpur in Punjab, India, he has become a
+          cultural icon in the Punjabi music industry. <br /> <br /> His songs
+          often reflect the struggles and triumphs of everyday life, capturing
+          the essence of Punjabi culture and traditions. With a career spanning
+          over two decades, Babu Maan has released numerous hit albums and
+          singles that have garnered him a massive fan following both in India
+          and abroad.
+        </p>
+      )
+    },
+  },
+
+  {
+    description: "Metallica",
+    title: "For Whom The Bell Tolls",
+    src: "https://assets.aceternity.com/demos/metallica.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Metallica, an iconic American heavy metal band, is renowned for their
+          powerful sound and intense performances that resonate deeply with
+          their audience. Formed in Los Angeles, California, they have become a
+          cultural icon in the heavy metal music industry. <br /> <br /> Their
+          songs often reflect themes of aggression, social issues, and personal
+          struggles, capturing the essence of the heavy metal genre. With a
+          career spanning over four decades, Metallica has released numerous hit
+          albums and singles that have garnered them a massive fan following
+          both in the United States and abroad.
+        </p>
+      )
+    },
+  },
+  {
+    description: "Led Zeppelin",
+    title: "Stairway To Heaven",
+    src: "https://assets.aceternity.com/demos/led-zeppelin.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          Led Zeppelin, a legendary British rock band, is renowned for their
+          innovative sound and profound impact on the music industry. Formed in
+          London in 1968, they have become a cultural icon in the rock music
+          world. <br /> <br /> Their songs often reflect a blend of blues, hard
+          rock, and folk music, capturing the essence of the 1970s rock era.
+          With a career spanning over a decade, Led Zeppelin has released
+          numerous hit albums and singles that have garnered them a massive fan
+          following both in the United Kingdom and abroad.
+        </p>
+      )
+    },
+  },
+  {
+    description: "Mustafa Zahid",
+    title: "Toh Phir Aao",
+    src: "https://assets.aceternity.com/demos/toh-phir-aao.jpeg",
+    ctaText: "Play",
+    ctaLink: "https://ui.aceternity.com/templates",
+    content: () => {
+      return (
+        <p>
+          &quot;Aawarapan&quot;, a Bollywood movie starring Emraan Hashmi, is
+          renowned for its intense storyline and powerful performances. Directed
+          by Mohit Suri, the film has become a significant work in the Indian
+          film industry. <br /> <br /> The movie explores themes of love,
+          redemption, and sacrifice, capturing the essence of human emotions and
+          relationships. With a gripping narrative and memorable music,
+          &quot;Aawarapan&quot; has garnered a massive fan following both in
+          India and abroad, solidifying Emraan Hashmi&apos;s status as a
+          versatile actor.
+        </p>
+      )
+    },
+  },
+]
+
