@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
 import { hasRole, canOrganizeEvents, canAccessAdmin } from '@/lib/roles'
 import { syncUserFromClerk } from '@/lib/sync-user'
+import { CacheService } from '@/lib/redis'
 
 export async function getCurrentUser() {
   const { userId } = await auth()
@@ -12,6 +13,24 @@ export async function getCurrentUser() {
   }
 
   try {
+    const cache = CacheService.getInstance()
+
+    // Intentar obtener desde caché primero
+    const cachedUser = await cache.getUserFullData(userId)
+    if (cachedUser) {
+      // Obtener datos completos de la BD cuando hay caché
+      // El caché es para verificaciones rápidas, pero para operaciones críticas necesitamos todos los datos
+      const user = await prisma.user.findUnique({
+        where: {
+          clerkId: userId
+        }
+      })
+      
+      if (user) {
+        return user
+      }
+    }
+
     let user = await prisma.user.findUnique({
       where: {
         clerkId: userId
@@ -24,14 +43,64 @@ export async function getCurrentUser() {
         user = await syncUserFromClerk(userId)
       } catch (syncError) {
         console.error('Error al sincronizar usuario desde Clerk:', syncError)
-        // En caso de error de sincronización, retornar null en lugar de fallar
         return null
       }
+    }
+
+    // Guardar en caché para futuras consultas
+    if (user) {
+      const userData = {
+        id: user.id,
+        clerkId: user.clerkId,
+        email: user.email,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        role: user.role,
+      }
+      
+      // Usar batch operation para eficiencia
+      await cache.setUserBatch(userId, userData)
     }
 
     return user
   } catch (error) {
     console.error('Error fetching user:', error)
+    return null
+  }
+}
+
+// Nueva función optimizada solo para verificaciones de rol
+export async function getCurrentUserRole() {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    return null
+  }
+
+  try {
+    const cache = CacheService.getInstance()
+
+    // Obtener rol desde caché
+    const cachedRole = await cache.getUserRole(userId)
+    if (cachedRole) {
+      return cachedRole as UserRole
+    }
+
+    // Si no está en caché, obtener de BD
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      select: { role: true, id: true }
+    })
+
+    if (user) {
+      // Guardar en caché
+      await cache.setUserRole(userId, user.role)
+      return user.role
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error fetching user role:', error)
     return null
   }
 }

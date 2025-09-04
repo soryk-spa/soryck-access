@@ -16,6 +16,13 @@ export interface UserProfile {
   role: string;
 }
 
+export interface UserPermissions {
+  canCreateEvents: boolean;
+  canAccessAdmin: boolean;
+  canScanTickets: boolean;
+  canManageUsers: boolean;
+}
+
 export interface MonthlyStats {
   name: string;
   ingresos: number;
@@ -44,7 +51,17 @@ const getRedisConfig = () => {
       lazyConnect: true,
       retryDelayOnFailover: 100,
       enableReadyCheck: false,
-      maxRetriesPerRequest: null,
+      maxRetriesPerRequest: 3,
+      // Optimizaciones de rendimiento
+      connectTimeout: 60000,
+      commandTimeout: 5000,
+      keepAlive: 30000,
+      // Pool de conexiones
+      family: 4,
+      // Configuración de pipeline
+      enableAutoPipelining: true,
+      // Configuración de compresión
+      compression: 'gzip',
     };
   }
   
@@ -56,8 +73,16 @@ const getRedisConfig = () => {
     db: parseInt(process.env.REDIS_DB || '0'),
     retryDelayOnFailover: 100,
     enableReadyCheck: false,
-    maxRetriesPerRequest: null,
+    maxRetriesPerRequest: 3,
     lazyConnect: true,
+    // Optimizaciones de rendimiento
+    connectTimeout: 60000,
+    commandTimeout: 5000,
+    keepAlive: 30000,
+    // Pool de conexiones
+    family: 4,
+    // Configuración de pipeline
+    enableAutoPipelining: true,
   };
 };
 
@@ -153,6 +178,32 @@ export class CacheService {
 
   async setUserProfile(clerkId: string, profile: UserProfile, ttl = 1800): Promise<void> {
     await this.set(`user:profile:${clerkId}`, profile, ttl);
+  }
+
+  // Nuevos métodos optimizados para roles y permisos
+  async getUserFullData(clerkId: string): Promise<UserProfile | null> {
+    return this.get(`user:full:${clerkId}`);
+  }
+
+  async setUserFullData(clerkId: string, userData: UserProfile, ttl = 3600): Promise<void> {
+    await this.set(`user:full:${clerkId}`, userData, ttl);
+  }
+
+  async getUserPermissions(clerkId: string): Promise<UserPermissions | null> {
+    return this.get(`user:permissions:${clerkId}`);
+  }
+
+  async setUserPermissions(clerkId: string, permissions: UserPermissions, ttl = 3600): Promise<void> {
+    await this.set(`user:permissions:${clerkId}`, permissions, ttl);
+  }
+
+  // Batch operations para mejorar rendimiento
+  async setUserBatch(clerkId: string, userData: UserProfile, ttl = 3600): Promise<void> {
+    const pipeline = this.redis.pipeline();
+    pipeline.setex(`user:full:${clerkId}`, ttl, JSON.stringify(userData));
+    pipeline.setex(`user:role:${clerkId}`, ttl, userData.role);
+    pipeline.setex(`user:profile:${clerkId}`, ttl, JSON.stringify(userData));
+    await pipeline.exec();
   }
 
   async invalidateUserCache(clerkId: string): Promise<void> {
