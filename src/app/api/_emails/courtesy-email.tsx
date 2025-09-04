@@ -57,7 +57,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                 overflow: "hidden",
               }}
             >
-              {/* Header */}
+              {}
               <tr>
                 <td
                   style={{
@@ -89,7 +89,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                 </td>
               </tr>
 
-              {/* Main Content */}
+              {}
               <tr>
                 <td style={{ padding: "40px 30px" }}>
                   <p
@@ -114,7 +114,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                     ¡Excelentes noticias! Tu solicitud de cortesía para el evento <strong>{eventName}</strong> ha sido aprobada.
                   </p>
 
-                  {/* Event Details */}
+                  {}
                   <div
                     style={{
                       backgroundColor: "#f9fafb",
@@ -145,7 +145,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                     </p>
                   </div>
 
-                  {/* Courtesy Code */}
+                  {}
                   <div
                     style={{
                       backgroundColor: codeType === 'FREE' ? "#dcfce7" : "#fef3c7",
@@ -204,7 +204,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                     </p>
                   </div>
 
-                  {/* Instructions */}
+                  {}
                   <div
                     style={{
                       backgroundColor: "#eff6ff",
@@ -237,7 +237,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                     </ol>
                   </div>
 
-                  {/* Expiration Warning */}
+                  {}
                   <div
                     style={{
                       backgroundColor: "#fef2f2",
@@ -284,7 +284,7 @@ export const CourtesyEmail: React.FC<Readonly<CourtesyEmailProps>> = ({
                 </td>
               </tr>
 
-              {/* Footer */}
+              {}
               <tr>
                 <td
                   style={{

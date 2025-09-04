@@ -25,7 +25,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-// Importaciones optimizadas desde utilidades centralizadas
+
 import type { Event } from "@/types";
 import { formatCurrency, formatDisplayDateTime } from "@/lib/utils";
 import { usePayment } from "@/hooks/use-payment";
@@ -37,18 +37,18 @@ import {
   type PromoCodeData,
 } from "@/hooks/useTicketPurchase";
 
-// ============================================================================
-// TIPOS Y INTERFACES
-// ============================================================================
+
+
+
 
 interface TicketPurchaseFormProps {
   event: Event;
   ticketTypes: TicketTypeWithCount[];
 }
 
-// ============================================================================
-// COMPONENTES AUXILIARES
-// ============================================================================
+
+
+
 
 const TicketTypeCard = ({
   ticketType,
@@ -194,20 +194,20 @@ const PromoCodeInput = ({
   );
 };
 
-// ============================================================================
-// COMPONENTE PRINCIPAL
-// ============================================================================
+
+
+
 
 export default function TicketPurchaseFormOptimized({
   event,
   ticketTypes,
 }: TicketPurchaseFormProps) {
-  // Hooks personalizados
+  
   const ticketPurchase = useTicketPurchase(event, ticketTypes);
   const availability = useTicketAvailability(ticketTypes);
   const { processPayment, loading: paymentLoading, error: paymentError } = usePayment();
 
-  // Manejar envío del formulario
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -216,13 +216,13 @@ export default function TicketPurchaseFormOptimized({
     const purchaseData = {
       ticketTypeId: ticketPurchase.formData.selectedTicketType,
       quantity: ticketPurchase.formData.quantity,
-      promoCode: ticketPurchase.appliedPromoCode?.code, // Enviar el código, no el ID
+      promoCode: ticketPurchase.appliedPromoCode?.code, 
     };
 
     await processPayment(purchaseData);
   };
 
-  // Estados para alertas
+  
   if (ticketPurchase.isEventPast) {
     return (
       <Card className="border-red-200 bg-red-50 dark:bg-red-950">
@@ -257,7 +257,7 @@ export default function TicketPurchaseFormOptimized({
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header del evento */}
+      {}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
@@ -290,9 +290,9 @@ export default function TicketPurchaseFormOptimized({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Columna izquierda - Selección de tickets */}
+          {}
           <div className="lg:col-span-2 space-y-6">
-            {/* Selección de tipo de ticket */}
+            {}
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -323,7 +323,7 @@ export default function TicketPurchaseFormOptimized({
               </CardContent>
             </Card>
 
-            {/* Cantidad y códigos promocionales */}
+            {}
             {ticketPurchase.selectedType && (
               <Card className="border-0 shadow-lg">
                 <CardHeader>
@@ -333,7 +333,7 @@ export default function TicketPurchaseFormOptimized({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Control de cantidad */}
+                  {}
                   <div>
                     <Label className="text-sm font-medium mb-2 block">
                       Cantidad de tickets
@@ -368,7 +368,7 @@ export default function TicketPurchaseFormOptimized({
 
                   <Separator />
 
-                  {/* Código promocional */}
+                  {}
                   <div>
                     <Label className="text-sm font-medium mb-2 flex items-center gap-2">
                       <Tag className="h-4 w-4" />
@@ -391,9 +391,9 @@ export default function TicketPurchaseFormOptimized({
             )}
           </div>
 
-          {/* Columna derecha - Resumen y pago */}
+          {}
           <div className="space-y-6">
-            {/* Resumen de compra */}
+            {}
             {ticketPurchase.selectedType && (
               <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
                 <CardHeader>
@@ -443,7 +443,7 @@ export default function TicketPurchaseFormOptimized({
               </Card>
             )}
 
-            {/* Términos y condiciones */}
+            {}
             <Card className="border-0 shadow-lg">
               <CardContent className="p-4">
                 <div className="flex items-start space-x-3">
@@ -470,7 +470,7 @@ export default function TicketPurchaseFormOptimized({
               </CardContent>
             </Card>
 
-            {/* Botón de compra */}
+            {}
             <Button
               type="submit"
               className="w-full h-12 text-lg font-semibold"
@@ -501,7 +501,7 @@ export default function TicketPurchaseFormOptimized({
         </div>
       </form>
 
-      {/* Información adicional */}
+      {}
       <Card className="border-0 shadow-lg bg-blue-50 dark:bg-blue-950">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">

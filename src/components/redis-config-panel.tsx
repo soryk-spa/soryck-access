@@ -89,7 +89,7 @@ export function RedisConfigPanel() {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {/* Información básica de conexión */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Host/Servidor</label>
@@ -157,7 +157,7 @@ export function RedisConfigPanel() {
             </div>
           </div>
 
-          {/* Información de entorno */}
+          {}
           <div className="border-t pt-4">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-sm font-medium">Información del Entorno</h4>
@@ -200,7 +200,7 @@ export function RedisConfigPanel() {
             </div>
           </div>
 
-          {/* Detalles adicionales */}
+          {}
           {showDetails && (
             <div className="border-t pt-4 space-y-4">
               <h4 className="text-sm font-medium">Variables de Entorno</h4>
@@ -234,7 +234,7 @@ export function RedisConfigPanel() {
             </div>
           )}
 
-          {/* Botón de actualización */}
+          {}
           <div className="border-t pt-4">
             <Button
               variant="outline"

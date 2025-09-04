@@ -15,7 +15,7 @@ import {
 export default function UpgradePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      {/* Header */}
+      {}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white rounded-full text-sm font-medium">
           <Crown className="h-4 w-4" />
@@ -29,9 +29,9 @@ export default function UpgradePage() {
         </p>
       </div>
 
-      {/* Comparison Cards */}
+      {}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Plan Actual - Cliente */}
+        {}
         <Card className="relative">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -62,7 +62,7 @@ export default function UpgradePage() {
           </CardContent>
         </Card>
 
-        {/* Plan Organizador */}
+        {}
         <Card className="relative border-[#0053CC] shadow-lg">
           <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
             <Badge className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white px-4 py-1">
@@ -114,7 +114,7 @@ export default function UpgradePage() {
         </Card>
       </div>
 
-      {/* Features Detail */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>¿Qué incluye el Plan Organizador?</CardTitle>
@@ -187,7 +187,7 @@ export default function UpgradePage() {
         </CardContent>
       </Card>
 
-      {/* FAQ */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Preguntas Frecuentes</CardTitle>

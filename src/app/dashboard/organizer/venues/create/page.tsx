@@ -62,7 +62,7 @@ export default function CreateVenuePage() {
       
       toast.success("Venue creado exitosamente");
       
-      // Redirigir al editor de asientos del venue con la ruta actualizada
+      
       router.push(`/dashboard/organizer/venues/${venue.id}/editor`);
       
     } catch (error) {
@@ -75,7 +75,7 @@ export default function CreateVenuePage() {
 
   return (
     <div className="container mx-auto py-6 max-w-2xl space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/organizer/venues">
@@ -90,7 +90,7 @@ export default function CreateVenuePage() {
         </div>
       </div>
 
-      {/* Form */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Información del Venue</CardTitle>
@@ -100,7 +100,7 @@ export default function CreateVenuePage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Nombre */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="name">Nombre del Venue *</Label>
               <Input
@@ -112,7 +112,7 @@ export default function CreateVenuePage() {
               />
             </div>
 
-            {/* Descripción */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="description">Descripción</Label>
               <Textarea
@@ -124,7 +124,7 @@ export default function CreateVenuePage() {
               />
             </div>
 
-            {/* Dirección */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="address">Dirección</Label>
               <Input
@@ -135,7 +135,7 @@ export default function CreateVenuePage() {
               />
             </div>
 
-            {/* Capacidad */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="capacity">Capacidad Total</Label>
               <Input
@@ -151,7 +151,7 @@ export default function CreateVenuePage() {
               </p>
             </div>
 
-            {/* Actions */}
+            {}
             <div className="flex gap-3 pt-4">
               <Button type="submit" disabled={isLoading} className="flex-1">
                 {isLoading ? (
@@ -176,7 +176,7 @@ export default function CreateVenuePage() {
         </CardContent>
       </Card>
 
-      {/* Info Card */}
+      {}
       <Card>
         <CardContent className="pt-6">
           <h3 className="font-semibold mb-2">Próximos pasos</h3>

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    // Transformar datos para el formato esperado por el SeatingEditor
+    
     const sections = venue.sections.map(section => ({
       id: section.id,
       name: section.name,
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { sections } = body;
 
-    // Verificar que el venue existe y pertenece al usuario
+    
     const venue = await prisma.venue.findFirst({
       where: {
         id,
@@ -113,9 +113,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    // Usar transacción para guardar todo el layout
+    
     await prisma.$transaction(async (tx) => {
-      // Eliminar secciones y asientos existentes
+      
       await tx.venueSeat.deleteMany({
         where: {
           section: {
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         },
       });
 
-      // Crear nuevas secciones y asientos
+      
       for (const section of sections) {
         const createdSection = await tx.venueSection.create({
           data: {
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           },
         });
 
-        // Crear asientos para esta sección
+        
         if (section.seats && section.seats.length > 0) {
           const seatsData = section.seats.map((seat: {
             id: string;
@@ -169,7 +169,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         }
       }
 
-      // Actualizar la capacidad total del venue
+      
       const totalSeats = sections.reduce((total: number, section: {
         seats?: Array<{ id: string; row: string; number: string; x: number; y: number }>;
       }) => {

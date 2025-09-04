@@ -43,7 +43,7 @@ export function CourtesyRequestForm({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Verificar si hay cupos disponibles
+  
   const hasAvailableSlots = !courtesyLimit || usedCourtesies < courtesyLimit;
   const remainingSlots = courtesyLimit ? courtesyLimit - usedCourtesies : null;
 
@@ -57,16 +57,16 @@ export function CourtesyRequestForm({
   };
 
   const formatRut = (rut: string) => {
-    // Remover caracteres no numéricos y K
+    
     const cleanRut = rut.replace(/[^0-9kK]/g, '');
     
     if (cleanRut.length <= 1) return cleanRut;
     
-    // Separar dígito verificador
+    
     const body = cleanRut.slice(0, -1);
     const dv = cleanRut.slice(-1);
     
-    // Formatear cuerpo con puntos
+    
     const formattedBody = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     
     return `${formattedBody}-${dv}`;
@@ -113,7 +113,7 @@ export function CourtesyRequestForm({
         },
         body: JSON.stringify({
           name: formData.name.trim(),
-          rut: formData.rut.replace(/[.-]/g, ''), // Enviar RUT sin formato
+          rut: formData.rut.replace(/[.-]/g, ''), 
           email: formData.email.trim(),
           phone: formData.phone.trim() || undefined,
         }),
@@ -127,7 +127,7 @@ export function CourtesyRequestForm({
 
       setIsSubmitted(true);
       toast.success('Solicitud enviada exitosamente');
-      onSuccess?.(); // Llamar callback de éxito si existe
+      onSuccess?.(); 
       
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error al enviar solicitud';

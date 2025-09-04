@@ -1,6 +1,6 @@
 export type CourtesyConfig = {
   enabled: boolean;
-  validUntil?: string | null; // HH:mm 24h
+  validUntil?: string | null; 
   priceAfter?: number | null;
 };
 

@@ -76,7 +76,7 @@ export function UserDashboardClient({
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
@@ -95,7 +95,7 @@ export function UserDashboardClient({
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <StatsGrid>
         <ModernStatCard
           title="Eventos Totales"
@@ -136,7 +136,7 @@ export function UserDashboardClient({
         />
       </StatsGrid>
 
-      {/* Charts and Content */}
+      {}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-8">
         <Card className="col-span-5">
           <CardHeader>
@@ -249,7 +249,7 @@ export function UserDashboardClient({
         </Card>
       </div>
 
-      {/* Recent Events and Stats */}
+      {}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>

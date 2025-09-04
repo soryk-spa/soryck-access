@@ -125,7 +125,7 @@ export function SettingsClient({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
@@ -173,7 +173,7 @@ export function SettingsClient({
         </Alert>
       )}
 
-      {/* Settings Tabs */}
+      {}
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center gap-2">
@@ -202,7 +202,7 @@ export function SettingsClient({
           </TabsTrigger>
         </TabsList>
 
-        {/* Profile Tab */}
+        {}
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
@@ -212,7 +212,7 @@ export function SettingsClient({
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Avatar Section */}
+              {}
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20">
                   <AvatarImage src={userData.avatar} alt={userData.firstName} />
@@ -234,7 +234,7 @@ export function SettingsClient({
 
               <Separator />
 
-              {/* Personal Information */}
+              {}
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Nombre</Label>
@@ -277,7 +277,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.websiteUrl || ''}
                     onChange={(e) => setUserData({...userData, websiteUrl: e.target.value})}
-                    placeholder="https://tuempresa.com"
+                    placeholder="https:
                   />
                 </div>
                 <div className="space-y-2">
@@ -287,7 +287,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.twitterUrl || ''}
                     onChange={(e) => setUserData({...userData, twitterUrl: e.target.value})}
-                    placeholder="https://twitter.com/usuario"
+                    placeholder="https:
                   />
                 </div>
                 <div className="space-y-2">
@@ -297,7 +297,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.instagramUrl || ''}
                     onChange={(e) => setUserData({...userData, instagramUrl: e.target.value})}
-                    placeholder="https://instagram.com/usuario"
+                    placeholder="https:
                   />
                 </div>
               </div>
@@ -316,7 +316,7 @@ export function SettingsClient({
           </Card>
         </TabsContent>
 
-        {/* Notifications Tab */}
+        {}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
@@ -440,7 +440,7 @@ export function SettingsClient({
           </Card>
         </TabsContent>
 
-        {/* Appearance Tab */}
+        {}
         <TabsContent value="appearance" className="space-y-6">
           <Card>
             <CardHeader>
@@ -559,7 +559,7 @@ export function SettingsClient({
           </Card>
         </TabsContent>
 
-        {/* Security Tab */}
+        {}
         <TabsContent value="security" className="space-y-6">
           <Card>
             <CardHeader>
@@ -646,7 +646,7 @@ export function SettingsClient({
           </Card>
         </TabsContent>
 
-        {/* Billing Tab */}
+        {}
         <TabsContent value="billing" className="space-y-6">
           <Card>
             <CardHeader>
@@ -707,7 +707,7 @@ export function SettingsClient({
           </Card>
         </TabsContent>
 
-        {/* Advanced Tab */}
+        {}
         <TabsContent value="advanced" className="space-y-6">
           <Card>
             <CardHeader>

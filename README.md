@@ -8,6 +8,8 @@
   Una plataforma digital completa para la gestión de eventos, venta de tickets y control de acceso.
 </div>
 
+  [![CI](https://github.com/bilursag/soryck-access/actions/workflows/ci.yml/badge.svg)](https://github.com/bilursag/soryck-access/actions/workflows/ci.yml)
+
 ## 🚀 Características Principales
 
 ### 🎟️ **Gestión de Eventos**

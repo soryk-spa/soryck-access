@@ -52,7 +52,7 @@ const createPromoCodeSchema = z
   })
   .refine(
     (data) => {
-      // Validar código personalizado
+      
       if (data.codeOption === "custom" && !data.customCode) {
         return false;
       }
@@ -65,12 +65,12 @@ const createPromoCodeSchema = z
   )
   .refine(
     (data) => {
-      // Validar valor para tipos que no sean FREE
+      
       if (data.type !== "FREE") {
         if (data.value === undefined || isNaN(data.value) || data.value <= 0) {
           return false;
         }
-        // Para PERCENTAGE, no puede ser mayor a 100
+        
         if (data.type === "PERCENTAGE" && data.value > 100) {
           return false;
         }
@@ -84,7 +84,7 @@ const createPromoCodeSchema = z
   )
   .refine(
     (data) => {
-      // Validar porcentaje máximo
+      
       if (data.type === "PERCENTAGE" && data.value && data.value > 100) {
         return false;
       }
@@ -132,9 +132,9 @@ export default function CreatePromoCodeForm({
   const watchUsageLimit = watch("usageLimit");
   const watchEventId = watch("eventId");
 
-  //
+  
 
-  // Efecto para cargar tipos de entrada cuando cambia el evento
+  
   useEffect(() => {
     const loadTicketTypes = async () => {
       if (!watchEventId || watchEventId === "all") {
@@ -174,7 +174,7 @@ export default function CreatePromoCodeForm({
     setLoading(true);
 
     try {
-      // Validar y limpiar el valor
+      
       let cleanValue = data.value;
       if (data.type === "FREE") {
         cleanValue = 0;
@@ -211,7 +211,7 @@ export default function CreatePromoCodeForm({
         description: `Código: ${result.promoCode.code}`,
       });
 
-      // Esperar un poco antes de redirigir para que el usuario vea el toast
+      
       setTimeout(() => {
         window.location.href = "/dashboard/promo-codes";
       }, 1500);
@@ -227,7 +227,7 @@ export default function CreatePromoCodeForm({
     }
   };
 
-  // Cuando el formulario es inválido, muestra un toast con el primer error
+  
   const onInvalid = (errs: Record<string, { message?: string } | undefined>) => {
     const firstError = Object.values(errs)[0];
     const message = firstError?.message || "Revisa los campos requeridos";
@@ -253,14 +253,14 @@ export default function CreatePromoCodeForm({
     if (!watchUsageLimit) return null;
 
     let estimatedSavings = 0;
-    const avgTicketPrice = 50000; // Asumiendo ticket promedio de $50,000
+    const avgTicketPrice = 50000; 
     
     if (watchType === "PERCENTAGE" && watchValue) {
       estimatedSavings = ((avgTicketPrice * watchValue) / 100) * watchUsageLimit;
     } else if (watchType === "FIXED_AMOUNT" && watchValue) {
       estimatedSavings = watchValue * watchUsageLimit;
     } else if (watchType === "FREE") {
-      estimatedSavings = avgTicketPrice * watchUsageLimit; // 100% de descuento
+      estimatedSavings = avgTicketPrice * watchUsageLimit; 
     }
 
     return estimatedSavings;
@@ -269,9 +269,9 @@ export default function CreatePromoCodeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Columna principal */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Información básica */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -319,7 +319,7 @@ export default function CreatePromoCodeForm({
                 </div>
               </div>
 
-              {/* Selector de tipo de entrada - Solo se muestra si hay un evento específico seleccionado */}
+              {}
               {watchEventId && watchEventId !== "all" && (
                 <div>
                   <Label htmlFor="ticketTypeSelect">Tipo de entrada específico</Label>
@@ -360,7 +360,7 @@ export default function CreatePromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Configuración de descuento */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export default function CreatePromoCodeForm({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Tipo de descuento */}
+              {}
               <div>
                 <Label>Tipo de descuento *</Label>
                 <RadioGroup
@@ -477,7 +477,7 @@ export default function CreatePromoCodeForm({
                 </RadioGroup>
               </div>
 
-              {/* Valor del descuento */}
+              {}
               {watchType !== "FREE" && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -541,7 +541,7 @@ export default function CreatePromoCodeForm({
                 </div>
               )}
 
-              {/* Mensaje informativo para tipo FREE */}
+              {}
               {watchType === "FREE" && (
                 <div className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 rounded-lg">
                   <div className="p-2 bg-purple-500 text-white rounded-lg">
@@ -561,7 +561,7 @@ export default function CreatePromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Límites y fechas */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -570,7 +570,7 @@ export default function CreatePromoCodeForm({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Límites de uso */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="usageLimit">Límite total de usos</Label>
@@ -603,7 +603,7 @@ export default function CreatePromoCodeForm({
 
               <Separator />
 
-              {/* Fechas de validez */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="validFrom">Válido desde *</Label>
@@ -633,7 +633,7 @@ export default function CreatePromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Código promocional */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -743,9 +743,9 @@ export default function CreatePromoCodeForm({
           </Card>
         </div>
 
-        {/* Barra lateral - Resumen */}
+        {}
         <div className="space-y-6">
-          {/* Resumen del código */}
+          {}
           <Card className="border-0 shadow-lg bg-gradient-to-br from-muted/50 to-muted/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -794,7 +794,7 @@ export default function CreatePromoCodeForm({
                   </span>
                 </div>
 
-                {/* Mostrar tipo de entrada seleccionado */}
+                {}
                 {watchEventId && watchEventId !== "all" && (
                   <div className="flex justify-between">
                     <span className="text-sm text-muted-foreground">
@@ -829,7 +829,7 @@ export default function CreatePromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Consejos */}
+          {}
           <Card className="border-0 shadow-lg border-l-4 border-l-blue-500">
             <CardHeader>
               <CardTitle className="text-base">💡 Consejos</CardTitle>
@@ -858,7 +858,7 @@ export default function CreatePromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Botón de crear */}
+          {}
           <Button
             type="submit"
             disabled={loading}

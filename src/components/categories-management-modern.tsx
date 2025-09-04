@@ -42,7 +42,7 @@ interface CategoriesManagementProps {
   initialCategories: Category[];
 }
 
-// Tarjeta de estadística moderna
+
 const StatCard = ({
   icon: Icon,
   title,
@@ -99,7 +99,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
 
   const nameInputRef = useRef<HTMLInputElement>(null);
 
-  // Estadísticas calculadas
+  
   const totalCategories = categories.length;
   const totalEvents = categories.reduce((sum, cat) => sum + cat._count.events, 0);
   const avgEventsPerCategory = totalCategories > 0 ? Math.round(totalEvents / totalCategories) : 0;
@@ -237,7 +237,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
     resetForm();
   };
 
-  // Configuración del header
+  
   const headerConfig = {
     title: "Gestión de Categorías",
     description: "Administra las categorías de eventos de la plataforma",
@@ -260,7 +260,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
   return (
     <DashboardPageLayout header={headerConfig}>
       <div className="space-y-8">
-        {/* Estadísticas */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <StatCard
             icon={Building}
@@ -292,7 +292,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
           />
         </div>
 
-        {/* Botón de crear nueva categoría */}
+        {}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Categorías ({totalCategories})
@@ -371,7 +371,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
           </Dialog>
         </div>
 
-        {/* Lista de categorías */}
+        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => (
             <Card key={category.id} className="hover:shadow-lg transition-shadow duration-200">

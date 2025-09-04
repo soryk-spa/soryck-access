@@ -16,7 +16,7 @@ export async function GET() {
 
     const cache = CacheService.getInstance()
 
-    // Intentar obtener desde caché primero
+    
     const cachedUser = await cache.getUserFullData(userId)
     if (cachedUser) {
       return NextResponse.json({
@@ -30,7 +30,7 @@ export async function GET() {
       })
     }
 
-    // Si no está en caché, obtener de la base de datos
+    
     const user = await getCurrentUser()
     
     if (!user) {
@@ -40,7 +40,7 @@ export async function GET() {
       )
     }
 
-    // Preparar datos para caché
+    
     const userData = {
       id: user.id,
       clerkId: user.clerkId,
@@ -50,7 +50,7 @@ export async function GET() {
       role: user.role,
     }
 
-    // Guardar en caché con batch operation
+    
     await cache.setUserBatch(userId, userData)
 
     return NextResponse.json({

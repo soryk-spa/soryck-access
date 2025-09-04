@@ -16,7 +16,7 @@ export async function POST(
       )
     }
 
-    // Build where clause
+    
     const whereClause: {
       sessionId: string
       eventId: string
@@ -26,12 +26,12 @@ export async function POST(
       eventId
     }
 
-    // If specific seat IDs are provided, only release those
+    
     if (Array.isArray(seatIds) && seatIds.length > 0) {
       whereClause.seatId = { in: seatIds }
     }
 
-    // Delete reservations
+    
     const result = await prisma.seatReservation.deleteMany({
       where: whereClause
     })

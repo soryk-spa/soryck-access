@@ -35,7 +35,7 @@ import {
   Gift,
 } from "lucide-react";
 
-// Importaciones optimizadas desde utilidades centralizadas
+
 import type { Category, Event, User } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -46,9 +46,9 @@ import {
   type InitialEventData,
 } from "@/hooks/useEventForm";
 
-// ============================================================================
-// COMPONENTES AUXILIARES
-// ============================================================================
+
+
+
 
 const StatCard = ({
   icon,
@@ -86,9 +86,9 @@ const StatCard = ({
   );
 };
 
-// ============================================================================
-// INTERFACES PRINCIPALES
-// ============================================================================
+
+
+
 
 interface EditEventFormProps {
   event: Event;
@@ -96,15 +96,15 @@ interface EditEventFormProps {
   user: User;
 }
 
-// ============================================================================
-// COMPONENTE PRINCIPAL
-// ============================================================================
+
+
+
 
 export default function EditEventForm({
   event,
   categories,
 }: EditEventFormProps) {
-  // Preparar datos iniciales para el hook
+  
   const initialData: InitialEventData = {
     id: event.id,
     title: event.title,
@@ -122,20 +122,20 @@ export default function EditEventForm({
     })),
   };
 
-  // ============================================================================
-  // HOOKS ESPECIALIZADOS
-  // ============================================================================
+  
+  
+  
 
   const eventForm = useEventForm(initialData, "edit");
   const ticketTypesHook = useTicketTypes(initialData.ticketTypes);
   const { imageUrl, handleImageChange } = useEventImage(initialData.imageUrl);
   const stats = useEventFormStats(ticketTypesHook.ticketTypes);
 
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
+  
+  
+  
 
-  // Sincronizar imageUrl con el formulario
+  
   const handleFormImageChange = (newImageUrl: string) => {
     console.log('🖼️ handleFormImageChange called with:', newImageUrl);
     console.log('🖼️ Form data before update:', eventForm.formData);
@@ -149,13 +149,13 @@ export default function EditEventForm({
     await eventForm.handleSubmit(e, ticketTypesHook.ticketTypes);
   };
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
+  
+  
+  
 
   return (
     <div className="space-y-6">
-      {/* Status Badge and Back Button */}
+      {}
       <div className="flex items-center justify-between">
         <Button
           variant="outline"
@@ -172,7 +172,7 @@ export default function EditEventForm({
         </Badge>
       </div>
 
-      {/* Estadísticas Rápidas */}
+      {}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<Ticket />}
@@ -206,10 +206,10 @@ export default function EditEventForm({
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Columna Principal - Información del Evento (3/4 del ancho en pantallas grandes) */}
+          {}
           <div className="xl:col-span-3 space-y-6">
             
-            {/* Información Básica */}
+            {}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -289,7 +289,7 @@ export default function EditEventForm({
               </CardContent>
             </Card>
 
-            {/* Fechas y Horarios */}
+            {}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -336,7 +336,7 @@ export default function EditEventForm({
               </CardContent>
             </Card>
 
-            {/* Tipos de Entrada */}
+            {}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center justify-between text-lg">
@@ -430,7 +430,7 @@ export default function EditEventForm({
               </CardContent>
             </Card>
 
-            {/* Sistema de Cortesías */}
+            {}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -555,10 +555,10 @@ export default function EditEventForm({
             </Card>
           </div>
 
-          {/* Columna Lateral - Imagen (1/4 del ancho en pantallas grandes) */}
+          {}
           <div className="xl:col-span-1 space-y-6">
             
-            {/* Imagen del Evento */}
+            {}
             <Card>
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -604,7 +604,7 @@ export default function EditEventForm({
               </CardContent>
             </Card>
 
-            {/* Resumen Compacto */}
+            {}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center space-x-2 text-lg">
@@ -646,7 +646,7 @@ export default function EditEventForm({
           </div>
         </div>
 
-        {/* Botones de Acción */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 pt-6 border-t bg-gray-50 -mx-6 px-6 py-4 rounded-b-lg">
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <CheckCircle2 className="h-4 w-4 text-green-600" />

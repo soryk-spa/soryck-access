@@ -163,7 +163,7 @@ export async function GET() {
         orders: Number(item.orders),
       })),
 
-      // Métricas calculadas
+      
       averageOrderValue:
         totalStats._count.id > 0
           ? (totalStats._sum.totalAmount || 0) / totalStats._count.id

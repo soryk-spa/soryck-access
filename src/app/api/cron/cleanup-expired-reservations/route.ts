@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get authorization header
+    
     const authHeader = request.headers.get('authorization')
     const expectedToken = process.env.CRON_SECRET
 
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Delete expired reservations
+    
     const result = await prisma.seatReservation.deleteMany({
       where: {
         expiresAt: {

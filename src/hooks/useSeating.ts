@@ -50,7 +50,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
   const [error, setError] = useState<string | null>(null)
   const [selectedSeats, setSelectedSeats] = useState<string[]>([])
   const [sessionId] = useState(() => {
-    // Generate or get session ID from localStorage
+    
     let id = localStorage.getItem('seat-session-id')
     if (!id) {
       id = Math.random().toString(36).substring(2) + Date.now().toString(36)
@@ -59,7 +59,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
     return id
   })
 
-  // Fetch seating plan
+  
   const fetchSeating = useCallback(async () => {
     try {
       setLoading(true)
@@ -80,7 +80,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
     }
   }, [eventId])
 
-  // Reserve seats temporarily
+  
   const reserveSeats = useCallback(async (seatIds: string[]): Promise<boolean> => {
     try {
       const response = await fetch(`/api/events/${eventId}/seating/reserve`, {
@@ -102,7 +102,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
       const data = await response.json()
       if (data.success) {
         setSelectedSeats(seatIds)
-        // Update seat statuses in sections
+        
         setSections(prev => prev.map(section => ({
           ...section,
           seats: section.seats.map(seat => 
@@ -121,7 +121,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
     }
   }, [eventId, sessionId])
 
-  // Release seat reservations
+  
   const releaseSeats = useCallback(async (seatIds: string[]): Promise<boolean> => {
     try {
       const response = await fetch(`/api/events/${eventId}/seating/release`, {
@@ -142,7 +142,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
       const data = await response.json()
       if (data.success) {
         setSelectedSeats(prev => prev.filter(id => !seatIds.includes(id)))
-        // Update seat statuses in sections
+        
         setSections(prev => prev.map(section => ({
           ...section,
           seats: section.seats.map(seat => 
@@ -161,12 +161,12 @@ export function useSeating(eventId: string): UseSeatingReturn {
     }
   }, [eventId, sessionId])
 
-  // Refresh seating data
+  
   const refreshSeating = useCallback(async () => {
     await fetchSeating()
   }, [fetchSeating])
 
-  // Cleanup reservations on unmount
+  
   useEffect(() => {
     const cleanup = () => {
       if (selectedSeats.length > 0) {
@@ -174,7 +174,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
       }
     }
 
-    // Cleanup on page unload
+    
     window.addEventListener('beforeunload', cleanup)
     
     return () => {
@@ -183,7 +183,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
     }
   }, [selectedSeats, releaseSeats])
 
-  // Auto-refresh seating data every 30 seconds
+  
   useEffect(() => {
     const interval = setInterval(() => {
       if (!loading) {
@@ -194,7 +194,7 @@ export function useSeating(eventId: string): UseSeatingReturn {
     return () => clearInterval(interval)
   }, [loading, refreshSeating])
 
-  // Initial fetch
+  
   useEffect(() => {
     fetchSeating()
   }, [fetchSeating])

@@ -18,7 +18,7 @@ export async function POST() {
       lastName: user.lastName
     });
 
-    // Verificar si el usuario ya existe
+    
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: userId }
     });
@@ -30,15 +30,15 @@ export async function POST() {
       });
     }
 
-    // Crear el usuario en la base de datos
+    
     const newUser = await prisma.user.create({
       data: {
-        clerkId: userId, // El ID de Clerk va en clerkId
+        clerkId: userId, 
         email: user.emailAddresses[0]?.emailAddress || "",
         firstName: user.firstName,
         lastName: user.lastName,
         imageUrl: user.imageUrl,
-        role: "ADMIN", // Le damos rol de ADMIN por defecto
+        role: "ADMIN", 
       }
     });
 

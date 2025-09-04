@@ -11,7 +11,7 @@ export default async function CourtesyManagementPage({ params }: Props) {
   const { id } = await params;
   const user = await requireOrganizer();
 
-  // Verificar que el evento existe y pertenece al organizador
+  
   const event = await prisma.event.findFirst({
     where: {
       id,

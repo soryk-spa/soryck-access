@@ -12,20 +12,18 @@ export interface UnifiedDiscountResult {
   discountAmount: number;
   finalAmount: number;
   discountPercentage: number;
-  codeData?: PromoCode | CourtesyRequest; // Para datos específicos del código
+  codeData?: PromoCode | CourtesyRequest; 
 }
 
 export class DiscountCodeService {
-  /**
-   * Valida tanto códigos promocionales como códigos de cortesía
-   */
+  
   static async validateDiscountCode(
     code: string,
     userId: string,
     ticketTypeId: string,
     quantity: number
   ): Promise<UnifiedDiscountResult> {
-    // Primero intentar como código promocional
+    
     const promoResult = await PromoCodeService.validatePromoCode(
       code,
       userId,
@@ -47,7 +45,7 @@ export class DiscountCodeService {
       };
     }
 
-    // Si no es un código promocional válido, intentar como código de cortesía
+    
     const courtesyResult = await this.validateCourtesyCode(
       code,
       ticketTypeId,
@@ -58,7 +56,7 @@ export class DiscountCodeService {
       return courtesyResult;
     }
 
-    // Si ninguno es válido, retornar el error del código promocional (más específico)
+    
     return {
       isValid: false,
       error: promoResult.error || "Código no válido",
@@ -72,16 +70,14 @@ export class DiscountCodeService {
     };
   }
 
-  /**
-   * Valida específicamente códigos de cortesía
-   */
+  
   static async validateCourtesyCode(
     code: string,
     ticketTypeId: string,
     quantity: number
   ): Promise<UnifiedDiscountResult> {
     try {
-      // Obtener información del ticket type para conseguir el eventId
+      
       const ticketType = await prisma.ticketType.findUnique({
         where: { id: ticketTypeId },
         include: {
@@ -103,7 +99,7 @@ export class DiscountCodeService {
         };
       }
 
-      // Buscar el código de cortesía
+      
       const courtesyRequest = await prisma.courtesyRequest.findFirst({
         where: {
           code: code.toUpperCase(),
@@ -135,9 +131,9 @@ export class DiscountCodeService {
         };
       }
 
-      // Verificar si el código ha expirado
+      
       if (courtesyRequest.expiresAt && new Date() > courtesyRequest.expiresAt) {
-        // Marcar como expirado
+        
         await prisma.courtesyRequest.update({
           where: { id: courtesyRequest.id },
           data: { status: 'EXPIRED' },
@@ -156,7 +152,7 @@ export class DiscountCodeService {
         };
       }
 
-      // Verificar si ya fue usado
+      
       if (courtesyRequest.status === 'USED') {
         return {
           isValid: false,
@@ -171,14 +167,14 @@ export class DiscountCodeService {
         };
       }
 
-      // Calcular descuento por ticket individual
+      
       const pricePerTicket = ticketType.price;
       const totalQuantity = quantity;
       
       let discountPerTicket = 0;
       
       if (courtesyRequest.codeType === 'FREE') {
-        discountPerTicket = pricePerTicket; // 100% de descuento
+        discountPerTicket = pricePerTicket; 
       } else if (courtesyRequest.codeType === 'DISCOUNT' && courtesyRequest.discountValue) {
         discountPerTicket = Math.min(courtesyRequest.discountValue, pricePerTicket);
       }
@@ -220,9 +216,7 @@ export class DiscountCodeService {
     }
   }
 
-  /**
-   * Aplicar uso del código después de completar la compra
-   */
+  
   static async applyCodeUsage(
     result: UnifiedDiscountResult,
     userId: string,
@@ -235,7 +229,7 @@ export class DiscountCodeService {
     }
 
     if (result.type === 'PROMO_CODE') {
-      // Aplicar uso del código promocional
+      
       await PromoCodeService.applyPromoCodeToOrder(
         (result.codeData as PromoCode).id,
         userId,
@@ -245,7 +239,7 @@ export class DiscountCodeService {
         finalAmount
       );
     } else if (result.type === 'COURTESY_CODE') {
-      // Marcar código de cortesía como usado
+      
       await prisma.courtesyRequest.update({
         where: { id: (result.codeData as CourtesyRequest).id },
         data: {

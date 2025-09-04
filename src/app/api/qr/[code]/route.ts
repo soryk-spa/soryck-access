@@ -11,28 +11,28 @@ export async function GET(
     
     console.log(`[QR API] Solicitud para código: ${code}`)
     
-    // Validar formato del código QR
+    
     if (!validateQRCode(code)) {
       console.error('[QR API] Formato de código QR inválido:', code)
       return new NextResponse('Invalid QR code format', { status: 400 })
     }
 
-    // URL de verificación
+    
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${code}`
     
     console.log(`[QR API] Generando QR para: ${verificationUrl}`)
     
-    // Generar QR como buffer con configuración optimizada para email
+    
     const qrBuffer = await QRCode.toBuffer(verificationUrl, {
-      errorCorrectionLevel: 'H', // Alta corrección de errores
+      errorCorrectionLevel: 'H', 
       type: 'png',
-      margin: 1, // Margen mínimo para email
+      margin: 1, 
       color: {
         dark: '#000000',
         light: '#FFFFFF'
       },
-      width: 200, // Tamaño más pequeño para email
-      scale: 8 // Mayor escala para mejor calidad
+      width: 200, 
+      scale: 8 
     })
     
     console.log(`[QR API] ✅ QR generado exitosamente, tamaño: ${qrBuffer.length} bytes`)
@@ -43,7 +43,7 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=31536000, immutable', // 1 año
+        'Cache-Control': 'public, max-age=31536000, immutable', 
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type',

@@ -11,7 +11,7 @@ interface RouteParams {
   params: Promise<{ code: string }>;
 }
 
-// Aceptar invitación de cortesía por código QR
+
 export async function POST(
   request: NextRequest,
   { params }: RouteParams
@@ -27,7 +27,7 @@ export async function POST(
     const body = await request.json();
     const { invitationId } = acceptInvitationSchema.parse(body);
 
-    // Buscar la invitación
+    
     const invitation = await prisma.courtesyInvitation.findUnique({
       where: { id: invitationId },
       include: {
@@ -40,12 +40,12 @@ export async function POST(
       return NextResponse.json({ error: 'Invitación no encontrada' }, { status: 404 });
     }
 
-    // Verificar que el código QR coincide con el ticket
+    
     if (!invitation.ticket || invitation.ticket.qrCode !== code) {
       return NextResponse.json({ error: 'Código QR inválido' }, { status: 400 });
     }
 
-    // Verificar que la invitación está en estado válido
+    
     if (invitation.status !== 'SENT' && invitation.status !== 'ACCEPTED') {
       return NextResponse.json({ 
         error: 'Invitación no válida o expirada',
@@ -53,12 +53,12 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Verificar que el evento no ha pasado
+    
     if (invitation.event.endDate && new Date() > invitation.event.endDate) {
       return NextResponse.json({ error: 'El evento ya ha terminado' }, { status: 400 });
     }
 
-    // Verificar que el ticket no ha sido usado
+    
     if (invitation.ticket.isUsed) {
       return NextResponse.json({ 
         error: 'Este ticket ya ha sido utilizado',
@@ -66,7 +66,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Marcar ticket como usado
+    
     await prisma.ticket.update({
       where: { id: invitation.ticket.id },
       data: {
@@ -75,7 +75,7 @@ export async function POST(
       },
     });
 
-    // Actualizar invitación como aceptada si no lo estaba
+    
     if (invitation.status !== 'ACCEPTED') {
       await prisma.courtesyInvitation.update({
         where: { id: invitationId },
@@ -123,7 +123,7 @@ export async function POST(
   }
 }
 
-// Obtener información de invitación por código QR (para preview)
+
 export async function GET(
   request: NextRequest,
   { params }: RouteParams
@@ -131,7 +131,7 @@ export async function GET(
   try {
     const { code } = await params;
 
-    // Buscar ticket por código QR
+    
     const ticket = await prisma.ticket.findUnique({
       where: { qrCode: code },
       include: {
@@ -163,14 +163,14 @@ export async function GET(
       return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });
     }
 
-    // Verificar si es una invitación de cortesía
+    
     if (!ticket.courtesyInvitation) {
       return NextResponse.json({ error: 'Este no es un ticket de cortesía' }, { status: 400 });
     }
 
     const invitation = ticket.courtesyInvitation;
 
-    // Verificar estado de expiración
+    
     const now = new Date();
     const isExpired = invitation.expiresAt ? now > invitation.expiresAt : false;
     const eventEnded = ticket.event.endDate ? now > ticket.event.endDate : false;

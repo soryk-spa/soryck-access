@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verificar que el usuario sea ADMIN
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { role: true }

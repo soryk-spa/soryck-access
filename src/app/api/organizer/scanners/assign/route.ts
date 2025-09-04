@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    // Verificar que el usuario sea organizador
+    
     if (user.role !== "ORGANIZER" && user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "No tienes permisos para asignar validadores" },
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const { eventId, scannerId, scannerEmail } = validation.data;
 
-    // Verificar que el evento pertenezca al organizador y obtener más información
+    
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
@@ -76,14 +76,14 @@ export async function POST(request: NextRequest) {
     let targetScannerId = scannerId;
     let isNewUser = false;
 
-    // Si se proporcionó email, buscar o crear el usuario scanner
+    
     if (scannerEmail && !scannerId) {
       let scannerUser = await prisma.user.findUnique({
         where: { email: scannerEmail },
       });
 
       if (!scannerUser) {
-        // Crear usuario scanner con email
+        
         scannerUser = await prisma.user.create({
           data: {
             email: scannerEmail,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si ya está asignado
+    
     const existingAssignment = await prisma.eventScanner.findUnique({
       where: {
         eventId_scannerId: {
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear la asignación
+    
     const assignment = await prisma.eventScanner.create({
       data: {
         eventId,
@@ -164,9 +164,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Enviar email de invitación
+    
     try {
-      // Obtener el usuario scanner completo y el organizador completo
+      
       const [scannerUser, organizerUser] = await Promise.all([
         prisma.user.findUnique({
           where: { id: targetScannerId },
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (emailError) {
       console.error('Error sending scanner invitation email:', emailError);
-      // No fallar la asignación si el email falla
+      
     }
 
     return NextResponse.json({

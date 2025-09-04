@@ -14,7 +14,7 @@ import {
   Loader2,
   QrCode,
 } from "lucide-react";
-import { formatDate, formatTime } from "@/lib/date"; // Importación actualizada
+import { formatDate, formatTime } from "@/lib/date"; 
 
 interface TicketData {
   id: string;

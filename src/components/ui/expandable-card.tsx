@@ -186,7 +186,7 @@ export const CloseIcon = () => {
           duration: 0.05,
         },
       }}
-      xmlns="http://www.w3.org/2000/svg"
+      xmlns="http:
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -208,9 +208,9 @@ const cards = [
   {
     description: "Lana Del Rey",
     title: "Summertime Sadness",
-    src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
+    src: "https:
     ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
+    ctaLink: "https:
     content: () => {
       return (
         <p>
@@ -231,9 +231,9 @@ const cards = [
   {
     description: "Babbu Maan",
     title: "Mitran Di Chhatri",
-    src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
+    src: "https:
     ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
+    ctaLink: "https:
     content: () => {
       return (
         <p>
@@ -254,9 +254,9 @@ const cards = [
   {
     description: "Metallica",
     title: "For Whom The Bell Tolls",
-    src: "https://assets.aceternity.com/demos/metallica.jpeg",
+    src: "https:
     ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
+    ctaLink: "https:
     content: () => {
       return (
         <p>
@@ -276,9 +276,9 @@ const cards = [
   {
     description: "Led Zeppelin",
     title: "Stairway To Heaven",
-    src: "https://assets.aceternity.com/demos/led-zeppelin.jpeg",
+    src: "https:
     ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
+    ctaLink: "https:
     content: () => {
       return (
         <p>
@@ -297,9 +297,9 @@ const cards = [
   {
     description: "Mustafa Zahid",
     title: "Toh Phir Aao",
-    src: "https://assets.aceternity.com/demos/toh-phir-aao.jpeg",
+    src: "https:
     ctaText: "Play",
-    ctaLink: "https://ui.aceternity.com/templates",
+    ctaLink: "https:
     content: () => {
       return (
         <p>

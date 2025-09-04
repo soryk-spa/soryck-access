@@ -1,4 +1,4 @@
-// src/lib/promo-codes.ts
+
 import { prisma } from '@/lib/prisma';
 import { PromoCodeType, PromoCodeStatus } from '@prisma/client';
 
@@ -35,7 +35,7 @@ export class PromoCodeService {
     quantity: number
   ): Promise<PromoCodeValidationResult> {
     try {
-      // Buscar el código promocional
+      
       const promoCode = await prisma.promoCode.findUnique({
         where: { code: code.toUpperCase() },
         include: {
@@ -57,12 +57,12 @@ export class PromoCodeService {
         return { isValid: false, error: 'Código promocional no válido' };
       }
 
-      // Verificar estado
+      
       if (promoCode.status !== PromoCodeStatus.ACTIVE) {
         return { isValid: false, error: 'Código promocional no está activo' };
       }
 
-      // Verificar fechas de validez
+      
       const now = new Date();
       if (promoCode.validFrom > now) {
         return { isValid: false, error: 'Código promocional aún no es válido' };
@@ -72,17 +72,17 @@ export class PromoCodeService {
         return { isValid: false, error: 'Código promocional ha expirado' };
       }
 
-      // Verificar límite de usos total
+      
       if (promoCode.usageLimit && promoCode.usedCount >= promoCode.usageLimit) {
         return { isValid: false, error: 'Código promocional ha alcanzado su límite de usos' };
       }
 
-      // Verificar límite de usos por usuario
+      
       if (promoCode.usageLimitPerUser && promoCode.usages.length >= promoCode.usageLimitPerUser) {
         return { isValid: false, error: 'Has alcanzado el límite de usos para este código' };
       }
 
-      // Obtener información del ticket type
+      
       const ticketType = await prisma.ticketType.findUnique({
         where: { id: ticketTypeId },
         include: {
@@ -98,7 +98,7 @@ export class PromoCodeService {
         return { isValid: false, error: 'Tipo de ticket no encontrado' };
       }
 
-      // Verificar restricciones de aplicabilidad
+      
       if (promoCode.eventId && promoCode.eventId !== ticketType.eventId) {
         return { isValid: false, error: 'Este código no es válido para este evento' };
       }
@@ -111,11 +111,11 @@ export class PromoCodeService {
         return { isValid: false, error: 'Este código no es válido para este tipo de ticket' };
       }
 
-      // Calcular descuento POR TICKET y luego multiplicar por cantidad
+      
       const pricePerTicket = ticketType.price;
       const totalQuantity = quantity;
       
-      // Verificar monto mínimo contra el total
+      
       const totalBaseAmount = pricePerTicket * totalQuantity;
       if (promoCode.minOrderAmount && totalBaseAmount < promoCode.minOrderAmount) {
         return { 
@@ -124,7 +124,7 @@ export class PromoCodeService {
         };
       }
 
-      // Calcular descuento por ticket individual
+      
       const discountPerTicket = this.calculateDiscountPerTicket(pricePerTicket, promoCode);
       const totalDiscountAmount = discountPerTicket.discountAmount * totalQuantity;
       const finalAmountPerTicket = discountPerTicket.finalAmount;
@@ -144,7 +144,7 @@ export class PromoCodeService {
     }
   }
 
-  // Nuevo método: Calcular descuento por ticket individual
+  
   static calculateDiscountPerTicket(
     ticketPrice: number, 
     promoCode: import('@prisma/client').PromoCode
@@ -154,19 +154,19 @@ export class PromoCodeService {
     switch (promoCode.type) {
       case PromoCodeType.PERCENTAGE:
         discountAmount = (ticketPrice * promoCode.value) / 100;
-        // Para porcentajes, aplicar límite máximo POR TICKET si existe
+        
         if (promoCode.maxDiscountAmount) {
           discountAmount = Math.min(discountAmount, promoCode.maxDiscountAmount);
         }
         break;
 
       case PromoCodeType.FIXED_AMOUNT:
-        // El descuento fijo se aplica POR TICKET (este era el bug principal)
+        
         discountAmount = Math.min(promoCode.value, ticketPrice);
         break;
 
       case PromoCodeType.FREE:
-        // Ticket gratuito
+        
         discountAmount = ticketPrice;
         break;
 
@@ -174,9 +174,9 @@ export class PromoCodeService {
         discountAmount = 0;
     }
 
-    // Asegurar que el descuento no sea mayor al precio del ticket
+    
     discountAmount = Math.min(discountAmount, ticketPrice);
-    discountAmount = Math.max(0, discountAmount); // No permitir descuentos negativos
+    discountAmount = Math.max(0, discountAmount); 
 
     const finalAmount = Math.max(0, ticketPrice - discountAmount);
 
@@ -186,7 +186,7 @@ export class PromoCodeService {
     };
   }
 
-  // Método original mantenido para compatibilidad con código existente
+  
   static calculateDiscount(
     baseAmount: number, 
     promoCode: import('@prisma/client').PromoCode
@@ -196,7 +196,7 @@ export class PromoCodeService {
     switch (promoCode.type) {
       case PromoCodeType.PERCENTAGE:
         discountAmount = (baseAmount * promoCode.value) / 100;
-        // Aplicar límite máximo de descuento si existe
+        
         if (promoCode.maxDiscountAmount) {
           discountAmount = Math.min(discountAmount, promoCode.maxDiscountAmount);
         }
@@ -214,9 +214,9 @@ export class PromoCodeService {
         discountAmount = 0;
     }
 
-    // Asegurar que el descuento no sea mayor al monto base
+    
     discountAmount = Math.min(discountAmount, baseAmount);
-    discountAmount = Math.max(0, discountAmount); // No permitir descuentos negativos
+    discountAmount = Math.max(0, discountAmount); 
 
     const finalAmount = Math.max(0, baseAmount - discountAmount);
 
@@ -235,7 +235,7 @@ export class PromoCodeService {
     finalAmount: number
   ): Promise<void> {
     await prisma.$transaction(async (tx) => {
-      // Crear registro de uso
+      
       await tx.promoCodeUsage.create({
         data: {
           promoCodeId,
@@ -247,13 +247,13 @@ export class PromoCodeService {
         }
       });
 
-      // Incrementar contador de usos
+      
       await tx.promoCode.update({
         where: { id: promoCodeId },
         data: { usedCount: { increment: 1 } }
       });
 
-      // Actualizar orden con información del descuento
+      
       await tx.order.update({
         where: { id: orderId },
         data: {

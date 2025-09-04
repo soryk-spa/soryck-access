@@ -21,7 +21,7 @@ import { es } from "date-fns/locale";
 export default async function ScannersPage() {
   const user = await requireAuth();
 
-  // Obtener eventos del organizador con sus scanners
+  
   const events = await prisma.event.findMany({
     where: { organizerId: user.id },
     include: {
@@ -41,7 +41,7 @@ export default async function ScannersPage() {
     take: 10,
   });
 
-  // Obtener todos los scanners únicos del organizador
+  
   const allScanners = await prisma.eventScanner.findMany({
     where: {
       event: { organizerId: user.id }
@@ -59,7 +59,7 @@ export default async function ScannersPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Agrupar scanners únicos por usuario
+  
   const uniqueScanners = allScanners.reduce((acc: Record<string, {
     user: {
       id: string;
@@ -99,7 +99,7 @@ export default async function ScannersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Gestión de Validadores</h1>
@@ -115,7 +115,7 @@ export default async function ScannersPage() {
         </Link>
       </div>
 
-      {/* Estadísticas rápidas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border">
           <CardContent className="p-4">
@@ -181,7 +181,7 @@ export default async function ScannersPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Lista de Scanners */}
+        {}
         <Card className="border">
           <CardHeader>
             <CardTitle className="text-lg">Validadores Registrados</CardTitle>
@@ -258,7 +258,7 @@ export default async function ScannersPage() {
           </CardContent>
         </Card>
 
-        {/* Eventos con Scanners */}
+        {}
         <Card className="border-slate-200">
           <CardHeader>
             <CardTitle className="text-lg">Eventos con Validadores</CardTitle>
@@ -338,7 +338,7 @@ export default async function ScannersPage() {
         </Card>
       </div>
 
-      {/* Información y consejos */}
+      {}
       <Card className="border-slate-200">
         <CardHeader>
           <CardTitle className="text-lg">Consejos para Validadores</CardTitle>

@@ -16,12 +16,12 @@ export default function RedisAdminPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Panel de configuración */}
+        {}
         <div>
           <RedisConfigPanel />
         </div>
 
-        {/* Monitor de estado */}
+        {}
         <div>
           <RedisMonitor />
         </div>

@@ -96,10 +96,10 @@ export function AdminDashboardClient({
     router.push(`/admin/users/${userId}`);
   };
 
-  // Usar datos reales si están disponibles, sino usar los props como fallback
+  
   const realMonthlyStats = statsData?.monthlyStats || monthlyStats;
 
-  // Configuración del header para DashboardPageLayout
+  
   const headerConfig = {
     title: "Dashboard de Admin",
     description: "Resumen completo de la plataforma SorykPass",
@@ -149,7 +149,7 @@ export function AdminDashboardClient({
 
   return (
     <DashboardPageLayout header={headerConfig}>
-      <div className="space-y-6">{/* Alertas si hay solicitudes pendientes */}
+      <div className="space-y-6">{}
       <StatsGrid>
         <ModernStatCard
           title="Total Usuarios"
@@ -191,7 +191,7 @@ export function AdminDashboardClient({
         />
       </StatsGrid>
 
-      {/* Charts */}
+      {}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
@@ -312,7 +312,7 @@ export function AdminDashboardClient({
         </Card>
       </div>
 
-      {/* Data Tables */}
+      {}
       <div className="grid gap-6 md:grid-cols-2">
         <DataTable
           title="Eventos Recientes"
@@ -386,7 +386,7 @@ export function AdminDashboardClient({
         />
       </div>
 
-      {/* Quick Actions */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="group hover:shadow-md transition-all cursor-pointer">
           <Link href="/admin/role-requests">

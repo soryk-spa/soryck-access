@@ -11,7 +11,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    // Verificar que el usuario sea organizador
+    
     if (user.role !== "ORGANIZER" && user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "No tienes permisos para remover validadores" },
@@ -34,7 +34,7 @@ export async function DELETE(request: NextRequest) {
 
     const { scannerId } = validation.data;
 
-    // Verificar que el scanner pertenezca al organizador
+    
     const scanner = await prisma.eventScanner.findFirst({
       where: {
         id: scannerId,
@@ -49,7 +49,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Eliminar la asignación
+    
     await prisma.eventScanner.delete({
       where: { id: scannerId },
     });

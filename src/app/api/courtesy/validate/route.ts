@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Buscar el código de cortesía
+    
     const courtesyRequest = await prisma.courtesyRequest.findFirst({
       where: {
         code: code.toUpperCase(),
@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si el código ha expirado
+    
     if (courtesyRequest.expiresAt && new Date() > courtesyRequest.expiresAt) {
-      // Marcar como expirado
+      
       await prisma.courtesyRequest.update({
         where: { id: courtesyRequest.id },
         data: { status: 'EXPIRED' },
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si ya fue usado
+    
     if (courtesyRequest.status === 'USED') {
       return NextResponse.json(
         { error: "Este código de cortesía ya ha sido utilizado" },
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calcular descuento
+    
     let discount = 0;
     let finalPrice = courtesyRequest.event.price;
 
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Marcar código como usado después de completar la compra
+
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
@@ -108,7 +108,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Marcar el código como usado
+    
     const updatedRequest = await prisma.courtesyRequest.updateMany({
       where: {
         code: code.toUpperCase(),

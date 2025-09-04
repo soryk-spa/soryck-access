@@ -3,9 +3,9 @@ import * as React from "react";
 
 interface Ticket {
   qrCode: string;
-  qrCodeImage: string; // Content-ID (cid:qrcode) o Data URL (data:image/png;base64,...)
-  qrCodeUrl?: string; // URL de verificación como fallback
-  backupCode?: string; // Código de respaldo
+  qrCodeImage: string; 
+  qrCodeUrl?: string; 
+  backupCode?: string; 
 }
 
 interface TicketEmailProps {
@@ -61,7 +61,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               }}
             >
-              {/* Header */}
+              {}
               <tr>
                 <td
                   style={{
@@ -83,7 +83,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                 </td>
               </tr>
 
-              {/* Content */}
+              {}
               <tr>
                 <td style={{ padding: "30px" }}>
                   <p
@@ -126,7 +126,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                     Puedes mostrar este email directamente desde tu teléfono.
                   </div>
 
-                  {/* Tickets */}
+                  {}
                   {tickets.map((ticket, index) => (
                     <div
                       key={ticket.qrCode}
@@ -138,7 +138,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                         overflow: "hidden",
                       }}
                     >
-                      {/* Ticket Header */}
+                      {}
                       <div
                         style={{
                           backgroundColor: "#f8f9fa",
@@ -159,9 +159,9 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                         </h2>
                       </div>
 
-                      {/* Ticket Content */}
+                      {}
                       <div style={{ padding: "24px", textAlign: "center" }}>
-                        {/* Event Details */}
+                        {}
                         <div
                           style={{
                             backgroundColor: "#f8f9fa",
@@ -200,7 +200,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           </p>
                         </div>
 
-                        {/* QR Code Container */}
+                        {}
                         <div
                           style={{
                             backgroundColor: "#ffffff",
@@ -237,10 +237,10 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             código al personal del evento
                           </div>
 
-                          {/* QR Code Image con múltiples estrategias de compatibilidad */}
+                          {}
                           {ticket.qrCodeImage ? (
                             <div style={{ margin: "20px 0", textAlign: "center" }}>
-                              {/* Mensaje de instrucciones mejorado */}
+                              {}
                               <div
                                 style={{
                                   marginBottom: "15px",
@@ -256,7 +256,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                                 Usa este código para acceder al evento
                               </div>
                               
-                              {/* QR Image optimizada para emails */}
+                              {}
                               <div
                                 style={{
                                   backgroundColor: "#ffffff",
@@ -288,7 +288,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                                 />
                               </div>
                               
-                              {/* Mensaje adicional para clientes que bloquean imágenes */}
+                              {}
                               <div
                                 style={{
                                   marginTop: "15px",
@@ -332,7 +332,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             </div>
                           )}
 
-                          {/* Código de Respaldo Mejorado */}
+                          {}
                           <div
                             style={{
                               margin: "20px 0",
@@ -381,7 +381,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             </div>
                           </div>
 
-                          {/* Instrucciones de uso */}
+                          {}
                           <div
                             style={{
                               marginTop: "20px",
@@ -421,7 +421,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                     </div>
                   ))}
 
-                  {/* Order Info */}
+                  {}
                   <div
                     style={{
                       backgroundColor: "#e7f3ff",
@@ -486,7 +486,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                 </td>
               </tr>
 
-              {/* Footer */}
+              {}
               <tr>
                 <td
                   style={{

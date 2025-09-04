@@ -1,26 +1,21 @@
-/**
- * Utilidades centralizadas para formateo y operaciones comunes
- * Elimina duplicaciones y proporciona consistencia
- */
+
 
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-// ============================================================================
-// UTILIDADES DE ESTILO
-// ============================================================================
+
+
+
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// ============================================================================
-// UTILIDADES DE FORMATEO
-// ============================================================================
 
-/**
- * Formatea un precio con la moneda especificada
- */
+
+
+
+
 export function formatCurrency(
   amount: number, 
   currency: string = 'CLP'
@@ -35,9 +30,7 @@ export function formatCurrency(
   }).format(amount);
 }
 
-/**
- * Formatea un rango de precios
- */
+
 export function formatPriceRange(
   min: number, 
   max: number, 
@@ -48,9 +41,7 @@ export function formatPriceRange(
   return `Desde ${formatCurrency(min, currency)}`;
 }
 
-/**
- * Formatea números grandes con sufijos (K, M, B)
- */
+
 export function formatNumber(num: number): string {
   if (num >= 1000000000) {
     return (num / 1000000000).toFixed(1) + 'B';
@@ -64,20 +55,16 @@ export function formatNumber(num: number): string {
   return num.toString();
 }
 
-/**
- * Formatea porcentajes
- */
+
 export function formatPercentage(value: number, decimals: number = 1): string {
   return `${value.toFixed(decimals)}%`;
 }
 
-// ============================================================================
-// UTILIDADES DE FECHA
-// ============================================================================
 
-/**
- * Formatea una fecha para mostrar en la UI
- */
+
+
+
+
 export function formatDisplayDate(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -90,9 +77,7 @@ export function formatDisplayDate(date: Date | string): string {
   });
 }
 
-/**
- * Formatea una fecha con hora
- */
+
 export function formatDisplayDateTime(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -107,9 +92,7 @@ export function formatDisplayDateTime(date: Date | string): string {
   });
 }
 
-/**
- * Formatea solo la hora
- */
+
 export function formatTime(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -120,9 +103,7 @@ export function formatTime(date: Date | string): string {
   });
 }
 
-/**
- * Formatea fecha corta (dd/mm/yyyy)
- */
+
 export function formatShortDate(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -134,22 +115,20 @@ export function formatShortDate(date: Date | string): string {
   });
 }
 
-/**
- * Obtiene descripción relativa de fecha (Hoy, Mañana, etc.)
- */
+
 export function getRelativeDateDescription(date: Date | string): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   
-  // Verificar si es hoy
+  
   if (dateObj.toDateString() === now.toDateString()) return "Hoy";
   
-  // Verificar si es mañana
+  
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   if (dateObj.toDateString() === tomorrow.toDateString()) return "Mañana";
   
-  // Calcular diferencia en días
+  
   const diffTime = dateObj.getTime() - now.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
@@ -162,29 +141,23 @@ export function getRelativeDateDescription(date: Date | string): string {
   }
 }
 
-// ============================================================================
-// UTILIDADES DE VALIDACIÓN
-// ============================================================================
 
-/**
- * Valida si una fecha es futura
- */
+
+
+
+
 export function isFutureDate(date: Date | string): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj > new Date();
 }
 
-/**
- * Valida email
- */
+
 export function isValidEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
 
-/**
- * Valida que una URL sea válida
- */
+
 export function isValidUrl(url: string): boolean {
   try {
     new URL(url);
@@ -194,63 +167,51 @@ export function isValidUrl(url: string): boolean {
   }
 }
 
-// ============================================================================
-// UTILIDADES DE TEXTO
-// ============================================================================
 
-/**
- * Capitaliza la primera letra de una cadena
- */
+
+
+
+
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
-/**
- * Convierte texto a slug (URL-friendly)
- */
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove accents
-    .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
-    .replace(/\s+/g, '-') // Replace spaces with hyphens
-    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/[\u0300-\u036f]/g, '') 
+    .replace(/[^a-z0-9\s-]/g, '') 
+    .replace(/\s+/g, '-') 
+    .replace(/-+/g, '-') 
     .trim();
 }
 
-/**
- * Trunca texto con elipsis
- */
+
 export function truncate(text: string, length: number): string {
   if (text.length <= length) return text;
   return text.slice(0, length) + '...';
 }
 
-/**
- * Obtiene iniciales de un nombre
- */
+
 export function getInitials(firstName?: string | null, lastName?: string | null): string {
   const first = firstName?.charAt(0).toUpperCase() || '';
   const last = lastName?.charAt(0).toUpperCase() || '';
   return (first + last) || '?';
 }
 
-/**
- * Formatea nombre completo
- */
+
 export function formatFullName(firstName?: string | null, lastName?: string | null): string {
   const parts = [firstName, lastName].filter(Boolean);
   return parts.length > 0 ? parts.join(' ') : 'Usuario';
 }
 
-// ============================================================================
-// UTILIDADES DE ARRAYS Y OBJETOS
-// ============================================================================
 
-/**
- * Agrupa array por una propiedad
- */
+
+
+
+
 export function groupBy<T, K extends keyof T>(array: T[], key: K): Record<string, T[]> {
   return array.reduce((groups, item) => {
     const group = String(item[key]);
@@ -261,9 +222,7 @@ export function groupBy<T, K extends keyof T>(array: T[], key: K): Record<string
   }, {} as Record<string, T[]>);
 }
 
-/**
- * Ordena array por una propiedad
- */
+
 export function sortBy<T>(array: T[], key: keyof T, direction: 'asc' | 'desc' = 'asc'): T[] {
   return [...array].sort((a, b) => {
     const aValue = a[key];
@@ -275,20 +234,16 @@ export function sortBy<T>(array: T[], key: keyof T, direction: 'asc' | 'desc' = 
   });
 }
 
-/**
- * Filtra valores únicos de un array
- */
+
 export function unique<T>(array: T[]): T[] {
   return [...new Set(array)];
 }
 
-// ============================================================================
-// UTILIDADES DE PROMOCIONES
-// ============================================================================
 
-/**
- * Formatea el descuento de un código promocional
- */
+
+
+
+
 export function formatDiscount(type: string, value: number): string {
   switch (type) {
     case "PERCENTAGE":
@@ -302,21 +257,17 @@ export function formatDiscount(type: string, value: number): string {
   }
 }
 
-/**
- * Calcula el porcentaje de uso de un código promocional
- */
+
 export function calculateUsagePercentage(used: number, limit?: number): number {
   if (!limit) return 0;
   return Math.min((used / limit) * 100, 100);
 }
 
-// ============================================================================
-// UTILIDADES DE ESTADO
-// ============================================================================
 
-/**
- * Obtiene la configuración de color para un estado
- */
+
+
+
+
 export function getStatusConfig(status: string): {
   label: string;
   color: string;
@@ -341,13 +292,11 @@ export function getStatusConfig(status: string): {
   };
 }
 
-// ============================================================================
-// UTILIDADES DE DEBOUNCE
-// ============================================================================
 
-/**
- * Función de debounce para optimizar búsquedas
- */
+
+
+
+
 export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
@@ -360,13 +309,11 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
   };
 }
 
-// ============================================================================
-// UTILIDADES DE ARCHIVOS
-// ============================================================================
 
-/**
- * Convierte bytes a formato legible
- */
+
+
+
+
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   
@@ -377,9 +324,7 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-/**
- * Valida tipo de archivo por extensión
- */
+
 export function isValidImageFile(filename: string): boolean {
   const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
   const extension = filename.toLowerCase().substring(filename.lastIndexOf('.'));

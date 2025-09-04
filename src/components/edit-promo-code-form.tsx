@@ -133,7 +133,7 @@ export default function EditPromoCodeForm({
 
       toast.success("¡Código promocional actualizado exitosamente!");
 
-      // Redirigir después de actualizar
+      
       window.location.href = "/dashboard/promo-codes";
     } catch (error) {
       console.error("Error updating promo code:", error);
@@ -229,9 +229,9 @@ export default function EditPromoCodeForm({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Columna principal */}
+        {}
         <div className="lg:col-span-2 space-y-6">
-          {/* Información del código */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function EditPromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Restricciones de edición */}
+          {}
           {!canEdit && (
             <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
               <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -287,7 +287,7 @@ export default function EditPromoCodeForm({
             </Alert>
           )}
 
-          {/* Información básica editable */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -354,7 +354,7 @@ export default function EditPromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Estado y límites */}
+          {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -363,7 +363,7 @@ export default function EditPromoCodeForm({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Estado */}
+              {}
               <div>
                 <Label>Estado del código</Label>
                 <RadioGroup
@@ -453,7 +453,7 @@ export default function EditPromoCodeForm({
 
               <Separator />
 
-              {/* Límites de uso */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="usageLimit">Límite total de usos</Label>
@@ -489,7 +489,7 @@ export default function EditPromoCodeForm({
 
               <Separator />
 
-              {/* Fecha de validez */}
+              {}
               <div>
                 <Label htmlFor="validUntil">Válido hasta</Label>
                 <Input
@@ -506,9 +506,9 @@ export default function EditPromoCodeForm({
           </Card>
         </div>
 
-        {/* Barra lateral - Información */}
+        {}
         <div className="space-y-6">
-          {/* Estado actual */}
+          {}
           <Card className="border-0 shadow-lg bg-gradient-to-br from-muted/50 to-muted/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -557,7 +557,7 @@ export default function EditPromoCodeForm({
             </CardContent>
           </Card>
 
-          {/* Vista previa de cambios */}
+          {}
           {watchUsageLimit && (
             <Card className="border-0 shadow-lg border-l-4 border-l-blue-500">
               <CardHeader>
@@ -581,7 +581,7 @@ export default function EditPromoCodeForm({
             </Card>
           )}
 
-          {/* Botón de guardar */}
+          {}
           <Button
             type="submit"
             disabled={loading}

@@ -78,12 +78,12 @@ export function usePayment() {
         } else if (data.paymentUrl && data.token) {
           toast.info("Redirigiendo a la pasarela de pago...");
           
-          // Construir URL con parámetros de información del pago
+          
           const redirectUrl = new URL("/payment/redirect", window.location.origin);
           redirectUrl.searchParams.set("token", data.token);
           redirectUrl.searchParams.set("url", data.paymentUrl);
           
-          // Agregar información del monto y descuento si están disponibles
+          
           if (data.priceBreakdown) {
             redirectUrl.searchParams.set("amount", data.priceBreakdown.totalAmount.toString());
             if (data.priceBreakdown.discountAmount > 0) {
@@ -94,7 +94,7 @@ export function usePayment() {
             }
           }
           
-          // Redirigir a la página intermedia
+          
           router.push(redirectUrl.toString());
         }
       }

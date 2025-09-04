@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest) {
   try {
     const user = await requireAuth();
 
-    // Verificar que el usuario sea organizador
+    
     if (user.role !== "ORGANIZER" && user.role !== "ADMIN") {
       return NextResponse.json(
         { error: "No tienes permisos para modificar validadores" },
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest) {
 
     const { scannerId, isActive } = validation.data;
 
-    // Verificar que el scanner pertenezca al organizador
+    
     const scanner = await prisma.eventScanner.findFirst({
       where: {
         id: scannerId,
@@ -50,7 +50,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Actualizar el estado
+    
     const updatedScanner = await prisma.eventScanner.update({
       where: { id: scannerId },
       data: { isActive },

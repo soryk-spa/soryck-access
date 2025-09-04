@@ -51,7 +51,7 @@ export default function EventTicketsSeatingPage() {
     releaseSeats
   } = useSeating(eventId)
 
-  // Fetch event details
+  
   useEffect(() => {
     const fetchEvent = async () => {
       try {
@@ -75,26 +75,26 @@ export default function EventTicketsSeatingPage() {
     }
   }, [eventId])
 
-  // Handle seat selection changes
+  
   const handleSelectionChange = async (seats: SelectedSeat[]) => {
     const newSeatIds = seats.map(s => s.id)
     const currentSeatIds = selectedSeats.map(s => s.id)
 
-    // Find seats to add and remove
+    
     const seatsToAdd = newSeatIds.filter(id => !currentSeatIds.includes(id))
     const seatsToRemove = currentSeatIds.filter(id => !newSeatIds.includes(id))
 
     try {
-      // Release seats that were deselected
+      
       if (seatsToRemove.length > 0) {
         await releaseSeats(seatsToRemove)
       }
 
-      // Reserve newly selected seats
+      
       if (seatsToAdd.length > 0) {
         const success = await reserveSeats(seatsToAdd)
         if (!success) {
-          // If reservation failed, don't update selection
+          
           return
         }
       }
@@ -105,10 +105,10 @@ export default function EventTicketsSeatingPage() {
     }
   }
 
-  // Proceed to checkout
+  
   const handleProceedToCheckout = async (seats: SelectedSeat[]) => {
     if (!user) {
-      // Redirect to sign in
+      
       router.push(`/sign-in?redirectTo=/events/${eventId}/tickets/seating`)
       return
     }
@@ -119,7 +119,7 @@ export default function EventTicketsSeatingPage() {
     }
 
     try {
-      // Reserve seats one more time to ensure they're still available
+      
       const seatIds = seats.map(s => s.id)
       const success = await reserveSeats(seatIds)
       
@@ -128,7 +128,7 @@ export default function EventTicketsSeatingPage() {
         return
       }
 
-      // Navigate to payment with seat information
+      
       const searchParams = new URLSearchParams({
         seats: JSON.stringify(seats.map(seat => ({
           id: seat.id,
@@ -215,7 +215,7 @@ export default function EventTicketsSeatingPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header */}
+      {}
       <div className="bg-white border-b border-gray-200 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -257,7 +257,7 @@ export default function EventTicketsSeatingPage() {
         </div>
       </div>
 
-      {/* Seat Selector */}
+      {}
       <div className="flex-1">
         <SeatSelector
           eventId={eventId}

@@ -1,4 +1,4 @@
-// src/app/events/[id]/edit/page.tsx
+
 import { redirect } from "next/navigation";
 
 export default async function EditEventPageRedirect({
@@ -8,6 +8,6 @@ export default async function EditEventPageRedirect({
 }) {
   const { id } = await params;
   
-  // Redirect to the new location under organizer layout
+  
   redirect(`/organizer/events/${id}/edit`);
 }

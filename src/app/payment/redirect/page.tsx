@@ -18,7 +18,7 @@ function RedirectComponent() {
       if (buttonRef.current) {
         buttonRef.current.click();
       }
-    }, 1500); // Aumentado a 1.5 segundos para que se vea la información
+    }, 1500); 
 
     return () => clearTimeout(timer);
   }, []);
@@ -45,7 +45,7 @@ function RedirectComponent() {
             Serás redirigido a Webpay para completar el pago.
           </p>
           
-          {/* Información del pago */}
+          {}
           <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
             {amount && (
               <div className="flex justify-between items-center">

@@ -167,7 +167,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   const [newSectionName, setNewSectionName] = useState('')
   const [newSectionColor, setNewSectionColor] = useState(COLORS[0])
   
-  // Estados para Fase 2: Edición Avanzada
+  
   const [isEditingInPlace, setIsEditingInPlace] = useState(false)
   const [editingText, setEditingText] = useState('')
   const [isResizing, setIsResizing] = useState(false)
@@ -176,42 +176,42 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   const [snapToGrid, setSnapToGrid] = useState(true)
   const [gridSize, setGridSize] = useState(20)
   
-  // Estados para creación por cantidad de asientos
+  
   const [creationMode, setCreationMode] = useState<'manual' | 'bySeats'>('manual')
   const [desiredSeats, setDesiredSeats] = useState(50)
   const [seatsPerRow, setSeatsPerRow] = useState(10)
-  const [seatSpacing, setSeatSpacing] = useState(35) // Espaciado entre asientos
-  const [rowSpacing, setRowSpacing] = useState(40) // Espaciado entre filas
+  const [seatSpacing, setSeatSpacing] = useState(35) 
+  const [rowSpacing, setRowSpacing] = useState(40) 
   
-  // Estados para herramienta de polígono
+  
   const [isCreatingPolygon, setIsCreatingPolygon] = useState(false)
   const [polygonPoints, setPolygonPoints] = useState<{ x: number; y: number }[]>([])
   const [currentPolygonId, setCurrentPolygonId] = useState<string | null>(null)
   
-  // Estados para sección poligonal
+  
   const [isCreatingPolygonSection, setIsCreatingPolygonSection] = useState(false)
   const [polygonSectionPoints, setPolygonSectionPoints] = useState<{ x: number; y: number }[]>([])
   const [currentPolygonSectionId, setCurrentPolygonSectionId] = useState<string | null>(null)
   
-  // Estado para seguimiento del cursor en polígonos
+  
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   
-  // Nuevos estados para las herramientas expandidas
+  
   const [newElementName, setNewElementName] = useState('')
   const [newElementColor, setNewElementColor] = useState(COLORS[0])
   const [textContent, setTextContent] = useState('Texto')
   const [entranceType, setEntranceType] = useState<'main' | 'emergency' | 'vip' | 'service'>('main')
   
-  // Estado para controlar la visibilidad del sidebar
+  
   const [sidebarVisible, setSidebarVisible] = useState(true)
 
-  // Obtener colores adaptativos según el tema
+  
   const getThemeColors = useCallback(() => {
     const isDark = resolvedTheme === 'dark'
     return {
-      grid: isDark ? '#4b5563' : '#e5e7eb', // Más visible pero sutil
+      grid: isDark ? '#4b5563' : '#e5e7eb', 
       text: isDark ? '#f9fafb' : '#111827',
-      canvas: isDark ? '#111827' : '#ffffff', // Fondo más contrastado en dark
+      canvas: isDark ? '#111827' : '#ffffff', 
       border: isDark ? '#6b7280' : '#d1d5db',
       panelBg: isDark ? '#374151' : '#ffffff',
       selectedBg: isDark ? '#1e40af' : '#3b82f6',
@@ -219,7 +219,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [resolvedTheme])
 
-  // Funciones utilitarias para Fase 2
+  
   const snapToGridCoords = useCallback((x: number, y: number) => {
     if (!snapToGrid) return { x, y }
     return {
@@ -253,7 +253,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ]
   }, [scale])
 
-  // Canvas drawing functions
+  
   const drawGrid = useCallback((ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     if (!showGrid) return
     
@@ -266,7 +266,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     const startX = -offset.x % gridSpacing
     const startY = -offset.y % gridSpacing
 
-    // Dibujar líneas verticales
+    
     for (let x = startX; x < canvas.width; x += gridSpacing) {
       ctx.beginPath()
       ctx.moveTo(x, 0)
@@ -274,7 +274,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.stroke()
     }
 
-    // Dibujar líneas horizontales
+    
     for (let y = startY; y < canvas.height; y += gridSpacing) {
       ctx.beginPath()
       ctx.moveTo(0, y)
@@ -297,15 +297,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       const y = (handle.y * scale) + offset.y
       const size = handle.size * scale
       
-      // Sombra del handle
+      
       ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
       ctx.fillRect(x + 1, y + 1, size, size)
       
-      // Handle principal
+      
       ctx.fillStyle = colors.selectedBg
       ctx.fillRect(x, y, size, size)
       
-      // Borde del handle
+      
       ctx.strokeStyle = colors.selectedBorder
       ctx.lineWidth = 1
       ctx.strokeRect(x, y, size, size)
@@ -323,22 +323,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.translate(x + width/2, y + height/2)
     ctx.rotate(section.rotation * Math.PI / 180)
 
-    // Draw section rectangle
+    
     const isSelected = selectedElement === section.id
-    ctx.fillStyle = isSelected ? section.color + '60' : section.color + '30' // Más opacidad para mejor visibilidad
+    ctx.fillStyle = isSelected ? section.color + '60' : section.color + '30' 
     ctx.strokeStyle = section.color
     ctx.lineWidth = isSelected ? 3 : 2
     ctx.fillRect(-width/2, -height/2, width, height)
     ctx.strokeRect(-width/2, -height/2, width, height)
 
-    // Draw section name - usar color adaptativo con fondo para mejor legibilidad
-    if (scale > 0.4) { // Solo mostrar nombre si hay suficiente zoom
+    
+    if (scale > 0.4) { 
       ctx.fillStyle = colors.canvas
       ctx.strokeStyle = colors.text
       ctx.lineWidth = 2
       const textY = -height/2 + 15 * scale
       
-      // Fondo semi-transparente para el texto
+      
       ctx.globalAlpha = 0.8
       ctx.fillRect(-width/3, textY - 8 * scale, (width * 2)/3, 16 * scale)
       ctx.globalAlpha = 1
@@ -350,22 +350,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.fillText(section.name, 0, textY)
     }
 
-    // Draw seats
+    
     section.seats.forEach(seat => {
       const seatX = (seat.x - section.width/2) * scale
       const seatY = (seat.y - section.height/2) * scale
       
-      // Colores mejorados para asientos que se ven bien en ambos temas
+      
       let seatColor = ''
       switch (seat.status) {
         case 'AVAILABLE':
-          seatColor = '#22c55e' // Green-500 - se ve bien en ambos temas
+          seatColor = '#22c55e' 
           break
         case 'BLOCKED':
-          seatColor = '#ef4444' // Red-500 - se ve bien en ambos temas
+          seatColor = '#ef4444' 
           break
         default:
-          seatColor = '#f59e0b' // Amber-500 - se ve bien en ambos temas
+          seatColor = '#f59e0b' 
           break
       }
       
@@ -374,20 +374,20 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.lineWidth = 1.5
       
       if (seat.isAccessible) {
-        // Draw wheelchair accessible seat (square)
+        
         const seatSize = (SEAT_SIZE/2) * scale * 0.4
         ctx.fillRect(seatX - seatSize, seatY - seatSize, seatSize * 2, seatSize * 2)
         ctx.strokeRect(seatX - seatSize, seatY - seatSize, seatSize * 2, seatSize * 2)
       } else {
-        // Draw regular seat (circle) - un poco más grande
+        
         ctx.beginPath()
         ctx.arc(seatX, seatY, (SEAT_SIZE/2) * scale * 0.4, 0, 2 * Math.PI)
         ctx.fill()
         ctx.stroke()
       }
 
-      // Draw seat number - mejorado para mejor legibilidad
-      if (scale > 0.5) { // Solo mostrar números si el zoom es suficiente
+      
+      if (scale > 0.5) { 
         ctx.fillStyle = colors.text
         ctx.font = `bold ${Math.max(8 * scale, 8)}px Arial`
         ctx.textAlign = 'center'
@@ -399,7 +399,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement, getThemeColors])
 
-  // Función para dibujar escenario
+  
   const drawStage = useCallback((ctx: CanvasRenderingContext2D, stage: Stage) => {
     const colors = getThemeColors()
     const x = (stage.x * scale) + offset.x
@@ -413,7 +413,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
     const isSelected = selectedElement === stage.id
     
-    // Draw stage with gradient
+    
     const gradient = ctx.createLinearGradient(-width/2, -height/2, width/2, height/2)
     gradient.addColorStop(0, stage.color + 'CC')
     gradient.addColorStop(1, stage.color + '80')
@@ -424,7 +424,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.fillRect(-width/2, -height/2, width, height)
     ctx.strokeRect(-width/2, -height/2, width, height)
 
-    // Draw stage icon
+    
     if (scale > 0.3) {
       ctx.fillStyle = colors.text
       ctx.font = `bold ${Math.max(16 * scale, 12)}px Arial`
@@ -437,7 +437,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement, getThemeColors])
 
-  // Función para dibujar formas
+  
   const drawShape = useCallback((ctx: CanvasRenderingContext2D, shape: Shape) => {
     const x = (shape.x * scale) + offset.x
     const y = (shape.y * scale) + offset.y
@@ -475,7 +475,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement])
 
-  // Función para dibujar texto
+  
   const drawText = useCallback((ctx: CanvasRenderingContext2D, textElement: TextElement) => {
     const x = (textElement.x * scale) + offset.x
     const y = (textElement.y * scale) + offset.y
@@ -491,7 +491,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
     
-    // Fondo para texto seleccionado
+    
     if (isSelected) {
       const metrics = ctx.measureText(textElement.content)
       const textHeight = textElement.fontSize * scale
@@ -505,15 +505,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement])
 
-  // Función para dibujar polígonos
+  
   const drawPolygon = useCallback((ctx: CanvasRenderingContext2D, polygon: Polygon) => {
-    if (polygon.points.length < 3) return // Necesita al menos 3 puntos
+    if (polygon.points.length < 3) return 
 
     const isSelected = selectedElement === polygon.id
     
     ctx.save()
     
-    // Crear el path del polígono
+    
     ctx.beginPath()
     const firstPoint = polygon.points[0]
     ctx.moveTo(
@@ -530,18 +530,18 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
     ctx.closePath()
     
-    // Rellenar si está marcado como filled
+    
     if (polygon.filled) {
       ctx.fillStyle = polygon.color + (isSelected ? '80' : '40')
       ctx.fill()
     }
     
-    // Dibujar borde
+    
     ctx.strokeStyle = polygon.strokeColor || polygon.color
     ctx.lineWidth = isSelected ? polygon.strokeWidth + 2 : polygon.strokeWidth
     ctx.stroke()
     
-    // Dibujar puntos de control si está seleccionado
+    
     if (isSelected) {
       ctx.fillStyle = '#0053CC'
       polygon.points.forEach(point => {
@@ -557,9 +557,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       })
     }
     
-    // Dibujar nombre del polígono en el centro
+    
     if (scale > 0.3) {
-      // Calcular centro del polígono
+      
       const centerX = polygon.points.reduce((sum, p) => sum + p.x, 0) / polygon.points.length
       const centerY = polygon.points.reduce((sum, p) => sum + p.y, 0) / polygon.points.length
       
@@ -577,15 +577,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement])
 
-  // Función para dibujar secciones poligonales
+  
   const drawPolygonSection = useCallback((ctx: CanvasRenderingContext2D, polygonSection: PolygonSection) => {
-    if (polygonSection.points.length < 3) return // Necesita al menos 3 puntos
+    if (polygonSection.points.length < 3) return 
 
     const isSelected = selectedElement === polygonSection.id
     
     ctx.save()
     
-    // Crear el path del polígono
+    
     ctx.beginPath()
     const firstPoint = polygonSection.points[0]
     ctx.moveTo(
@@ -602,22 +602,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
     ctx.closePath()
     
-    // Rellenar sección
+    
     ctx.fillStyle = polygonSection.color + (isSelected ? '80' : '40')
     ctx.fill()
     
-    // Dibujar borde
+    
     ctx.strokeStyle = polygonSection.color
     ctx.lineWidth = isSelected ? 4 : 2
     ctx.stroke()
     
-    // Dibujar asientos dentro del polígono
+    
     if (scale > 0.5) {
       polygonSection.seats.forEach(seat => {
         const seatX = (seat.x * scale) + offset.x
         const seatY = (seat.y * scale) + offset.y
         
-        // Color del asiento según estado
+        
         switch (seat.status) {
           case 'AVAILABLE':
             ctx.fillStyle = '#10B981'
@@ -634,14 +634,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         ctx.arc(seatX, seatY, Math.max(SEAT_SIZE * scale / 4, 2), 0, 2 * Math.PI)
         ctx.fill()
         
-        // Borde del asiento
+        
         ctx.strokeStyle = '#000000'
         ctx.lineWidth = 1
         ctx.stroke()
       })
     }
     
-    // Dibujar puntos de control si está seleccionado
+    
     if (isSelected) {
       ctx.fillStyle = '#0053CC'
       polygonSection.points.forEach(point => {
@@ -657,9 +657,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       })
     }
     
-    // Dibujar nombre y información de la sección
+    
     if (scale > 0.3) {
-      // Calcular centro del polígono
+      
       const centerX = polygonSection.points.reduce((sum, p) => sum + p.x, 0) / polygonSection.points.length
       const centerY = polygonSection.points.reduce((sum, p) => sum + p.y, 0) / polygonSection.points.length
       
@@ -668,14 +668,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       
-      // Nombre de la sección
+      
       ctx.fillText(
         polygonSection.name,
         (centerX * scale) + offset.x,
         (centerY * scale) + offset.y - 10
       )
       
-      // Información de asientos
+      
       if (scale > 0.6) {
         ctx.font = `${Math.max(10 * scale, 8)}px Arial`
         ctx.fillText(
@@ -689,7 +689,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement])
 
-  // Función para dibujar entradas
+  
   const drawEntrance = useCallback((ctx: CanvasRenderingContext2D, entrance: Entrance) => {
     const x = (entrance.x * scale) + offset.x
     const y = (entrance.y * scale) + offset.y
@@ -702,7 +702,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
     const isSelected = selectedElement === entrance.id
     
-    // Color según tipo de entrada
+    
     const entranceColor = ENTRANCE_COLORS[entrance.entranceType]
     
     ctx.fillStyle = entranceColor + (isSelected ? 'AA' : '40')
@@ -711,7 +711,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.fillRect(-width/2, -height/2, width, height)
     ctx.strokeRect(-width/2, -height/2, width, height)
 
-    // Draw entrance icon and text
+    
     if (scale > 0.3) {
       ctx.fillStyle = entranceColor
       ctx.font = `bold ${Math.max(12 * scale, 10)}px Arial`
@@ -729,7 +729,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.restore()
   }, [scale, offset, selectedElement])
 
-  // Función para obtener el cursor apropiado según el contexto
+  
   const getCursor = useCallback((e: MouseEvent): string => {
     const canvas = canvasRef.current
     if (!canvas) return 'default'
@@ -738,15 +738,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     const x = (e.clientX - rect.left - offset.x) / scale
     const y = (e.clientY - rect.top - offset.y) / scale
 
-    // Si estamos en modo de edición in-situ, cursor normal
+    
     if (isEditingInPlace) return 'default'
 
-    // Si estamos dibujando (mousedown activo), usar cursor de creación
+    
     if (isDrawing && !selectedElement) {
       return tool === 'text' ? 'text' : 'crosshair'
     }
 
-    // Si hay elemento seleccionado, verificar si estamos sobre handles de resize
+    
     if (selectedElement && !isDrawing) {
       const element = elements.find(el => el.id === selectedElement)
       if (element) {
@@ -765,7 +765,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
     }
 
-    // Verificar si estamos sobre un elemento (para cursor pointer)
+    
     const elementUnderMouse = elements.find(element => {
       if (element.type === 'section') {
         const sectionElement = element as Section
@@ -781,7 +781,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                y >= entrance.y && y <= entrance.y + entrance.height
       } else if (element.type === 'text') {
         const textEl = element as TextElement
-        const textWidth = textEl.fontSize * 6 // Aproximación
+        const textWidth = textEl.fontSize * 6 
         const textHeight = textEl.fontSize * 1.2
         return x >= textEl.x - textWidth/2 && x <= textEl.x + textWidth/2 &&
                y >= textEl.y - textHeight/2 && y <= textEl.y + textHeight/2
@@ -805,7 +805,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       return tool === 'select' ? 'pointer' : 'pointer'
     }
 
-    // Cursor según herramienta activa
+    
     switch (tool) {
       case 'select': return 'default'
       case 'text': return 'text'
@@ -822,28 +822,28 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [scale, offset, selectedElement, elements, tool, isDrawing, isEditingInPlace, getResizeHandles])
 
-  // Función para calcular dimensiones óptimas basadas en cantidad de asientos
+  
   const calculateOptimalDimensions = useCallback((totalSeats: number, seatsPerRow: number, seatSpacing: number, rowSpacing: number) => {
     const rows = Math.ceil(totalSeats / seatsPerRow)
     const seatsInLastRow = totalSeats % seatsPerRow || seatsPerRow
     
-    // Calcular ancho basado en la fila más larga
-    const maxSeatsInRow = Math.max(seatsPerRow, seatsInLastRow)
-    const width = (maxSeatsInRow * seatSpacing) + seatSpacing // +spacing para márgenes
     
-    // Calcular alto basado en número de filas
-    const height = (rows * rowSpacing) + rowSpacing // +spacing para márgenes
+    const maxSeatsInRow = Math.max(seatsPerRow, seatsInLastRow)
+    const width = (maxSeatsInRow * seatSpacing) + seatSpacing 
+    
+    
+    const height = (rows * rowSpacing) + rowSpacing 
     
     return {
-      width: Math.max(width, 100), // Mínimo 100px
-      height: Math.max(height, 100), // Mínimo 100px
+      width: Math.max(width, 100), 
+      height: Math.max(height, 100), 
       rows,
       seatsInLastRow,
       actualSeats: totalSeats
     }
   }, [])
 
-  // Función para crear sección con dimensiones calculadas
+  
   const createSectionBySeats = useCallback((x: number, y: number) => {
     const dimensions = calculateOptimalDimensions(desiredSeats, seatsPerRow, seatSpacing, rowSpacing)
     
@@ -860,20 +860,20 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       seats: []
     }
     
-    // Generar asientos para la nueva sección
+    
     const seats = generateSeatsForSectionWithSpacing(newSection, seatsPerRow, seatSpacing, rowSpacing)
     newSection.seats = seats
     
     return newSection
   }, [desiredSeats, seatsPerRow, seatSpacing, rowSpacing, newSectionName, newSectionColor, sections.length, calculateOptimalDimensions])
 
-  // Función para generar asientos con espaciado personalizado
+  
   const generateSeatsForSectionWithSpacing = useCallback((section: Section, seatsPerRow: number, seatSpacing: number, rowSpacing: number): Seat[] => {
     const seats: Seat[] = []
     const rows = Math.ceil(desiredSeats / seatsPerRow)
     
     for (let row = 0; row < rows; row++) {
-      const rowLabel = String.fromCharCode(65 + row) // A, B, C...
+      const rowLabel = String.fromCharCode(65 + row) 
       const seatsInThisRow = row === rows - 1 ? (desiredSeats % seatsPerRow || seatsPerRow) : seatsPerRow
       
       for (let seat = 0; seat < seatsInThisRow; seat++) {
@@ -895,7 +895,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     return seats
   }, [desiredSeats])
 
-  // Función para verificar si un punto está dentro de un polígono
+  
   const isPointInPolygon = useCallback((point: { x: number; y: number }, polygon: { x: number; y: number }[]): boolean => {
     let inside = false
     let j = polygon.length - 1
@@ -915,11 +915,11 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     return inside
   }, [])
 
-  // Función para generar asientos en sección poligonal
+  
   const generateSeatsForPolygonSection = useCallback((polygonSection: PolygonSection): Seat[] => {
     const seats: Seat[] = []
     
-    // Encontrar el bounding box del polígono
+    
     const minX = Math.min(...polygonSection.points.map(p => p.x))
     const maxX = Math.max(...polygonSection.points.map(p => p.x))
     const minY = Math.min(...polygonSection.points.map(p => p.y))
@@ -929,14 +929,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     const rows = Math.ceil((maxY - minY) / rowSpacing)
     
     for (let row = 0; row < rows; row++) {
-      const rowLabel = String.fromCharCode(65 + row) // A, B, C...
+      const rowLabel = String.fromCharCode(65 + row) 
       const y = minY + (row + 1) * rowSpacing
       
       let seatInRow = 0
       for (let x = minX + seatSpacing; x <= maxX; x += seatSpacing) {
         const seatPoint = { x, y }
         
-        // Verificar si el asiento está dentro del polígono
+        
         if (isPointInPolygon(seatPoint, polygonSection.points)) {
           seatCount++
           seatInRow++
@@ -951,7 +951,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             isAccessible: false
           })
           
-          // Limitar a la cantidad deseada de asientos si está en modo bySeats
+          
           if (creationMode === 'bySeats' && seatCount >= desiredSeats) {
             return seats
           }
@@ -971,21 +971,21 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
     const colors = getThemeColors()
 
-    // Clear canvas with theme-appropriate background
+    
     ctx.fillStyle = colors.canvas
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Draw grid
+    
     drawGrid(ctx, canvas)
 
-    // Draw sections
+    
     sections.forEach(section => {
       drawSection(ctx, section)
-      // Dibujar handles de redimensionamiento para secciones
+      
       drawResizeHandles(ctx, section)
     })
     
-    // Draw other elements
+    
     elements.forEach(element => {
       if ('type' in element) {
         switch (element.type) {
@@ -1009,21 +1009,21 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             drawPolygon(ctx, element as Polygon)
             break
         }
-        // Dibujar handles para otros elementos (excepto texto que no tiene dimensiones fijas)
+        
         if (element.type !== 'text' && element.type !== 'polygonSection') {
           drawResizeHandles(ctx, element)
         }
       }
     })
 
-    // Dibujar sección poligonal en progreso
+    
     if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length > 0) {
       ctx.strokeStyle = newSectionColor
       ctx.fillStyle = newSectionColor
       ctx.lineWidth = 2
       ctx.setLineDash([5, 5])
       
-      // Dibujar líneas del polígono en progreso
+      
       ctx.beginPath()
       const firstPoint = polygonSectionPoints[0]
       ctx.moveTo(
@@ -1031,7 +1031,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         (firstPoint.y * scale) + offset.y
       )
       
-      // Dibujar líneas entre puntos existentes
+      
       for (let i = 1; i < polygonSectionPoints.length; i++) {
         const point = polygonSectionPoints[i]
         ctx.lineTo(
@@ -1042,7 +1042,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       
       ctx.stroke()
       
-      // Dibujar puntos existentes
+      
       polygonSectionPoints.forEach(point => {
         ctx.beginPath()
         ctx.arc(
@@ -1055,10 +1055,10 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         ctx.fill()
       })
       
-      // Dibujar línea hacia el cursor en handleMouseMove
+      
       ctx.setLineDash([])
       
-      // Dibujar línea de seguimiento del cursor si hay puntos
+      
       if (mousePosition && polygonSectionPoints.length > 0) {
         const lastPoint = polygonSectionPoints[polygonSectionPoints.length - 1]
         ctx.strokeStyle = newSectionColor
@@ -1082,7 +1082,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
     }
 
-    // Dibujar polígono regular en progreso
+    
     if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length > 0) {
       const colors = getThemeColors()
       ctx.strokeStyle = colors.selectedBg
@@ -1090,7 +1090,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.lineWidth = 2
       ctx.setLineDash([5, 5])
       
-      // Dibujar líneas del polígono en progreso
+      
       ctx.beginPath()
       const firstPoint = polygonPoints[0]
       ctx.moveTo(
@@ -1098,7 +1098,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         (firstPoint.y * scale) + offset.y
       )
       
-      // Dibujar líneas entre puntos existentes
+      
       for (let i = 1; i < polygonPoints.length; i++) {
         const point = polygonPoints[i]
         ctx.lineTo(
@@ -1109,7 +1109,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       
       ctx.stroke()
       
-      // Dibujar puntos existentes
+      
       polygonPoints.forEach(point => {
         ctx.beginPath()
         ctx.arc(
@@ -1122,10 +1122,10 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         ctx.fill()
       })
       
-      // Resetear dash
+      
       ctx.setLineDash([])
       
-      // Dibujar línea de seguimiento del cursor si hay puntos
+      
       if (mousePosition && polygonPoints.length > 0) {
         const lastPoint = polygonPoints[polygonPoints.length - 1]
         ctx.strokeStyle = colors.selectedBg
@@ -1150,7 +1150,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [sections, elements, drawGrid, drawSection, drawStage, drawShape, drawText, drawEntrance, drawPolygon, drawPolygonSection, drawResizeHandles, getThemeColors, tool, isCreatingPolygonSection, polygonSectionPoints, newSectionColor, isCreatingPolygon, polygonPoints, mousePosition, scale, offset])
 
-  // Event handlers
+  
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -1160,13 +1160,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     const y = (e.clientY - rect.top - offset.y) / scale
 
     if (e.button === 1 || (e.button === 0 && e.altKey)) {
-      // Middle mouse or Alt+click for panning
+      
       setIsPanning(true)
       setStartPos({ x: e.clientX - offset.x, y: e.clientY - offset.y })
       return
     }
 
-    // Verificar si se hizo clic en un handle de redimensionamiento
+    
     if (tool === 'select' && selectedElement) {
       const element = [...sections, ...elements].find(el => el.id === selectedElement)
       if (element && ('width' in element && 'height' in element)) {
@@ -1190,19 +1190,19 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
     if (tool === 'section' || tool === 'stage' || tool === 'rectangle' || tool === 'circle' || tool === 'entrance') {
       if (tool === 'section' && creationMode === 'bySeats') {
-        // Crear sección inmediatamente con dimensiones calculadas
+        
         const snapPos = snapToGridCoords(x, y)
         const newSection = createSectionBySeats(snapPos.x, snapPos.y)
         setSections(prev => [...prev, newSection])
         setSelectedElement(newSection.id)
       } else {
-        // Modo manual - requiere arrastrar
+        
         setIsDrawing(true)
         const snapPos = snapToGridCoords(x, y)
         setStartPos(snapPos)
       }
     } else if (tool === 'text') {
-      // Create text element immediately
+      
       const snapPos = snapToGridCoords(x, y)
       const newText: TextElement = {
         id: `text-${Date.now()}`,
@@ -1218,50 +1218,50 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       setElements(prev => [...prev, newText])
       setSelectedElement(newText.id)
     } else if (tool === 'polygon') {
-      // Manejar creación de polígono
+      
       const snapPos = snapToGridCoords(x, y)
       
       if (!isCreatingPolygon) {
-        // Iniciar nuevo polígono
+        
         const newPolygonId = `polygon-${Date.now()}`
         setCurrentPolygonId(newPolygonId)
         setIsCreatingPolygon(true)
         setPolygonPoints([snapPos])
       } else {
-        // Agregar punto al polígono actual
+        
         setPolygonPoints(prev => [...prev, snapPos])
       }
     } else if (tool === 'polygonSection') {
-      // Manejar creación de sección poligonal
+      
       const snapPos = snapToGridCoords(x, y)
       
       if (!isCreatingPolygonSection) {
-        // Iniciar nueva sección poligonal
+        
         const newPolygonSectionId = `polygonSection-${Date.now()}`
         setCurrentPolygonSectionId(newPolygonSectionId)
         setIsCreatingPolygonSection(true)
         setPolygonSectionPoints([snapPos])
       } else {
-        // Agregar punto a la sección poligonal actual
+        
         setPolygonSectionPoints(prev => [...prev, snapPos])
       }
     } else if (tool === 'select') {
-      // Find clicked element (check elements first, then sections)
+      
       let clickedElement: VenueElement | null = null
       
-      // Check other elements
+      
       for (const element of elements) {
         if ('type' in element) {
           const elem = element as Stage | Shape | TextElement | Entrance
           if (elem.type === 'text') {
-            // Simple bounds check for text
+            
             const textElem = elem as TextElement
             if (Math.abs(x - textElem.x) < 50 && Math.abs(y - textElem.y) < 20) {
               clickedElement = element
               break
             }
           } else {
-            // Bounds check for rectangular elements
+            
             const rectElem = elem as Stage | Shape | Entrance
             if (x >= rectElem.x && x <= rectElem.x + rectElem.width &&
                 y >= rectElem.y && y <= rectElem.y + rectElem.height) {
@@ -1272,7 +1272,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         }
       }
       
-      // If no element found, check sections
+      
       if (!clickedElement) {
         const clickedSection = sections.find(section => 
           x >= section.x && x <= section.x + section.width &&
@@ -1301,7 +1301,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       return
     }
 
-    // Manejar redimensionamiento
+    
     if (isResizing && selectedElement && resizeHandle) {
       const element = [...sections, ...elements].find(el => el.id === selectedElement)
       if (element && ('width' in element && 'height' in element)) {
@@ -1311,7 +1311,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
         switch (resizeHandle) {
           case 'nw':
-            // Esquina superior izquierda: cambiar x, y, width y height
+            
             newProps = {
               x: Math.min(snapPos.x, element.x + element.width - 20),
               y: Math.min(snapPos.y, element.y + element.height - 20),
@@ -1320,7 +1320,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             }
             break
           case 'ne':
-            // Esquina superior derecha: cambiar y, width y height
+            
             newProps = {
               y: Math.min(snapPos.y, element.y + element.height - 20),
               width: Math.max(20, snapPos.x - element.x),
@@ -1328,7 +1328,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             }
             break
           case 'sw':
-            // Esquina inferior izquierda: cambiar x, width y height
+            
             newProps = {
               x: Math.min(snapPos.x, element.x + element.width - 20),
               width: Math.max(20, element.x + element.width - snapPos.x),
@@ -1336,7 +1336,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             }
             break
           case 'se':
-            // Esquina inferior derecha: solo cambiar width y height
+            
             newProps = {
               width: Math.max(20, snapPos.x - element.x),
               height: Math.max(20, snapPos.y - element.y)
@@ -1344,7 +1344,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             break
         }
 
-        // Actualizar el elemento correspondiente
+        
         if (element.type === 'section') {
           setSections(prev => prev.map(s => 
             s.id === selectedElement ? { ...s, ...newProps } : s
@@ -1370,7 +1370,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       const x = Math.min(startPos.x, snapPos.x)
       const y = Math.min(startPos.y, snapPos.y)
 
-      // Draw preview based on tool
+      
       const previewColor = tool === 'entrance' ? ENTRANCE_COLORS[entranceType] : newElementColor
       
       ctx.strokeStyle = previewColor
@@ -1387,7 +1387,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       } else {
         ctx.strokeRect(x * scale + offset.x, y * scale + offset.y, width * scale, height * scale)
         
-        // Add preview text for different tools
+        
         if (scale > 0.3) {
           ctx.fillStyle = previewColor
           ctx.font = `bold ${Math.max(12 * scale, 10)}px Arial`
@@ -1423,7 +1423,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.setLineDash([])
     }
 
-    // Previsualización de polígono en creación
+    
     if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length > 0) {
       redraw()
       
@@ -1436,7 +1436,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.lineWidth = 2
       ctx.setLineDash([5, 5])
       
-      // Dibujar líneas del polígono
+      
       ctx.beginPath()
       const firstPoint = polygonPoints[0]
       ctx.moveTo(
@@ -1444,7 +1444,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         (firstPoint.y * scale) + offset.y
       )
       
-      // Dibujar puntos existentes
+      
       for (let i = 1; i < polygonPoints.length; i++) {
         const point = polygonPoints[i]
         ctx.lineTo(
@@ -1453,13 +1453,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         )
       }
       
-      // Línea hacia el cursor
+      
       ctx.lineTo(
         (snapPos.x * scale) + offset.x,
         (snapPos.y * scale) + offset.y
       )
       
-      // Si hay más de 2 puntos, mostrar línea de cierre
+      
       if (polygonPoints.length >= 2) {
         ctx.lineTo(
           (firstPoint.x * scale) + offset.x,
@@ -1469,7 +1469,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       
       ctx.stroke()
       
-      // Dibujar puntos existentes
+      
       ctx.fillStyle = newElementColor
       polygonPoints.forEach(point => {
         ctx.beginPath()
@@ -1483,7 +1483,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         ctx.fill()
       })
       
-      // Punto del cursor
+      
       ctx.fillStyle = newElementColor + '80'
       ctx.beginPath()
       ctx.arc(
@@ -1498,12 +1498,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       ctx.setLineDash([])
     }
 
-    // Forzar redraw si estamos creando secciones poligonales para mostrar la línea hacia el cursor
+    
     if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length > 0) {
       redraw()
     }
     
-    // Actualizar posición del cursor para polígonos
+    
     if ((tool === 'polygon' && isCreatingPolygon) || (tool === 'polygonSection' && isCreatingPolygonSection)) {
       setMousePosition({ x: currentX, y: currentY })
     }
@@ -1535,15 +1535,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       const x = Math.min(startPos.x, snapPos.x)
       const y = Math.min(startPos.y, snapPos.y)
 
-      if (width > 30 && height > 30) { // Minimum size
+      if (width > 30 && height > 30) { 
         if (tool === 'section') {
           if (creationMode === 'bySeats') {
-            // Crear sección basada en cantidad de asientos
+            
             const newSection = createSectionBySeats(x, y)
             setSections(prev => [...prev, newSection])
             setSelectedElement(newSection.id)
           } else {
-            // Crear sección manual (modo tradicional)
+            
             const newSection: Section = {
               id: Date.now().toString(),
               type: 'section',
@@ -1631,11 +1631,11 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
   const generateSeatsForSection = (section: Section) => {
     const seats: Seat[] = []
-    const rows = Math.floor(section.height / 40) // 40px between rows
-    const seatsPerRow = Math.floor(section.width / 30) // 30px between seats
+    const rows = Math.floor(section.height / 40) 
+    const seatsPerRow = Math.floor(section.width / 30) 
 
     for (let row = 0; row < rows; row++) {
-      const rowLabel = String.fromCharCode(65 + row) // A, B, C...
+      const rowLabel = String.fromCharCode(65 + row) 
       for (let seat = 0; seat < seatsPerRow; seat++) {
         seats.push({
           id: `${section.id}-${rowLabel}${seat + 1}`,
@@ -1661,9 +1661,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }
 
-  // Handler para doble clic - edición in-situ o finalizar polígono
+  
   const handleDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Si estamos creando un polígono, finalizarlo
+    
     if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length >= 3) {
       const newPolygon: Polygon = {
         id: currentPolygonId!,
@@ -1680,14 +1680,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       setElements(prev => [...prev, newPolygon])
       setSelectedElement(newPolygon.id)
       
-      // Limpiar estado de creación
+      
       setIsCreatingPolygon(false)
       setPolygonPoints([])
       setCurrentPolygonId(null)
       return
     }
     
-    // Si estamos creando una sección poligonal, finalizarla
+    
     if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length >= 3) {
       const newPolygonSection: PolygonSection = {
         id: currentPolygonSectionId!,
@@ -1699,13 +1699,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         seats: []
       }
       
-      // Generar asientos automáticamente
+      
       newPolygonSection.seats = generateSeatsForPolygonSection(newPolygonSection)
       
       setElements(prev => [...prev, newPolygonSection])
       setSelectedElement(newPolygonSection.id)
       
-      // Limpiar estado de creación
+      
       setIsCreatingPolygonSection(false)
       setPolygonSectionPoints([])
       setCurrentPolygonSectionId(null)
@@ -1721,13 +1721,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     const x = (e.clientX - rect.left - offset.x) / scale
     const y = (e.clientY - rect.top - offset.y) / scale
 
-    // Buscar elemento clickeado
+    
     let clickedElement: VenueElement | null = null
     
     for (const element of elements) {
       if ('type' in element) {
         if (element.type === 'text') {
-          // Para texto, área de click más amplia
+          
           const textElement = element as TextElement
           if (x >= textElement.x - 10 && x <= textElement.x + 100 &&
               y >= textElement.y - 20 && y <= textElement.y + 20) {
@@ -1750,7 +1750,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
     }
 
-    // Verificar secciones si no se encontró elemento
+    
     if (!clickedElement) {
       const clickedSection = sections.find(section => 
         x >= section.x && x <= section.x + section.width &&
@@ -1785,7 +1785,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     redraw()
   }, [redraw])
 
-  // Actualizar cursor cuando cambie la herramienta
+  
   useEffect(() => {
     const canvas = canvasRef.current
     if (canvas) {
@@ -1817,10 +1817,10 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
   return (
     <div className="w-full h-full bg-background flex flex-col">
-      {/* Barra de herramientas superior moderna */}
+      {}
       <div className="flex items-center justify-between p-3 bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm">
         <div className="flex items-center gap-4">
-          {/* Grupo principal de herramientas */}
+          {}
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             <Button
               variant={tool === 'select' ? 'default' : 'ghost'}
@@ -1891,7 +1891,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </Button>
           </div>
 
-          {/* Grupo de formas */}
+          {}
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             <Button
               variant={tool === 'rectangle' ? 'default' : 'ghost'}
@@ -1949,7 +1949,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </div>
         </div>
 
-        {/* Controles de zoom y vista */}
+        {}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -2008,13 +2008,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         </div>
       </div>
 
-      {/* Contenedor principal */}
+      {}
       <div className="flex flex-1 bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
-        {/* Sidebar con transición suave */}
+        {}
         {sidebarVisible && (
           <div className="w-72 transition-all duration-300 ease-in-out bg-background/95 backdrop-blur-sm border-r shadow-lg flex flex-col h-full">
             <div className="p-4 space-y-4 overflow-y-auto flex-1 hover:scrollbar-thumb-muted-foreground/40 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/40">
-          {/* Estado actual de la herramienta */}
+          {}
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -2047,7 +2047,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                   {tool === 'text' && 'Texto'}
                 </span>
               </div>
-              {/* Instrucciones dinámicas */}
+              {}
               <p className="text-xs text-muted-foreground mt-2">
                 {tool === 'select' && 'Click en elementos para seleccionar y editar'}
                 {tool === 'section' && 'Arrastra para crear una sección rectangular'}
@@ -2062,7 +2062,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </CardContent>
           </Card>
 
-          {/* Panel de configuración para Escenario */}
+          {}
         {tool === 'stage' && (
           <Card className="mb-6 border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-3">
@@ -2108,7 +2108,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de configuración para Entradas */}
+        {}
         {tool === 'entrance' && (
           <Card className="mb-6 border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-green-600/10 to-blue-600/10 pb-3">
@@ -2161,7 +2161,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de configuración para Texto */}
+        {}
         {tool === 'text' && (
           <Card className="mb-6 border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 pb-3">
@@ -2207,7 +2207,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de configuración para Formas */}
+        {}
         {(tool === 'rectangle' || tool === 'circle') && (
           <Card className="mb-6 border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-600/10 to-indigo-600/10 pb-3">
@@ -2253,7 +2253,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de configuración para Polígono */}
+        {}
         {tool === 'polygon' && (
           <Card className="mb-6 border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-3">
@@ -2316,7 +2316,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de edición in-situ */}
+        {}
         {isEditingInPlace && (() => {
           const element = elements.find(el => el.id === selectedElement);
           if (!element) return null;
@@ -2393,7 +2393,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           );
         })()}
 
-        {/* Panel de información del elemento seleccionado */}
+        {}
         {selectedElement && !isEditingInPlace && (() => {
           const element = elements.find(el => el.id === selectedElement);
           if (!element) return null;
@@ -2409,7 +2409,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
               return { width: el.width, height: el.height };
             }
             if (el.type === 'text') {
-              return { width: el.fontSize * 6, height: el.fontSize * 1.2 }; // Aproximación
+              return { width: el.fontSize * 6, height: el.fontSize * 1.2 }; 
             }
             return { width: 0, height: 0 };
           };
@@ -2431,7 +2431,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       const newElements = elements.filter(el => el.id !== selectedElement);
                       setElements(newElements);
                       setSelectedElement(null);
-                      // Solo actualizar sections si hay cambios en sections
+                      
                       if (element.type === 'section') {
                         const newSections = sections.filter(s => s.id !== selectedElement);
                         onSave?.(newSections);
@@ -2590,7 +2590,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                 </div>
               </div>
               
-              {/* Panel de modo de creación */}
+              {}
               <div className="space-y-3 pt-2 border-t border-muted">
                 <Label className="text-sm font-medium">Modo de creación</Label>
                 <div className="grid grid-cols-2 gap-2">
@@ -2619,7 +2619,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                 </div>
               </div>
 
-              {/* Configuración para modo "bySeats" */}
+              {}
               {creationMode === 'bySeats' && (
                 <div className="space-y-3 pt-2 border-t border-muted">
                   <div className="space-y-2">
@@ -2702,7 +2702,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Card>
         )}
 
-        {/* Panel de configuración de sección poligonal */}
+        {}
         {tool === 'polygonSection' && (
           <Card className="border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-orange-600/10 to-red-600/10 pb-3">
@@ -2899,7 +2899,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </CardContent>
         </Card>
 
-        {/* Panel de Secciones Poligonales */}
+        {}
         <Card className="border-0 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -2956,7 +2956,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation()
-                              // Regenerar asientos para la sección poligonal
+                              
                               const newSeats = generateSeatsForPolygonSection(polygonSection)
                               setElements(prev => prev.map(el => 
                                 el.id === polygonSection.id && el.type === 'polygonSection'
@@ -3036,7 +3036,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </div>
         )}
 
-        {/* Área principal del canvas que se ajusta dinámicamente */}
+        {}
         <div className={`${
           sidebarVisible ? 'flex-1' : 'w-full'
         } transition-all duration-300 ease-in-out relative bg-background`}>
@@ -3048,7 +3048,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           onMouseDown={handleMouseDown}
           onMouseMove={(e) => {
             handleMouseMove(e)
-            // Actualizar cursor dinámicamente
+            
             const canvas = canvasRef.current
             if (canvas) {
               canvas.style.cursor = getCursor(e.nativeEvent)

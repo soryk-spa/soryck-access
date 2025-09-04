@@ -47,7 +47,7 @@ export default async function AdminDashboard() {
         createdAt: true
       }
     }),
-    // Datos mock para los gráficos (reemplazar con datos reales)
+    
     Array.from({ length: 6 }, (_, i) => ({
       name: new Date(Date.now() - (5 - i) * 30 * 24 * 60 * 60 * 1000).toLocaleDateString("es-CL", { month: "short" }),
       usuarios: Math.floor(Math.random() * 100) + 20,

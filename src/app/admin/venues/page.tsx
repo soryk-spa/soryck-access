@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function AdminVenuesPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Administración de Venues</h1>
@@ -28,7 +28,7 @@ export default function AdminVenuesPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-6">
@@ -67,7 +67,7 @@ export default function AdminVenuesPage() {
         </Card>
       </div>
 
-      {/* Empty State */}
+      {}
       <Card className="text-center py-12">
         <CardContent>
           <Building className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -84,7 +84,7 @@ export default function AdminVenuesPage() {
         </CardContent>
       </Card>
 
-      {/* Info Cards */}
+      {}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardContent className="p-6">

@@ -1,4 +1,4 @@
-// src/app/api/promo-codes/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -22,21 +22,21 @@ const createPromoCodeSchema = z.object({
   customCode: z.string().optional(),
 }).refine(
   (data) => {
-    // Validar código personalizado
+    
     if (!data.generateCode && !data.customCode) {
       return false;
     }
     
-    // Validar valor para tipos que no sean FREE
+    
     if (data.type !== "FREE") {
       if (data.value === undefined || (typeof data.value === 'number' && isNaN(data.value)) || data.value < 0) {
         return false;
       }
-      // Para FIXED_AMOUNT, el valor debe ser mayor que 0
+      
       if (data.type === "FIXED_AMOUNT" && data.value <= 0) {
         return false;
       }
-      // Para PERCENTAGE, el valor debe estar entre 0 y 100
+      
       if (data.type === "PERCENTAGE" && (data.value <= 0 || data.value > 100)) {
         return false;
       }
@@ -46,7 +46,7 @@ const createPromoCodeSchema = z.object({
   },
   {
     message: "Datos inválidos",
-    path: ["value"], // Especifica que el error es del campo value
+    path: ["value"], 
   }
 );
 
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
       ...promoData
     } = validation.data;
 
-    // Generar o usar código personalizado
+    
     let code = "";
     if (generateCode) {
       do {
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validar evento si se especifica
+    
     if (eventId) {
       const event = await prisma.event.findFirst({
         where: {
@@ -165,12 +165,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validar tipo de entrada si se especifica
+    
     if (ticketTypeId) {
       const ticketType = await prisma.ticketType.findFirst({
         where: {
           id: ticketTypeId,
-          ...(eventId ? { eventId } : {}), // Si hay eventId, verificar que el ticketType pertenezca a ese evento
+          ...(eventId ? { eventId } : {}), 
         },
         include: {
           event: {
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validar fechas
+    
     const validFromDate = new Date(validFrom);
     const validUntilDate = validUntil ? new Date(validUntil) : null;
 
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...promoData,
         code,
-        // Para tipo FREE, establecer valor en 0 (será 100% de descuento por lógica)
+        
         value: promoData.type === "FREE" ? 0 : (promoData.value || 0),
         validFrom: validFromDate,
         validUntil: validUntilDate,

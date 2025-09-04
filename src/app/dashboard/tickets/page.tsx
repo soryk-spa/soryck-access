@@ -105,7 +105,7 @@ export default async function MyTicketsPage() {
     }
   };
 
-  // Calculate stats
+  
   const upcomingTickets = tickets.filter(ticket => {
     const eventDate = new Date(ticket.event.startDate);
     return eventDate > new Date();
@@ -128,7 +128,7 @@ export default async function MyTicketsPage() {
         </Badge>
       </div>
 
-      {/* Stats Cards */}
+      {}
       {tickets.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
           <Card>
@@ -199,7 +199,7 @@ export default async function MyTicketsPage() {
           {tickets.map((ticket) => (
             <Card key={ticket.id} className="overflow-hidden">
               <div className="flex flex-col lg:flex-row">
-                {/* Imagen del evento */}
+                {}
                 <div className="lg:w-48 h-48 lg:h-auto bg-muted">
                   {ticket.event.imageUrl ? (
                     <Image
@@ -216,7 +216,7 @@ export default async function MyTicketsPage() {
                   )}
                 </div>
 
-                {/* Información del ticket */}
+                {}
                 <div className="flex-1 p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>

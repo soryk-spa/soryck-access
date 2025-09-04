@@ -205,7 +205,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
     new Date(ticket.event.startDate).toDateString() ===
     new Date(Date.now() + 86400000).toDateString();
 
-  // URL para el QR code
+  
   const qrCodeUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
 
   const getEventTimeStatus = () => {
@@ -219,7 +219,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
 
   return (
     <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02]">
-      {/* Header Image Section */}
+      {}
       <div className="relative h-56 overflow-hidden">
         {ticket.event.imageUrl ? (
           <Image
@@ -235,10 +235,10 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           </div>
         )}
 
-        {/* Overlay gradiente */}
+        {}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
-        {/* Status Badge */}
+        {}
         <div className="absolute top-4 right-4 flex gap-2">
           <Badge
             className={`${statusInfo.color} border-0 backdrop-blur-sm bg-white/20 text-white shadow-lg`}
@@ -254,7 +254,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           )}
         </div>
 
-        {/* Event Info Overlay */}
+        {}
         <div className="absolute bottom-0 left-0 right-0 p-6">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg rounded-2xl p-4 shadow-xl border border-white/20">
             <h3 className="font-bold text-xl text-gray-900 dark:text-white line-clamp-2 mb-2">
@@ -276,9 +276,9 @@ export default function TicketCard({ ticket }: TicketCardProps) {
         </div>
       </div>
 
-      {/* Card Content */}
+      {}
       <CardContent className="p-6 space-y-6">
-        {/* Ticket Info Header */}
+        {}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
@@ -310,7 +310,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           </div>
         </div>
 
-        {/* Event Details */}
+        {}
         <div className="grid grid-cols-1 gap-4">
           <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
             <MapPin className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
@@ -351,7 +351,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
           )}
         </div>
 
-        {/* Action Buttons */}
+        {}
         <div className="flex gap-3 pt-2">
           <Dialog open={showQR} onOpenChange={setShowQR}>
             <DialogTrigger asChild>
@@ -379,7 +379,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
               </DialogHeader>
 
               <div className="space-y-6">
-                {/* Event Info */}
+                {}
                 <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl">
                   <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-2">
                     {ticket.event.title}
@@ -399,7 +399,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                   </div>
                 </div>
 
-                {/* QR Code */}
+                {}
                 <div className="flex justify-center">
                   <div className="p-6 bg-white rounded-2xl shadow-2xl border-4 border-dashed border-blue-200">
                     {loading ? (
@@ -427,7 +427,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                   </div>
                 </div>
 
-                {/* Ticket Details */}
+                {}
                 <div className="text-center space-y-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <p className="text-sm font-mono text-gray-600 dark:text-gray-400">
                     Código: {ticket.qrCode}
@@ -441,7 +441,7 @@ export default function TicketCard({ ticket }: TicketCardProps) {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {}
                 <div className="flex gap-3">
                   <Button
                     onClick={handleDownload}

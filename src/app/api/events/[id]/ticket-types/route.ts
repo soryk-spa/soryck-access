@@ -10,7 +10,7 @@ export async function GET(
     const user = await requireOrganizer();
     const { id } = await params;
 
-    // Verificar que el usuario puede acceder a este evento
+    
     const event = await prisma.event.findFirst({
       where: {
         id,
@@ -26,7 +26,7 @@ export async function GET(
             status: true,
           },
           where: {
-            status: "AVAILABLE", // Solo tipos de entrada disponibles
+            status: "AVAILABLE", 
           },
           orderBy: {
             createdAt: "asc",

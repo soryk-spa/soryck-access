@@ -1,9 +1,7 @@
 import { cache } from '@/lib/redis';
 
 export class CacheInvalidation {
-  /**
-   * Invalida caché relacionado con eventos cuando se crean, actualizan o eliminan
-   */
+  
   static async invalidateEventsCache() {
     try {
       await cache.invalidateEventsCache();
@@ -13,9 +11,7 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida caché de usuario específico
-   */
+  
   static async invalidateUserCache(clerkId: string) {
     try {
       await cache.invalidateUserCache(clerkId);
@@ -25,9 +21,7 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida estadísticas del dashboard cuando cambian datos
-   */
+  
   static async invalidateDashboardStats(userId?: string) {
     try {
       await cache.invalidateDashboardStats(userId);
@@ -37,9 +31,7 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida caché cuando un usuario cambia de rol
-   */
+  
   static async invalidateUserRole(clerkId: string) {
     try {
       await cache.del(`user:role:${clerkId}`);
@@ -49,9 +41,7 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida caché de perfil de usuario
-   */
+  
   static async invalidateUserProfile(clerkId: string) {
     try {
       await cache.del(`user:profile:${clerkId}`);
@@ -61,15 +51,13 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida todo el caché relacionado con un evento específico
-   */
+  
   static async invalidateEventSpecificCache(eventId: string, organizerId?: string) {
     try {
-      // Invalidar eventos públicos
+      
       await this.invalidateEventsCache();
       
-      // Invalidar estadísticas del organizador si se proporciona
+      
       if (organizerId) {
         await this.invalidateDashboardStats(organizerId);
       }
@@ -80,15 +68,13 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida caché cuando se procesa un pago
-   */
+  
   static async invalidatePaymentRelatedCache(eventId: string, organizerId: string) {
     try {
-      // Invalidar estadísticas del organizador
+      
       await this.invalidateDashboardStats(organizerId);
       
-      // Invalidar eventos (para actualizar tickets disponibles)
+      
       await this.invalidateEventsCache();
       
       console.log(`✅ Payment-related cache invalidated for event ${eventId}`);
@@ -97,9 +83,7 @@ export class CacheInvalidation {
     }
   }
 
-  /**
-   * Invalida todo el caché (usar con precaución)
-   */
+  
   static async invalidateAllCache() {
     try {
       await cache.invalidatePattern('*');

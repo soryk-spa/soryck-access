@@ -24,14 +24,14 @@ export async function POST(
       );
     }
 
-    // Generar nuevo código único
+    
     const { PromoCodeService } = await import("@/lib/promo-codes");
     let newCode = "";
     do {
       newCode = PromoCodeService.generatePromoCode("SP");
     } while (!(await PromoCodeService.isCodeUnique(newCode)));
 
-    // Crear duplicado con datos del original
+    
     const duplicatedPromoCode = await prisma.promoCode.create({
       data: {
         code: newCode,
@@ -44,7 +44,7 @@ export async function POST(
         currency: originalPromoCode.currency,
         usageLimit: originalPromoCode.usageLimit,
         usageLimitPerUser: originalPromoCode.usageLimitPerUser,
-        validFrom: new Date(), // Nueva fecha de inicio
+        validFrom: new Date(), 
         validUntil: originalPromoCode.validUntil,
         eventId: originalPromoCode.eventId,
         categoryId: originalPromoCode.categoryId,

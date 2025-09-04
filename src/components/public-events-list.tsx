@@ -106,7 +106,7 @@ interface PublicEventsListProps {
   initialFilters: Filters;
 }
 
-// Aceternity UI inspired components
+
 const GlassCard = ({
   children,
   className = "",
@@ -154,12 +154,12 @@ const EventCardAceternity = ({
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     
-    // Si todos los tipos tienen el mismo precio
+    
     if (minPrice === maxPrice) {
       return formatPrice(minPrice);
     }
     
-    // Si hay múltiples precios, mostrar "desde"
+    
     return `Desde ${formatPrice(minPrice)}`;
   };
 
@@ -177,7 +177,7 @@ const EventCardAceternity = ({
     return (
       <div className="group relative">
         <Card className="relative overflow-hidden h-48 bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/25">
-          {/* Imagen de fondo completa */}
+          {}
           {event.imageUrl ? (
             <Image
               src={event.imageUrl}
@@ -192,17 +192,17 @@ const EventCardAceternity = ({
             </div>
           )}
 
-          {/* Overlay gradient */}
+          {}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
 
-          {/* Efecto de brillo en hover */}
+          {}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer" />
           </div>
 
-          {/* Contenido */}
+          {}
           <div className="relative z-20 p-6 h-full flex">
-            {/* Fecha destacada */}
+            {}
             <div className="flex-shrink-0 mr-6">
               <div className="bg-black/50 backdrop-blur-xl rounded-2xl px-4 py-3 border border-white/10 text-center">
                 <div className="text-2xl font-bold text-white">
@@ -214,7 +214,7 @@ const EventCardAceternity = ({
               </div>
             </div>
 
-            {/* Información del evento */}
+            {}
             <div className="flex-1 flex flex-col justify-between">
               <div>
                 <Badge className="bg-black/50 backdrop-blur-xl border border-white/10 text-white px-3 py-1 text-xs font-medium mb-3">
@@ -260,7 +260,7 @@ const EventCardAceternity = ({
               </div>
             </div>
 
-            {/* Botones de acción */}
+            {}
             <div className="flex-shrink-0 ml-4 flex flex-col gap-2">
               <Button
                 size="sm"
@@ -292,7 +292,7 @@ const EventCardAceternity = ({
   return (
     <div className="group relative">
       <Card className="relative overflow-hidden h-[550px] bg-white/5 border border-white/10 backdrop-blur-xl hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/25">
-        {/* Imagen de fondo completa */}
+        {}
         {event.imageUrl ? (
           <Image
             src={event.imageUrl}
@@ -307,15 +307,15 @@ const EventCardAceternity = ({
           </div>
         )}
 
-        {/* Overlay gradient más sutil */}
+        {}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
 
-        {/* Efecto de brillo en hover */}
+        {}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer" />
         </div>
 
-        {/* Elementos flotantes superiores */}
+        {}
         <div className="absolute top-6 left-6 z-20">
           <div className="bg-black/50 backdrop-blur-xl rounded-3xl px-4 py-3 border border-white/10">
             <div className="text-center">
@@ -334,7 +334,7 @@ const EventCardAceternity = ({
             {event.category.name}
           </Badge>
 
-          {/* Botones de acción */}
+          {}
           <div className="flex space-x-2">
             <Button
               size="sm"
@@ -359,7 +359,7 @@ const EventCardAceternity = ({
           </div>
         </div>
 
-        {/* Precio flotante */}
+        {}
         <div className="absolute top-32 right-6 z-20">
           <div className="bg-black/50 backdrop-blur-xl rounded-2xl px-4 py-2 border border-white/10">
             {getPriceDisplay() === "Gratis" ? (
@@ -372,9 +372,9 @@ const EventCardAceternity = ({
           </div>
         </div>
 
-        {/* Contenido en la parte inferior */}
+        {}
         <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-          {/* Título principal */}
+          {}
           <div className="bg-black/60 backdrop-blur-xl rounded-3xl p-6 mb-4 border border-white/10">
             <h3 className="text-2xl font-bold text-white mb-3 line-clamp-2 leading-tight group-hover:text-blue-300 transition-colors">
               {event.title}
@@ -399,7 +399,7 @@ const EventCardAceternity = ({
             </div>
           </div>
 
-          {/* Botón principal */}
+          {}
           <Button
             className="w-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-xl text-white font-semibold py-4 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-white/10"
             asChild
@@ -523,11 +523,11 @@ export default function PublicEventsList({
 
   return (
     <div className="space-y-8 min-h-screen p-6">
-      {/* Enhanced Search Header */}
+      {}
       <GlassCard className="border-2 dark:bg-zinc-900 border-white/30">
         <div className="p-8">
           <div className="space-y-6">
-            {/* Main Search */}
+            {}
             <form onSubmit={handleSearch} className="space-y-6">
               <div className="flex flex-col lg:flex-row gap-4">
                 <div className="flex-1">
@@ -592,7 +592,7 @@ export default function PublicEventsList({
                 </div>
               </div>
 
-              {/* Quick Filters */}
+              {}
               <div className="flex flex-wrap gap-3">
                 <Button
                   type="button"
@@ -677,7 +677,7 @@ export default function PublicEventsList({
         </div>
       </GlassCard>
 
-      {/* Advanced Filters Panel */}
+      {}
       {showFilters && (
         <GlassCard className="border-2 border-blue-500/20 shadow-2xl">
           <div className="bg-gradient-to-r from-blue-500/5 to-purple-500/5 p-6 border-b border-white/10">
@@ -701,7 +701,7 @@ export default function PublicEventsList({
 
           <div className="p-8 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Category */}
+              {}
               <div className="space-y-2">
                 <Label
                   htmlFor="category"
@@ -729,7 +729,7 @@ export default function PublicEventsList({
                 </Select>
               </div>
 
-              {/* Location */}
+              {}
               <div className="space-y-2">
                 <Label
                   htmlFor="location"
@@ -754,7 +754,7 @@ export default function PublicEventsList({
                 </div>
               </div>
 
-              {/* Price Type */}
+              {}
               <div className="space-y-2">
                 <Label
                   htmlFor="priceType"
@@ -777,7 +777,7 @@ export default function PublicEventsList({
                 </Select>
               </div>
 
-              {/* Sort By */}
+              {}
               <div className="space-y-2">
                 <Label
                   htmlFor="sortBy"
@@ -801,7 +801,7 @@ export default function PublicEventsList({
               </div>
             </div>
 
-            {/* Price Range */}
+            {}
             <div className="space-y-4">
               <h3 className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 <DollarSign className="h-4 w-4 text-green-500" />
@@ -859,7 +859,7 @@ export default function PublicEventsList({
               </div>
             </div>
 
-            {/* Date Range */}
+            {}
             <div className="space-y-4">
               <h3 className="text-sm font-medium flex items-center gap-2 text-gray-700 dark:text-gray-300">
                 <Calendar className="h-4 w-4 text-purple-500" />
@@ -915,7 +915,7 @@ export default function PublicEventsList({
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {}
             <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-white/10">
               <Button
                 onClick={() => updateFilters({})}
@@ -946,7 +946,7 @@ export default function PublicEventsList({
         </GlassCard>
       )}
 
-      {/* Results Header */}
+      {}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -1046,7 +1046,7 @@ export default function PublicEventsList({
         </div>
       </div>
 
-      {/* Events Grid/List */}
+      {}
       {loading ? (
         <div
           className={
@@ -1127,7 +1127,7 @@ export default function PublicEventsList({
         </div>
       )}
 
-      {/* Enhanced Pagination */}
+      {}
       {pagination.totalPages > 1 && (
         <div className="bg-black/20 backdrop-blur-xl rounded-3xl border border-white/10 p-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1221,7 +1221,7 @@ export default function PublicEventsList({
         </div>
       )}
 
-      {/* Agregar estilos CSS para el efecto shimmer */}
+      {}
       <style jsx>{`
         @keyframes shimmer {
           0% {

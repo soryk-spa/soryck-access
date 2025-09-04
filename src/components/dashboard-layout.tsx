@@ -23,14 +23,14 @@ function DashboardLayoutContent({
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar for desktop */}
+      {}
       <div className="hidden lg:flex lg:flex-shrink-0">
         <div className={`transition-all duration-300 ease-in-out ${collapsed ? 'w-16' : 'w-64'}`}>
           <DashboardSidebar />
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div 
@@ -43,9 +43,9 @@ function DashboardLayoutContent({
         </div>
       )}
 
-      {/* Main content */}
+      {}
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        {/* Dashboard Navbar */}
+        {}
         <DashboardNavbar
           onMenuClick={() => setSidebarOpen(true)}
           title={title}
@@ -53,7 +53,7 @@ function DashboardLayoutContent({
           actions={actions}
         />
 
-        {/* Page content with responsive margin and top padding for fixed navbar */}
+        {}
         <main className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out pt-16 ${
           collapsed ? 'lg:ml-0' : 'lg:ml-0'
         }`}>

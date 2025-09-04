@@ -109,7 +109,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
 
   useEffect(() => {
     fetchStats();
-    // Auto-focus en el input para facilitar el escaneo manual
+    
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -144,7 +144,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
       
       if (response.ok) {
         toast.success('Ticket validado exitosamente');
-        fetchStats(); // Actualizar estadísticas
+        fetchStats(); 
       } else {
         toast.error(result.error || 'Error al validar ticket');
       }
@@ -163,7 +163,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
     } finally {
       setIsScanning(false);
       setManualCode('');
-      // Volver a enfocar el input para el siguiente escaneo
+      
       setTimeout(() => {
         if (inputRef.current) {
           inputRef.current.focus();
@@ -212,7 +212,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div>
         <h2 className="text-2xl font-bold flex items-center gap-2">
           <QrCode className="w-6 h-6" />
@@ -223,7 +223,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
         </p>
       </div>
 
-      {/* Estadísticas */}
+      {}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
@@ -265,7 +265,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
         </div>
       )}
 
-      {/* Escáner Manual */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
         </CardContent>
       </Card>
 
-      {/* Resultado del último escaneo */}
+      {}
       {lastScanResult && (
         <Card className={`border-2 ${getStatusColor(lastScanResult.status)}`}>
           <CardHeader>
@@ -325,7 +325,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
 
             {lastScanResult.ticket && (
               <div className="space-y-3">
-                {/* Información del ticket */}
+                {}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h4 className="font-semibold mb-2">Información del Ticket</h4>
@@ -375,7 +375,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
                   </div>
                 </div>
 
-                {/* Información del evento */}
+                {}
                 {lastScanResult.event && (
                   <div>
                     <h4 className="font-semibold mb-2">Información del Evento</h4>
@@ -392,7 +392,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
                   </div>
                 )}
 
-                {/* Información del escáner */}
+                {}
                 {lastScanResult.scannedBy && (
                   <div>
                     <h4 className="font-semibold mb-2">Validado por</h4>
@@ -407,7 +407,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
         </Card>
       )}
 
-      {/* Estadísticas de cortesías */}
+      {}
       {stats?.courtesy && stats.courtesy.total > 0 && (
         <Card>
           <CardHeader>

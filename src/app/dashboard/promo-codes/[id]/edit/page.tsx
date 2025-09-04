@@ -1,4 +1,4 @@
-// src/app/dashboard/promo-codes/[id]/edit/page.tsx
+
 import { requireOrganizer } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import EditPromoCodeForm from "@/components/edit-promo-code-form";
@@ -15,7 +15,7 @@ export default async function EditPromoCodePage({
   const { id } = await params;
   const user = await requireOrganizer();
 
-  // Obtener el código promocional
+  
   const promoCode = await prisma.promoCode.findFirst({
     where: {
       id,
@@ -35,7 +35,7 @@ export default async function EditPromoCodePage({
     notFound();
   }
 
-  // Obtener eventos del organizador para el selector
+  
   const events = await prisma.event.findMany({
     where: {
       organizerId: user.id,
@@ -50,7 +50,7 @@ export default async function EditPromoCodePage({
     },
   });
 
-  // Serializar datos
+  
   const serializedPromoCode = {
     ...promoCode,
     description: promoCode.description ?? "",
@@ -69,7 +69,7 @@ export default async function EditPromoCodePage({
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-6">
-        {/* Header */}
+        {}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/promo-codes">
@@ -88,7 +88,7 @@ export default async function EditPromoCodePage({
           </div>
         </div>
 
-        {/* Formulario */}
+        {}
         <EditPromoCodeForm
           promoCode={serializedPromoCode}
           events={events}

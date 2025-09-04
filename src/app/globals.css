@@ -119,42 +119,42 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-weight: 500; /* Medium como peso base en lugar de 400 */
+    font-weight: 500; 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-/* Clases de utilidad personalizadas para Montserrat según el branbook */
+
 .font-montserrat {
   font-family: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  font-weight: 500; /* Medium como peso base para mejor legibilidad */
+  font-weight: 500; 
 }
 
-/* Pesos específicos de Montserrat mencionados en el branbook */
+
 .font-montserrat-light {
   font-family: var(--font-montserrat);
-  font-weight: 400; /* Regular en lugar de 300 para mejor legibilidad */
+  font-weight: 400; 
 }
 
 .font-montserrat-regular {
   font-family: var(--font-montserrat);
-  font-weight: 500; /* Medium en lugar de regular */
+  font-weight: 500; 
 }
 
 .font-montserrat-medium {
   font-family: var(--font-montserrat);
-  font-weight: 600; /* Semibold para más presencia */
+  font-weight: 600; 
 }
 
 .font-montserrat-semibold {
   font-family: var(--font-montserrat);
-  font-weight: 700; /* Bold */
+  font-weight: 700; 
 }
 
 .font-montserrat-bold {
   font-family: var(--font-montserrat);
-  font-weight: 700; /* Mantener bold como especifica el branbook */
+  font-weight: 700; 
 }
 
 .font-montserrat-extrabold {
@@ -167,62 +167,62 @@
   font-weight: 900;
 }
 
-/* Estilos adicionales para mejorar la legibilidad con Montserrat */
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-montserrat);
-  font-weight: 700; /* Bold como especifica el branbook */
-  letter-spacing: -0.025em; /* Mejor spacing para títulos */
+  font-weight: 700; 
+  letter-spacing: -0.025em; 
 }
 
-/* Texto normal con mejor peso */
+
 p, span, div, a, button, input, textarea, select {
-  font-weight: 500; /* Medium para mejor legibilidad del texto */
+  font-weight: 500; 
 }
 
-/* Elementos que deben mantener peso normal */
+
 .font-normal {
   font-weight: 400 !important;
 }
 
-/* Clases específicas para diferentes elementos */
+
 .text-body {
-  font-weight: 500; /* Texto de cuerpo más robusto */
+  font-weight: 500; 
 }
 
 .text-caption {
-  font-weight: 500; /* Captions con buen peso */
+  font-weight: 500; 
   font-size: 0.875rem;
 }
 
 .text-label {
-  font-weight: 600; /* Labels con más presencia */
+  font-weight: 600; 
 }
 
-/* Optimizaciones de renderizado para Montserrat */
+
 @supports (font-variation-settings: normal) {
   .font-montserrat {
-    font-variation-settings: "wght" 500; /* Medium como base */
+    font-variation-settings: "wght" 500; 
   }
 }
 
-/* Suavizado de fuentes para mejor calidad visual */
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  font-feature-settings: "kern" 1; /* Mejor kerning */
+  font-feature-settings: "kern" 1; 
 }
 
-/* Estilos específicos para diferentes tamaños de pantalla */
+
 @media (max-width: 640px) {
   body {
     font-size: 14px;
     line-height: 1.5;
-    font-weight: 500; /* Mantener medium en móviles */
+    font-weight: 500; 
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 700; /* Bold en títulos móviles */
+    font-weight: 700; 
   }
 }
 
@@ -230,19 +230,19 @@ body {
   body {
     font-size: 16px;
     line-height: 1.6;
-    font-weight: 500; /* Medium en desktop */
+    font-weight: 500; 
   }
   
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 700; /* Bold consistente */
+    font-weight: 700; 
   }
 }
 
-/* ============================================================================ */
-/* ANIMACIONES PERSONALIZADAS PARA HERO SECTION */
-/* ============================================================================ */
 
-/* Animación de gradiente para texto */
+
+
+
+
 @keyframes gradient {
   0% {
     background-position: 0% 50%;
@@ -260,7 +260,7 @@ body {
   animation: gradient 4s ease-in-out infinite;
 }
 
-/* Patrón de grid para el fondo */
+
 .bg-grid-pattern {
   background-image: 
     linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
@@ -268,7 +268,7 @@ body {
   background-size: 24px 24px;
 }
 
-/* Pulso suave para elementos flotantes */
+
 @keyframes soft-pulse {
   0%, 100% {
     opacity: 0.1;
@@ -284,7 +284,7 @@ body {
   animation: soft-pulse 4s ease-in-out infinite;
 }
 
-/* Efecto shimmer para botones */
+
 @keyframes shimmer {
   0% {
     transform: translateX(-100%);
@@ -315,7 +315,7 @@ body {
   animation: shimmer 2s infinite;
 }
 
-/* Mejoras para dashboard mockup */
+
 .dashboard-mockup {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -328,7 +328,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Animación para stats counter */
+
 @keyframes counter {
   from {
     opacity: 0;
@@ -344,7 +344,7 @@ body {
   animation: counter 0.8s ease-out forwards;
 }
 
-/* Efecto de flotación para elementos */
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -358,7 +358,7 @@ body {
   animation: float 6s ease-in-out infinite;
 }
 
-/* Delay variants para animaciones escalonadas */
+
 .delay-100 {
   animation-delay: 100ms;
 }
@@ -379,7 +379,7 @@ body {
   animation-delay: 1000ms;
 }
 
-/* Line clamp utilities */
+
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;

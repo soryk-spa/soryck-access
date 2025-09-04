@@ -1,13 +1,7 @@
-// src/lib/date.ts - REEMPLAZA EL CONTENIDO EXISTENTE
-/**
- * Utilidades de fecha mejoradas que manejan correctamente la zona horaria de Chile
- * Mantiene compatibilidad con los componentes existentes
- */
 
-/**
- * Formatea una fecha completa con día, fecha y hora
- * Mejorado para manejar correctamente la zona horaria de Chile
- */
+
+
+
 export const formatFullDateTime = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -22,10 +16,7 @@ export const formatFullDateTime = (date: Date | string): string => {
   });
 };
 
-/**
- * Formatea solo la fecha (sin hora)
- * Mejorado para manejar correctamente la zona horaria de Chile
- */
+
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -38,10 +29,7 @@ export const formatDate = (date: Date | string): string => {
   });
 };
 
-/**
- * Formatea solo la hora
- * Mejorado para manejar correctamente la zona horaria de Chile
- */
+
 export const formatTime = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -52,9 +40,7 @@ export const formatTime = (date: Date | string): string => {
   });
 };
 
-/**
- * Formatea fecha corta (día/mes/año)
- */
+
 export const formatShortDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -66,9 +52,7 @@ export const formatShortDate = (date: Date | string): string => {
   });
 };
 
-/**
- * Verifica si una fecha es hoy
- */
+
 export const isToday = (date: Date | string): boolean => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const today = new Date();
@@ -76,9 +60,7 @@ export const isToday = (date: Date | string): boolean => {
   return dateObj.toDateString() === today.toDateString();
 };
 
-/**
- * Verifica si una fecha es mañana
- */
+
 export const isTomorrow = (date: Date | string): boolean => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const tomorrow = new Date();
@@ -87,9 +69,7 @@ export const isTomorrow = (date: Date | string): boolean => {
   return dateObj.toDateString() === tomorrow.toDateString();
 };
 
-/**
- * Obtiene una descripción relativa de la fecha (ej: "Hoy", "Mañana", "En 3 días")
- */
+
 export const getRelativeDateDescription = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   
@@ -109,9 +89,7 @@ export const getRelativeDateDescription = (date: Date | string): string => {
   }
 };
 
-/**
- * Calcula el tiempo restante hasta una fecha
- */
+
 export const getTimeUntil = (date: Date | string): {
   days: number;
   hours: number;

@@ -61,7 +61,7 @@ export default function EventCard({
   const isPast = startDate < now;
   const isToday = startDate.toDateString() === now.toDateString();
 
-  // Calcular precios y estado básico
+  
   const prices = event.ticketTypes.map((t) => t.price);
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
@@ -101,7 +101,7 @@ export default function EventCard({
     if (isSoldOut) return <Badge variant="destructive">Agotado</Badge>;
     if (isToday) return <Badge className="bg-green-500">Hoy</Badge>;
     
-    return null; // No mostrar badges de cantidad
+    return null; 
   };
 
   if (variant === "compact") {
@@ -109,7 +109,7 @@ export default function EventCard({
       <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
         <Link href={`/events/${event.id}`}>
           <div className="flex">
-            {/* ✅ MEJORADO: Contenedor cuadrado para imagen vertical */}
+            {}
             <div className="relative w-24 h-24 flex-shrink-0 bg-muted rounded-l-lg overflow-hidden">
               <Image
                 src={event.imageUrl || "/default-event.png"}
@@ -157,7 +157,7 @@ export default function EventCard({
     return (
       <Card className="group hover:shadow-2xl transition-all duration-300 overflow-hidden bg-gradient-to-br from-background to-muted/50">
         <div className="relative">
-          {/* ✅ MEJORADO: Altura más alta para imágenes verticales */}
+          {}
           <div className="relative h-80 overflow-hidden bg-muted">
             <Image
               src={event.imageUrl || "/default-event.png"}
@@ -169,10 +169,10 @@ export default function EventCard({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-            {/* Status badge overlay */}
+            {}
             <div className="absolute top-4 left-4">{getStatusBadge()}</div>
 
-            {/* Quick actions */}
+            {}
             {showQuickActions && (
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <div className="flex gap-2">
@@ -194,7 +194,7 @@ export default function EventCard({
               </div>
             )}
 
-            {/* Price overlay */}
+            {}
             <div className="absolute bottom-4 right-4">
               <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
                 <span className="font-bold text-primary">{priceDisplay}</span>
@@ -257,11 +257,11 @@ export default function EventCard({
     );
   }
 
-  // ✅ MEJORADO: Variante por defecto optimizada para imágenes verticales
+  
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden bg-white dark:bg-card">
       <div className="relative">
-        {/* ✅ CONTENEDOR DE IMAGEN OPTIMIZADO */}
+        {}
         <div className="relative h-56 overflow-hidden bg-muted">
           <Image
             src={event.imageUrl || "/default-event.png"}
@@ -271,13 +271,13 @@ export default function EventCard({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
-          {/* ✅ GRADIENTE SUTIL PARA MEJOR LEGIBILIDAD */}
+          {}
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
-          {/* Status badge */}
+          {}
           <div className="absolute top-3 left-3 z-10">{getStatusBadge()}</div>
 
-          {/* ✅ PRECIO CON MEJOR DISEÑO */}
+          {}
           <div className="absolute bottom-3 right-3 z-10">
             <div className="bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md">
               <span className="font-bold text-sm text-primary">
@@ -286,7 +286,7 @@ export default function EventCard({
             </div>
           </div>
 
-          {/* ✅ OVERLAY DE HOVER PARA MEJOR UX */}
+          {}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
         </div>
 

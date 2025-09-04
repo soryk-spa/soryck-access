@@ -4,25 +4,25 @@ import { render } from "@react-email/render";
 import { User, Event, CourtesyRequest } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
-// Importación dinámica del template de tickets
+
 async function loadTicketEmailComponent() {
   const { TicketEmail } = await import("@/app/api/_emails/ticket-email");
   return TicketEmail;
 }
 
-// Importación dinámica del template de cortesía
+
 async function loadCourtesyEmailComponent() {
   const { CourtesyEmail } = await import("@/app/api/_emails/courtesy-email");
   return CourtesyEmail;
 }
 
-// Importación dinámica del template de invitación de scanner
+
 async function loadScannerInviteEmailComponent() {
   const { ScannerInviteEmail } = await import("@/app/api/_emails/scanner-invite-email");
   return ScannerInviteEmail;
 }
 
-// Importación dinámica de date-utils
+
 async function loadDateUtils() {
   const { formatFullDateTime } = await import("@/lib/date-utils");
   return { formatFullDateTime };
@@ -39,7 +39,7 @@ const resend = process.env.RESEND_API_KEY
 type FullEvent = Event;
 type FullUser = User;
 
-// Función para enviar tickets por email
+
 export async function sendTicketEmail({
   userEmail,
   userName,
@@ -69,7 +69,7 @@ export async function sendTicketEmail({
   });
 
   try {
-    // Cargar dependencias dinámicamente
+    
     const TicketEmail = await loadTicketEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
     
@@ -109,7 +109,7 @@ export async function sendTicketEmail({
   }
 }
 
-// Función para enviar correos de cortesía
+
 export async function sendCourtesyEmail({
   user,
   event,
@@ -131,7 +131,7 @@ export async function sendCourtesyEmail({
   });
 
   try {
-    // Cargar dependencias dinámicamente
+    
     const CourtesyEmail = await loadCourtesyEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
 
@@ -175,7 +175,7 @@ export async function sendCourtesyEmail({
   }
 }
 
-// Función para enviar invitaciones de cortesía con ticket QR
+
 export async function sendCourtesyInvitationEmail({
   invitation,
   event,
@@ -224,26 +224,26 @@ export async function sendCourtesyInvitationEmail({
   });
 
   try {
-    // Cargar dependencias dinámicamente  
+    
     const TicketEmail = await loadTicketEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
     
-    // Importar función de generación de QR
+    
     const { generateQRCodeBase64 } = await import('@/lib/qr-generator');
 
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
-    // Generar QR code como base64 para mejor compatibilidad con emails
+    
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
     const qrCodeImage = await generateQRCodeBase64(ticket.qrCode, verificationUrl);
 
     logger.email.processing("courtesy_invitation_qr", invitation.invitedEmail, {
-      qrSize: Math.ceil(qrCodeImage.length / 1024), // Tamaño en KB
+      qrSize: Math.ceil(qrCodeImage.length / 1024), 
       verificationUrl
     });
 
-    // Convertir base64 a buffer para attachment
+    
     const qrBase64Data = qrCodeImage.replace(/^data:image\/png;base64,/, '');
     const qrBuffer = Buffer.from(qrBase64Data, 'base64');
 
@@ -256,7 +256,7 @@ export async function sendCourtesyInvitationEmail({
         orderNumber: `CORTESÍA-${invitation.id.slice(-8).toUpperCase()}`,
         tickets: [{
           qrCode: ticket.qrCode,
-          qrCodeImage: qrCodeImage, // Base64 directo para mejor visualización
+          qrCodeImage: qrCodeImage, 
           backupCode: ticket.qrCode
         }],
       })
@@ -267,7 +267,7 @@ export async function sendCourtesyInvitationEmail({
       to: invitation.invitedEmail,
       subject: `🎉 Invitación gratuita para ${event.title}`,
       html: emailHtml,
-      // QR como attachment para fácil descarga
+      
       attachments: [
         {
           filename: `sorykpass-ticket-${ticket.qrCode.slice(-8)}.png`,
@@ -295,7 +295,7 @@ export async function sendCourtesyInvitationEmail({
   }
 }
 
-// Función para enviar invitaciones a validadores
+
 export async function sendScannerInviteEmail({
   scannerUser,
   event,
@@ -316,7 +316,7 @@ export async function sendScannerInviteEmail({
   logger.info('[SCANNER INVITE] 🚀 Iniciando proceso de invitación', { scanner: scannerUser.email, event: event.title, organizer: organizer.email, isNewUser });
 
   try {
-    // Cargar dependencias dinámicamente
+    
     const ScannerInviteEmail = await loadScannerInviteEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
 

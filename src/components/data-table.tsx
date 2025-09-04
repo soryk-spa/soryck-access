@@ -55,7 +55,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// Mapeo de iconos para convertir strings a componentes
+
 const iconMap = {
   Eye,
   Edit,
@@ -194,7 +194,7 @@ export function DataTable<T extends Record<string, unknown>>({
   )
 }
 
-// Componente específico para eventos recientes
+
 interface RecentEvent extends Record<string, unknown> {
   id: string
   title: string

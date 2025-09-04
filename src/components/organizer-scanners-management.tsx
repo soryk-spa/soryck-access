@@ -104,18 +104,18 @@ export default function OrganizersScannersManagement({
   const [loading, setLoading] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   
-  // Estados para el formulario de asignación
+  
   const [selectedEventId, setSelectedEventId] = useState("");
   const [selectedScannerId, setSelectedScannerId] = useState("");
   const [emailInput, setEmailInput] = useState("");
 
-  // Función para obtener el nombre completo de un usuario
+  
   const getFullName = (firstName: string | null, lastName: string | null) => {
     const name = [firstName, lastName].filter(Boolean).join(" ");
     return name || "Sin nombre";
   };
 
-  // Función para agregar scanner a un evento
+  
   const handleAssignScanner = async () => {
     if (!selectedEventId || (!selectedScannerId && !emailInput.trim())) {
       toast.error("Por favor selecciona un evento y un validador");
@@ -156,7 +156,7 @@ export default function OrganizersScannersManagement({
     }
   };
 
-  // Función para activar/desactivar scanner
+  
   const handleToggleScanner = async (scannerId: string, currentStatus: boolean) => {
     setLoading(true);
     try {
@@ -192,7 +192,7 @@ export default function OrganizersScannersManagement({
     }
   };
 
-  // Función para remover scanner
+  
   const handleRemoveScanner = async (scannerId: string) => {
     if (!confirm("¿Estás seguro de que quieres remover este validador?")) {
       return;
@@ -223,7 +223,7 @@ export default function OrganizersScannersManagement({
     }
   };
 
-  // Agrupar scanners por evento
+  
   const scannersByEvent = scanners.reduce((acc, scanner) => {
     const eventId = scanner.eventId;
     if (!acc[eventId]) {
@@ -235,7 +235,7 @@ export default function OrganizersScannersManagement({
 
   return (
     <div className="space-y-8">
-      {/* Stats Cards with Modern Design */}
+      {}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -287,7 +287,7 @@ export default function OrganizersScannersManagement({
         </Card>
       </div>
 
-      {/* Section Header with Action Button */}
+      {}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Validadores Asignados</h2>
@@ -396,7 +396,7 @@ export default function OrganizersScannersManagement({
         </Dialog>
       </div>
 
-      {/* Scanners by Event */}
+      {}
       {Object.keys(scannersByEvent).length === 0 ? (
         <Card className="border-0 shadow-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
           <CardContent className="flex flex-col items-center justify-center py-16">

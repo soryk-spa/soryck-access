@@ -51,7 +51,7 @@ interface Event {
     tickets: number;
     orders: number;
   };
-  // ✅ Agregar ticketTypes a la interfaz
+  
   ticketTypes: TicketType[];
 }
 
@@ -71,7 +71,7 @@ export default function OrganizerPublicProfile({
 
   return (
     <div className="max-w-6xl mx-auto space-y-12">
-      {/* --- SECCIÓN DE PERFIL --- */}
+      {}
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-r from-primary/20 to-secondary/20 h-32 md:h-48" />
         <CardContent className="p-6">
@@ -150,7 +150,7 @@ export default function OrganizerPublicProfile({
         </CardContent>
       </Card>
 
-      {/* --- ESTADÍSTICAS RÁPIDAS --- */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
@@ -182,7 +182,7 @@ export default function OrganizerPublicProfile({
         </Card>
       </div>
 
-      {/* --- SECCIÓN DE EVENTOS --- */}
+      {}
       <div>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Próximos Eventos</h2>
@@ -223,7 +223,7 @@ export default function OrganizerPublicProfile({
         )}
       </div>
 
-      {/* --- INFORMACIÓN DE CONTACTO --- */}
+      {}
       {(organizer.websiteUrl ||
         organizer.instagramUrl ||
         organizer.twitterUrl) && (

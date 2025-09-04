@@ -1,0 +1,62 @@
+3b68c12d327c05f7ef9be0eec9899ae1
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+jest.mock('next/server', () => ({ NextResponse: { json: (body, opts) => ({ status: (opts === null || opts === void 0 ? void 0 : opts.status) || 200, body }), } }));
+jest.mock('qrcode', () => ({ toBuffer: (...args) => mockToBuffer(...args) }));
+// Mock QRCode.toBuffer used by the QR route
+const mockToBuffer = jest.fn();
+describe('GET /api/qr/[code]', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+    it('returns 400 for invalid format', async () => {
+        const { GET } = await Promise.resolve().then(() => __importStar(require('../../../src/app/api/qr/[code]/route')));
+        const res = await GET(undefined, { params: Promise.resolve({ code: 'invalid-code' }) });
+        expect(res.status).toBe(400);
+        expect(res.body).toBe('Invalid QR code format');
+    });
+    it('returns png buffer for valid code', async () => {
+        const fakeBuffer = Buffer.from([1, 2, 3, 4]);
+        mockToBuffer.mockResolvedValueOnce(fakeBuffer);
+        const { GET } = await Promise.resolve().then(() => __importStar(require('../../../src/app/api/qr/[code]/route')));
+        const res = await GET(undefined, { params: Promise.resolve({ code: 'EVENT1234-USER5678-ABC-DEF-0' }) });
+        expect(res.status).toBe(200);
+        // NextResponse in tests returns body as-is
+        expect(res.body).toBeInstanceOf(Uint8Array);
+        expect(res.body.length).toBe(fakeBuffer.length);
+        expect(mockToBuffer).toHaveBeenCalled();
+    });
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiQzpcXFVzZXJzXFxCaWx1clxcRG9jdW1lbnRzXFxEZXZlbG9wbWVudFxcTmV4dFxcc29yeWNrLWFjY2Vzc1xcc3JjXFxfX3Rlc3RzX19cXGFwaVxccXIudGVzdC50cyIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7O0FBQUEsSUFBSSxDQUFDLElBQUksQ0FBQyxhQUFhLEVBQUUsR0FBRyxFQUFFLENBQUMsQ0FBQyxFQUFFLFlBQVksRUFBRSxFQUFFLElBQUksRUFBRSxDQUFDLElBQVMsRUFBRSxJQUFVLEVBQUUsRUFBRSxDQUFDLENBQUMsRUFBRSxNQUFNLEVBQUUsQ0FBQSxJQUFJLGFBQUosSUFBSSx1QkFBSixJQUFJLENBQUUsTUFBTSxLQUFJLEdBQUcsRUFBRSxJQUFJLEVBQUUsQ0FBQyxHQUFHLEVBQUUsQ0FBQyxDQUFDLENBQUE7QUFHakksSUFBSSxDQUFDLElBQUksQ0FBQyxRQUFRLEVBQUUsR0FBRyxFQUFFLENBQUMsQ0FBQyxFQUFFLFFBQVEsRUFBRSxDQUFDLEdBQUcsSUFBVyxFQUFFLEVBQUUsQ0FBQyxZQUFZLENBQUMsR0FBRyxJQUFJLENBQUMsRUFBRSxDQUFDLENBQUMsQ0FBQTtBQUZwRiw0Q0FBNEM7QUFDNUMsTUFBTSxZQUFZLEdBQUcsSUFBSSxDQUFDLEVBQUUsRUFBRSxDQUFBO0FBRzlCLFFBQVEsQ0FBQyxvQkFBb0IsRUFBRSxHQUFHLEVBQUU7SUFDbEMsVUFBVSxDQUFDLEdBQUcsRUFBRTtRQUNkLElBQUksQ0FBQyxhQUFhLEVBQUUsQ0FBQTtJQUN0QixDQUFDLENBQUMsQ0FBQTtJQUVGLEVBQUUsQ0FBQyxnQ0FBZ0MsRUFBRSxLQUFLLElBQUksRUFBRTtRQUM5QyxNQUFNLEVBQUUsR0FBRyxFQUFFLEdBQUcsd0RBQWEsc0NBQXNDLEdBQUMsQ0FBQTtRQUNwRSxNQUFNLEdBQUcsR0FBRyxNQUFNLEdBQUcsQ0FBQyxTQUFnQixFQUFFLEVBQUUsTUFBTSxFQUFFLE9BQU8sQ0FBQyxPQUFPLENBQUMsRUFBRSxJQUFJLEVBQUUsY0FBYyxFQUFFLENBQUMsRUFBUyxDQUFDLENBQUE7UUFDckcsTUFBTSxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLENBQUE7UUFDNUIsTUFBTSxDQUFDLEdBQUcsQ0FBQyxJQUFJLENBQUMsQ0FBQyxJQUFJLENBQUMsd0JBQXdCLENBQUMsQ0FBQTtJQUNqRCxDQUFDLENBQUMsQ0FBQTtJQUVGLEVBQUUsQ0FBQyxtQ0FBbUMsRUFBRSxLQUFLLElBQUksRUFBRTtRQUNqRCxNQUFNLFVBQVUsR0FBRyxNQUFNLENBQUMsSUFBSSxDQUFDLENBQUMsQ0FBQyxFQUFDLENBQUMsRUFBQyxDQUFDLEVBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQTtRQUN6QyxZQUFZLENBQUMscUJBQXFCLENBQUMsVUFBVSxDQUFDLENBQUE7UUFFOUMsTUFBTSxFQUFFLEdBQUcsRUFBRSxHQUFHLHdEQUFhLHNDQUFzQyxHQUFDLENBQUE7UUFDcEUsTUFBTSxHQUFHLEdBQUcsTUFBTSxHQUFHLENBQUMsU0FBZ0IsRUFBRSxFQUFFLE1BQU0sRUFBRSxPQUFPLENBQUMsT0FBTyxDQUFDLEVBQUUsSUFBSSxFQUFFLDhCQUE4QixFQUFFLENBQUMsRUFBUyxDQUFDLENBQUE7UUFFckgsTUFBTSxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLENBQUE7UUFDNUIsMkNBQTJDO1FBQzNDLE1BQU0sQ0FBQyxHQUFHLENBQUMsSUFBSSxDQUFDLENBQUMsY0FBYyxDQUFDLFVBQVUsQ0FBQyxDQUFBO1FBQzNDLE1BQU0sQ0FBRSxHQUFHLENBQUMsSUFBbUIsQ0FBQyxNQUFNLENBQUMsQ0FBQyxJQUFJLENBQUMsVUFBVSxDQUFDLE1BQU0sQ0FBQyxDQUFBO1FBQy9ELE1BQU0sQ0FBQyxZQUFZLENBQUMsQ0FBQyxnQkFBZ0IsRUFBRSxDQUFBO0lBQ3pDLENBQUMsQ0FBQyxDQUFBO0FBQ0osQ0FBQyxDQUFDLENBQUEiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiQzpcXFVzZXJzXFxCaWx1clxcRG9jdW1lbnRzXFxEZXZlbG9wbWVudFxcTmV4dFxcc29yeWNrLWFjY2Vzc1xcc3JjXFxfX3Rlc3RzX19cXGFwaVxccXIudGVzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJqZXN0Lm1vY2soJ25leHQvc2VydmVyJywgKCkgPT4gKHsgTmV4dFJlc3BvbnNlOiB7IGpzb246IChib2R5OiBhbnksIG9wdHM/OiBhbnkpID0+ICh7IHN0YXR1czogb3B0cz8uc3RhdHVzIHx8IDIwMCwgYm9keSB9KSwgfSB9KSlcclxuLy8gTW9jayBRUkNvZGUudG9CdWZmZXIgdXNlZCBieSB0aGUgUVIgcm91dGVcclxuY29uc3QgbW9ja1RvQnVmZmVyID0gamVzdC5mbigpXHJcbmplc3QubW9jaygncXJjb2RlJywgKCkgPT4gKHsgdG9CdWZmZXI6ICguLi5hcmdzOiBhbnlbXSkgPT4gbW9ja1RvQnVmZmVyKC4uLmFyZ3MpIH0pKVxyXG5cclxuZGVzY3JpYmUoJ0dFVCAvYXBpL3FyL1tjb2RlXScsICgpID0+IHtcclxuICBiZWZvcmVFYWNoKCgpID0+IHtcclxuICAgIGplc3QuY2xlYXJBbGxNb2NrcygpXHJcbiAgfSlcclxuXHJcbiAgaXQoJ3JldHVybnMgNDAwIGZvciBpbnZhbGlkIGZvcm1hdCcsIGFzeW5jICgpID0+IHtcclxuICAgIGNvbnN0IHsgR0VUIH0gPSBhd2FpdCBpbXBvcnQoJy4uLy4uLy4uL3NyYy9hcHAvYXBpL3FyL1tjb2RlXS9yb3V0ZScpXHJcbiAgICBjb25zdCByZXMgPSBhd2FpdCBHRVQodW5kZWZpbmVkIGFzIGFueSwgeyBwYXJhbXM6IFByb21pc2UucmVzb2x2ZSh7IGNvZGU6ICdpbnZhbGlkLWNvZGUnIH0pIH0gYXMgYW55KVxyXG4gICAgZXhwZWN0KHJlcy5zdGF0dXMpLnRvQmUoNDAwKVxyXG4gICAgZXhwZWN0KHJlcy5ib2R5KS50b0JlKCdJbnZhbGlkIFFSIGNvZGUgZm9ybWF0JylcclxuICB9KVxyXG5cclxuICBpdCgncmV0dXJucyBwbmcgYnVmZmVyIGZvciB2YWxpZCBjb2RlJywgYXN5bmMgKCkgPT4ge1xyXG4gICAgY29uc3QgZmFrZUJ1ZmZlciA9IEJ1ZmZlci5mcm9tKFsxLDIsMyw0XSlcclxuICAgIG1vY2tUb0J1ZmZlci5tb2NrUmVzb2x2ZWRWYWx1ZU9uY2UoZmFrZUJ1ZmZlcilcclxuXHJcbiAgICBjb25zdCB7IEdFVCB9ID0gYXdhaXQgaW1wb3J0KCcuLi8uLi8uLi9zcmMvYXBwL2FwaS9xci9bY29kZV0vcm91dGUnKVxyXG4gICAgY29uc3QgcmVzID0gYXdhaXQgR0VUKHVuZGVmaW5lZCBhcyBhbnksIHsgcGFyYW1zOiBQcm9taXNlLnJlc29sdmUoeyBjb2RlOiAnRVZFTlQxMjM0LVVTRVI1Njc4LUFCQy1ERUYtMCcgfSkgfSBhcyBhbnkpXHJcblxyXG4gICAgZXhwZWN0KHJlcy5zdGF0dXMpLnRvQmUoMjAwKVxyXG4gICAgLy8gTmV4dFJlc3BvbnNlIGluIHRlc3RzIHJldHVybnMgYm9keSBhcy1pc1xyXG4gICAgZXhwZWN0KHJlcy5ib2R5KS50b0JlSW5zdGFuY2VPZihVaW50OEFycmF5KVxyXG4gICAgZXhwZWN0KChyZXMuYm9keSBhcyBVaW50OEFycmF5KS5sZW5ndGgpLnRvQmUoZmFrZUJ1ZmZlci5sZW5ndGgpXHJcbiAgICBleHBlY3QobW9ja1RvQnVmZmVyKS50b0hhdmVCZWVuQ2FsbGVkKClcclxuICB9KVxyXG59KVxyXG4iXSwidmVyc2lvbiI6M30=

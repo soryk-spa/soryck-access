@@ -11,7 +11,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// Escanear y validar ticket
+
 export async function POST(
   request: NextRequest,
   { params }: RouteParams
@@ -27,7 +27,7 @@ export async function POST(
     const body = await request.json();
     const { qrCode } = scanTicketSchema.parse(body);
 
-    // Verificar que el usuario puede escanear tickets para este evento
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -52,7 +52,7 @@ export async function POST(
       );
     }
 
-    // Buscar ticket por código QR
+    
     const ticket = await prisma.ticket.findUnique({
       where: { qrCode },
       include: {
@@ -95,7 +95,7 @@ export async function POST(
       return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 });
     }
 
-    // Verificar que el ticket pertenece al evento
+    
     if (ticket.eventId !== eventId) {
       return NextResponse.json(
         { error: 'Este ticket no pertenece a este evento' },
@@ -103,7 +103,7 @@ export async function POST(
       );
     }
 
-    // Verificar si el ticket ya fue usado
+    
     if (ticket.isUsed) {
       return NextResponse.json({
         error: 'Ticket ya utilizado',
@@ -121,7 +121,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Verificar estado del ticket
+    
     if (ticket.status !== 'ACTIVE') {
       return NextResponse.json({
         error: 'Ticket no está activo',
@@ -138,7 +138,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Verificar fechas del evento
+    
     const now = new Date();
     if (ticket.event.endDate && now > ticket.event.endDate) {
       return NextResponse.json({
@@ -155,7 +155,7 @@ export async function POST(
       }, { status: 400 });
     }
 
-    // Marcar ticket como usado
+    
     const updatedTicket = await prisma.ticket.update({
       where: { id: ticket.id },
       data: {
@@ -189,7 +189,7 @@ export async function POST(
       },
     });
 
-    // Si es un ticket de cortesía, actualizar la invitación
+    
     if (ticket.courtesyInvitation) {
       await prisma.courtesyInvitation.update({
         where: { id: ticket.courtesyInvitation.id },
@@ -236,7 +236,7 @@ export async function POST(
   }
 }
 
-// Obtener estadísticas de escaneo
+
 export async function GET(
   request: NextRequest,
   { params }: RouteParams
@@ -249,7 +249,7 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Verificar permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -274,7 +274,7 @@ export async function GET(
       );
     }
 
-    // Obtener estadísticas
+    
     const stats = await prisma.ticket.groupBy({
       by: ['isUsed'],
       where: { eventId },
@@ -287,7 +287,7 @@ export async function GET(
     const usedTickets = stats.find(stat => stat.isUsed)?._count.id || 0;
     const unusedTickets = totalTickets - usedTickets;
 
-    // Estadísticas de cortesías
+    
     const courtesyStats = await prisma.courtesyInvitation.groupBy({
       by: ['status'],
       where: { eventId },

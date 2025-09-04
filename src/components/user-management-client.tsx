@@ -19,7 +19,7 @@ export default function UserManagementClient() {
 
   return (
     <>
-      {/* Filters */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export default function UserManagementClient() {
         </CardContent>
       </Card>
 
-      {/* Users Table */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

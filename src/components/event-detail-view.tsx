@@ -633,7 +633,7 @@ export default function EventDetailView({
                       </div>
                     )}
 
-                    {/* Purchase Actions */}
+                    {}
                     <div className="space-y-4">
                       {isPast ? (
                         <Button disabled className="w-full" size="lg">
@@ -886,7 +886,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title}`)}&url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`}
+                          href={`https:
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -901,7 +901,7 @@ export default function EventDetailView({
                         asChild
                       >
                         <a
-                          href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este evento increíble! ${event.title} - ${typeof window !== "undefined" ? window.location.href : ""}`)}`}
+                          href={`https:
                           target="_blank"
                           rel="noopener noreferrer"
                         >

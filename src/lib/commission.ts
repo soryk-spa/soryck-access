@@ -1,4 +1,4 @@
-export const COMMISSION_RATE = 0.06; // 6%
+export const COMMISSION_RATE = 0.06; 
 
 export interface PriceBreakdown {
   basePrice: number;
@@ -38,8 +38,8 @@ export function calculatePriceBreakdown(
     commission,
     totalPrice,
     currency,
-    originalAmount: basePrice, // Por defecto, igual al basePrice
-    discountAmount: 0 // Por defecto, sin descuento
+    originalAmount: basePrice, 
+    discountAmount: 0 
   };
 }
 
@@ -65,12 +65,12 @@ export function calculateBasePriceFromTotal(totalPrice: number): number {
 
 export function formatPrice(price: number, currency?: string): string {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _ = currency; // Mantenemos compatibilidad con llamadas existentes
+  const _ = currency; 
   
   if (price === 0) return 'Gratis';
   
-  // Formateo más simple y consistente para evitar problemas de hidratación
-  // Usa formateo manual para garantizar consistencia servidor-cliente
+  
+  
   const formatNumber = (num: number): string => {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };

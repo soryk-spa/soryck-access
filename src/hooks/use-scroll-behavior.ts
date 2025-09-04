@@ -16,7 +16,7 @@ export function useScrollBehavior() {
       setLastScrollY(currentScrollY);
     };
 
-    // Throttle scroll events for better performance
+    
     let ticking = false;
     const throttledHandleScroll = () => {
       if (!ticking) {

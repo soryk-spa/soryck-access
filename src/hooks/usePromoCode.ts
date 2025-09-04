@@ -1,15 +1,12 @@
-/**
- * Hooks personalizados para códigos promocionales
- * Extrae lógica reutilizable del componente
- */
+
 
 import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import type { PromoCode, PromoCodeFilters } from '@/types';
 
-// ============================================================================
-// HOOK PARA MANEJO DE ESTADO DE CÓDIGOS PROMOCIONALES
-// ============================================================================
+
+
+
 
 export function usePromoCodeManagement(initialPromoCodes: PromoCode[]) {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>(initialPromoCodes);
@@ -33,7 +30,7 @@ export function usePromoCodeManagement(initialPromoCodes: PromoCode[]) {
         throw new Error(data.error || `Error al ${action} el código promocional`);
       }
 
-      // Actualizar el estado local
+      
       setPromoCodes(prev => 
         prev.map(code => 
           code.id === promoCode.id 
@@ -64,9 +61,9 @@ export function usePromoCodeManagement(initialPromoCodes: PromoCode[]) {
   };
 }
 
-// ============================================================================
-// HOOK PARA FILTRADO DE CÓDIGOS PROMOCIONALES
-// ============================================================================
+
+
+
 
 export function usePromoCodeFilters(promoCodes: PromoCode[]) {
   const [filters, setFilters] = useState<PromoCodeFilters>({
@@ -105,9 +102,9 @@ export function usePromoCodeFilters(promoCodes: PromoCode[]) {
   };
 }
 
-// ============================================================================
-// HOOK PARA ESTADÍSTICAS DE CÓDIGOS PROMOCIONALES
-// ============================================================================
+
+
+
 
 export function usePromoCodeStats(promoCodes: PromoCode[]) {
   const stats = useMemo(() => {
@@ -133,9 +130,9 @@ export function usePromoCodeStats(promoCodes: PromoCode[]) {
   return stats;
 }
 
-// ============================================================================
-// HOOK PARA COMPARTIR CÓDIGOS PROMOCIONALES
-// ============================================================================
+
+
+
 
 export function usePromoCodeSharing() {
   const sharePromoCode = (code: PromoCode, formatDiscount: (type: string, value: number) => string) => {
@@ -153,7 +150,7 @@ export function usePromoCodeSharing() {
   };
 
   const exportPromoCodes = (promoCodes: PromoCode[]) => {
-    // Lógica para exportar códigos promocionales
+    
     const csv = generatePromoCodeCSV(promoCodes);
     downloadCSV(csv, 'codigos-promocionales.csv');
     toast.success("Códigos promocionales exportados exitosamente");
@@ -165,9 +162,9 @@ export function usePromoCodeSharing() {
   };
 }
 
-// ============================================================================
-// UTILIDADES AUXILIARES
-// ============================================================================
+
+
+
 
 function generatePromoCodeCSV(promoCodes: PromoCode[]): string {
   const headers = ['Código', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Usado', 'Límite', 'Válido Desde', 'Válido Hasta'];

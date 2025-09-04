@@ -7,7 +7,7 @@ import ConditionalLayout from "@/components/conditional-layout";
 import { esMX } from "@clerk/localizations";
 import { Toaster } from "sonner";
 
-// Fuente principal para homepage y público general
+
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
@@ -15,7 +15,7 @@ const montserrat = Montserrat({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
-// Fuente para admin - más profesional y técnica
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -23,7 +23,7 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
-// Fuente para organizador - moderna y amigable
+
 const roboto = Roboto({
   subsets: ["latin"],
   variable: "--font-roboto",
@@ -32,8 +32,8 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  // Used to resolve absolute URLs for OpenGraph/Twitter images
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http:
   title: "SorykPass - La Puerta de Entrada al Presente",
   description:
     "Plataforma digital que funciona como una tarjeta de acceso inteligente o pase digital. Un sistema ágil, confiable y sin fricciones para eventos.",
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     title: "SorykPass - La Puerta de Entrada al Presente",
     description:
       "Un sistema ágil, confiable y sin fricciones, donde el pase digital se vuelve parte natural del día a día.",
-    url: "https://sorykpass.com",
+    url: "https:
     siteName: "SorykPass",
     images: [
       {
@@ -102,9 +102,9 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Añadir códigos de verificación cuando estén disponibles
-    // google: "google-verification-code",
-    // yandex: "yandex-verification-code",
+    
+    
+    
   },
 };
 

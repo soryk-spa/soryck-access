@@ -28,7 +28,7 @@ interface CourtesyUpdateData {
   rejectedAt?: Date;
 }
 
-// Generar código único para cortesía
+
 function generateCourtesyCode(): string {
   return crypto.randomBytes(8).toString('hex').toUpperCase();
 }
@@ -45,7 +45,7 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Verificar que el evento existe y que el usuario es el organizador o admin
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -64,7 +64,7 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // Obtener la solicitud específica
+    
     const request_obj = await prisma.courtesyRequest.findUnique({
       where: { id: requestId },
     });
@@ -100,7 +100,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Verificar que el evento existe y que el usuario es el organizador o admin
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -122,7 +122,7 @@ export async function PATCH(
     const body = await request.json();
     const { action, codeType, discountValue } = updateCourtesyRequestSchema.parse(body);
 
-    // Verificar que la solicitud existe
+    
     const existingRequest = await prisma.courtesyRequest.findUnique({
       where: { id: requestId },
     });
@@ -142,12 +142,12 @@ export async function PATCH(
     let updateData: CourtesyUpdateData;
 
     if (action === 'APPROVE') {
-      // Validar que se proporcione el tipo de código
+      
       if (!codeType) {
         return NextResponse.json({ error: 'Tipo de código requerido para aprobar' }, { status: 400 });
       }
 
-      // Validar descuento si es necesario
+      
       if (codeType === 'DISCOUNT' && (!discountValue || discountValue <= 0 || discountValue > 100)) {
         return NextResponse.json({ error: 'Monto de descuento inválido' }, { status: 400 });
       }
@@ -157,7 +157,7 @@ export async function PATCH(
         codeType,
         discountValue: codeType === 'DISCOUNT' ? discountValue : null,
         code: generateCourtesyCode(),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
         approvedAt: new Date(),
       };
     } else {
@@ -167,7 +167,7 @@ export async function PATCH(
       };
     }
 
-    // Actualizar la solicitud
+    
     const updatedRequest = await prisma.courtesyRequest.update({
       where: { id: requestId },
       data: updateData,
@@ -176,10 +176,10 @@ export async function PATCH(
       },
     });
 
-    // Enviar correo de aprobación si fue aprobada
+    
     if (action === 'APPROVE') {
       try {
-        // Buscar el usuario por email
+        
         const requestUser = await prisma.user.findUnique({
           where: { email: updatedRequest.email },
         });
@@ -196,7 +196,7 @@ export async function PATCH(
         }
       } catch (emailError) {
         console.error(`[COURTESY API] ⚠️ Error al enviar correo para cortesía ${requestId}:`, emailError);
-        // No fallar la respuesta por error de correo
+        
       }
     }
 

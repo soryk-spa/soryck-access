@@ -167,10 +167,10 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       case "ORGANIZER":
       case "SCANNER":
       case "ADMIN":
-        // Para organizadores, combinamos dashboard principal + elementos específicos
+        
         return [
-          ...clientItems,  // Incluye Dashboard y Mis Tickets
-          ...organizerItems.filter(item => item.href !== "/dashboard") // Evita duplicar dashboard
+          ...clientItems,  
+          ...organizerItems.filter(item => item.href !== "/dashboard") 
         ];
       case "CLIENT":
       default:
@@ -181,24 +181,24 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
   const currentItems = getDashboardItems();
 
   const isActiveRoute = (href: string) => {
-    // Casos exactos para rutas específicas
+    
     if (href === "/dashboard" || href === "/admin") {
       return pathname === href;
     }
     
-    // Manejo especial para rutas del organizador
+    
     if (href === "/dashboard/events") {
-      // "Mis Eventos" debe estar activo para todas las rutas de eventos del organizador
+      
       return pathname.startsWith("/dashboard/events") || pathname.startsWith("/organizer/events");
     }
     
     if (href === "/dashboard") {
-      // "Gestión" debe estar activo para dashboard principal
+      
       return pathname === "/dashboard" || 
              (pathname.startsWith("/organizer") && !pathname.startsWith("/organizer/events"));
     }
     
-    // Para el resto de rutas, usar la lógica estándar
+    
     return pathname.startsWith(href);
   };
 
@@ -209,7 +209,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
         className
       )}
     >
-      {/* Header del Sidebar */}
+      {}
       <div className="flex h-16 items-center justify-between px-4 border-b border-border bg-background/95">
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -234,10 +234,10 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
         </Button>
       </div>
 
-      {/* Contenido del Sidebar */}
+      {}
       <div className="flex-1 overflow-auto">
         <div className="space-y-2 p-2">
-          {/* Navegación Principal */}
+          {}
           <div className="space-y-1">
             {currentItems.map((item) => (
               <SidebarItem
@@ -252,7 +252,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
 
           <Separator className="my-4" />
 
-          {/* Items de Configuración */}
+          {}
           <div className="space-y-1">
             {!collapsed && (
               <p className="px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
@@ -272,7 +272,7 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
         </div>
       </div>
 
-      {/* Footer del Sidebar */}
+      {}
       <div className="border-t p-2">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="h-8 w-8 rounded-full bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] flex items-center justify-center text-white text-sm font-medium">
@@ -305,7 +305,7 @@ function SidebarItem({ item, isActive, collapsed, onClose }: SidebarItemProps) {
   const Icon = item.icon;
 
   const handleClick = () => {
-    // Cerrar sidebar en móviles cuando se hace click
+    
     if (onClose) {
       onClose();
     }

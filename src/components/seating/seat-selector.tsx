@@ -61,10 +61,10 @@ export function SeatSelector({
   const [scale, setScale] = useState(1)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
 
-  // Calculate total price
+  
   const totalPrice = selectedSeats.reduce((sum, seat) => sum + seat.finalPrice, 0)
 
-  // Handle seat selection
+  
   const handleSeatClick = useCallback((seat: Seat, section: Section) => {
     if (seat.status !== 'AVAILABLE') return
 
@@ -72,10 +72,10 @@ export function SeatSelector({
     const isSelected = selectedSeats.some(s => s.id === seatId)
 
     if (isSelected) {
-      // Deselect seat
+      
       setSelectedSeats(prev => prev.filter(s => s.id !== seatId))
     } else {
-      // Select seat (if under limit)
+      
       if (selectedSeats.length >= maxSeats) {
         alert(`Máximo ${maxSeats} asientos permitidos`)
         return
@@ -91,17 +91,17 @@ export function SeatSelector({
     }
   }, [selectedSeats, maxSeats])
 
-  // Update parent component when selection changes
+  
   useEffect(() => {
     onSelectionChange(selectedSeats)
   }, [selectedSeats, onSelectionChange])
 
-  // Get seat display properties
+  
   const getSeatProps = (seat: Seat) => {
     const isSelected = selectedSeats.some(s => s.id === seat.id)
     const isHovered = hoveredSeat === seat.id
 
-    let backgroundColor = '#E5E7EB' // Default gray
+    let backgroundColor = '#E5E7EB' 
     let borderColor = '#9CA3AF'
     let cursor = 'not-allowed'
 
@@ -166,7 +166,7 @@ export function SeatSelector({
   const renderSection = (section: Section) => {
     return (
       <div key={section.id}>
-        {/* Section outline */}
+        {}
         <div
           className="absolute border-2 border-dashed rounded opacity-30"
           style={{
@@ -179,7 +179,7 @@ export function SeatSelector({
           }}
         />
         
-        {/* Section label */}
+        {}
         <div
           className="absolute font-semibold text-sm text-gray-700"
           style={{
@@ -196,7 +196,7 @@ export function SeatSelector({
           )}
         </div>
 
-        {/* Seats */}
+        {}
         {section.seats.map(seat => renderSeat(seat, section))}
       </div>
     )
@@ -204,13 +204,13 @@ export function SeatSelector({
 
   return (
     <div className="flex h-screen">
-      {/* Seat Map */}
+      {}
       <div className="flex-1 relative bg-gray-50 overflow-hidden">
         <div className="absolute inset-0">
           {sections.map(renderSection)}
         </div>
 
-        {/* Zoom Controls */}
+        {}
         <div className="absolute top-4 left-4 bg-white p-2 rounded shadow-md">
           <div className="flex gap-2 mb-2">
             <Button
@@ -233,7 +233,7 @@ export function SeatSelector({
           </div>
         </div>
 
-        {/* Legend */}
+        {}
         <div className="absolute top-4 right-4 bg-white p-4 rounded shadow-md">
           <h3 className="font-semibold mb-3">Leyenda</h3>
           <div className="space-y-2 text-sm">
@@ -265,7 +265,7 @@ export function SeatSelector({
         </div>
       </div>
 
-      {/* Selection Panel */}
+      {}
       <div className="w-96 bg-white border-l border-gray-200 p-6 overflow-y-auto">
         <Card>
           <CardHeader>

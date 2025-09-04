@@ -109,7 +109,7 @@ export function generateAppleWalletPass(passData: WalletPassData) {
     relevantDate: passData.eventDate,
     expirationDate: new Date(
       new Date(passData.eventDate).getTime() + 24 * 60 * 60 * 1000
-    ).toISOString(), // +1 día
+    ).toISOString(), 
 
     locations: [
       {
@@ -235,7 +235,7 @@ export function generateGooglePayURL(passData: WalletPassData): string {
   try {
     const googlePayData = generateGooglePayPass(passData);
     const jwt = generateJWT(googlePayData);
-    return `https://pay.google.com/gp/v/save/${jwt}`;
+    return `https:
   } catch (error) {
     console.error("Error generating Google Pay URL:", error);
     return "#";

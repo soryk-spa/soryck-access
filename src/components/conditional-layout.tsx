@@ -11,7 +11,7 @@ interface ConditionalLayoutProps {
 export default function ConditionalLayout({ children }: ConditionalLayoutProps) {
   const pathname = usePathname();
   
-  // Rutas que usan el layout de dashboard (no necesitan navbar global)
+  
   const isDashboardRoute = pathname.startsWith('/dashboard') || 
                           pathname.startsWith('/admin') || 
                           pathname.startsWith('/organizer');

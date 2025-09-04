@@ -21,7 +21,7 @@ import Link from "next/link";
 export default async function SettingsPage() {
   const user = await requireAuth();
 
-  // Obtener estadísticas del organizador
+  
   const stats = await prisma.user.findUnique({
     where: { id: user.id },
     include: {
@@ -54,7 +54,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
@@ -65,7 +65,7 @@ export default async function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Perfil del Organizador */}
+        {}
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -78,7 +78,7 @@ export default async function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Información Personal */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Nombre</label>
@@ -100,7 +100,7 @@ export default async function SettingsPage() {
                 </div>
               </div>
 
-              {/* Información de Productor */}
+              {}
               <div className="border-t pt-6">
                 <h3 className="text-lg font-medium mb-4">Información del Productor</h3>
                 <div className="space-y-4">
@@ -119,7 +119,7 @@ export default async function SettingsPage() {
                 </div>
               </div>
 
-              {/* Redes Sociales */}
+              {}
               <div className="border-t pt-6">
                 <h3 className="text-lg font-medium mb-4">Redes Sociales</h3>
                 <div className="space-y-4">
@@ -172,7 +172,7 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Configuración de Notificaciones */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -228,9 +228,9 @@ export default async function SettingsPage() {
           </Card>
         </div>
 
-        {/* Sidebar */}
+        {}
         <div className="space-y-6">
-          {/* Resumen de Cuenta */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Resumen de Cuenta</CardTitle>
@@ -262,7 +262,7 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Acciones Rápidas */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
@@ -296,7 +296,7 @@ export default async function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Información de Ayuda */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">¿Necesitas Ayuda?</CardTitle>

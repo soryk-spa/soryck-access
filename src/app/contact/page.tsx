@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
@@ -52,10 +52,10 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Contact Information */}
+          {}
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -113,7 +113,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Quick Links */}
+            {}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -152,7 +152,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Contact Form */}
+          {}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
@@ -241,7 +241,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* FAQ Section */}
+        {}
         <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">

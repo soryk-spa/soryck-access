@@ -26,10 +26,10 @@ interface DashboardNavbarActionsProps {
 export function DashboardNavbarActions({ actions }: DashboardNavbarActionsProps) {
   return (
     <div className="flex items-center gap-2">
-      {/* Custom actions */}
+      {}
       {actions}
 
-      {/* Quick Actions Dropdown */}
+      {}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="gap-1">
@@ -56,7 +56,7 @@ export function DashboardNavbarActions({ actions }: DashboardNavbarActionsProps)
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Notifications */}
+      {}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="sm" className="relative">
@@ -73,14 +73,14 @@ export function DashboardNavbarActions({ actions }: DashboardNavbarActionsProps)
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Help */}
+      {}
       <Button variant="ghost" size="sm" asChild>
         <Link href="/help">
           <HelpCircle className="h-4 w-4" />
         </Link>
       </Button>
 
-      {/* Settings */}
+      {}
       <Button variant="ghost" size="sm" asChild>
         <Link href="/dashboard/settings">
           <Settings className="h-4 w-4" />

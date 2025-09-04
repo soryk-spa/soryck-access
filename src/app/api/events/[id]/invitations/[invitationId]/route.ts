@@ -16,7 +16,7 @@ interface RouteParams {
   }>;
 }
 
-// Obtener invitación específica
+
 export async function GET(
   request: NextRequest,
   { params }: RouteParams
@@ -29,7 +29,7 @@ export async function GET(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Verificar que la invitación existe y pertenece al evento
+    
     const invitation = await prisma.courtesyInvitation.findUnique({
       where: { id: invitationId },
       include: {
@@ -60,7 +60,7 @@ export async function GET(
       return NextResponse.json({ error: 'Invitación no pertenece a este evento' }, { status: 400 });
     }
 
-    // Verificar permisos
+    
     const isOwner = invitation.event.organizerId === user.id;
     const isAdmin = user.role === 'ADMIN';
 
@@ -79,7 +79,7 @@ export async function GET(
   }
 }
 
-// Actualizar invitación (enviar, reenviar, cancelar, generar ticket)
+
 export async function PATCH(
   request: NextRequest,
   { params }: RouteParams
@@ -95,7 +95,7 @@ export async function PATCH(
     const body = await request.json();
     const { action } = updateInvitationSchema.parse(body);
 
-    // Verificar que la invitación existe
+    
     const invitation = await prisma.courtesyInvitation.findUnique({
       where: { id: invitationId },
       include: {
@@ -112,7 +112,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invitación no pertenece a este evento' }, { status: 400 });
     }
 
-    // Verificar permisos
+    
     const isOwner = invitation.event.organizerId === user.id;
     const isAdmin = user.role === 'ADMIN';
 
@@ -125,7 +125,7 @@ export async function PATCH(
     switch (action) {
       case 'SEND':
       case 'RESEND':
-        // Generar ticket si no existe
+        
         if (!invitation.ticket) {
           const ticket = await generateCourtesyTicket(invitation);
           updatedInvitation = await prisma.courtesyInvitation.update({
@@ -154,7 +154,7 @@ export async function PATCH(
           });
         }
 
-        // Enviar email con QR
+        
         try {
           await sendCourtesyInvitationEmail({
             invitation: updatedInvitation,
@@ -163,7 +163,7 @@ export async function PATCH(
           });
         } catch (emailError) {
           console.error('Error sending invitation email:', emailError);
-          // No fallar la respuesta por error de email
+          
         }
         break;
 
@@ -188,7 +188,7 @@ export async function PATCH(
         break;
 
       case 'CANCEL':
-        // Cancelar invitación
+        
         updatedInvitation = await prisma.courtesyInvitation.update({
           where: { id: invitationId },
           data: {
@@ -223,7 +223,7 @@ export async function PATCH(
   }
 }
 
-// Eliminar invitación
+
 export async function DELETE(
   request: NextRequest,
   { params }: RouteParams
@@ -236,7 +236,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // Verificar que la invitación existe
+    
     const invitation = await prisma.courtesyInvitation.findUnique({
       where: { id: invitationId },
       include: {
@@ -253,7 +253,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invitación no pertenece a este evento' }, { status: 400 });
     }
 
-    // Verificar permisos
+    
     const isOwner = invitation.event.organizerId === user.id;
     const isAdmin = user.role === 'ADMIN';
 
@@ -261,7 +261,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
     }
 
-    // No permitir eliminar si ya tiene ticket generado y fue usado
+    
     if (invitation.ticket?.isUsed) {
       return NextResponse.json(
         { error: 'No se puede eliminar una invitación cuyo ticket ya fue usado' },
@@ -269,7 +269,7 @@ export async function DELETE(
       );
     }
 
-    // Eliminar invitación (el ticket se eliminará en cascada si no fue usado)
+    
     await prisma.courtesyInvitation.delete({
       where: { id: invitationId },
     });
@@ -285,7 +285,7 @@ export async function DELETE(
   }
 }
 
-// Función auxiliar para generar ticket de cortesía
+
 async function generateCourtesyTicket(invitation: {
   id: string;
   eventId: string;
@@ -315,13 +315,13 @@ async function generateCourtesyTicket(invitation: {
     [key: string]: unknown;
   } | null;
 }) {
-  // Buscar o crear usuario para la invitación
+  
   let invitedUser = await prisma.user.findUnique({
     where: { email: invitation.invitedEmail },
   });
 
   if (!invitedUser) {
-    // Crear usuario temporal para la cortesía
+    
     invitedUser = await prisma.user.create({
       data: {
         email: invitation.invitedEmail,
@@ -332,7 +332,7 @@ async function generateCourtesyTicket(invitation: {
     });
   }
 
-  // Crear orden gratuita
+  
   const order = await prisma.order.create({
     data: {
       orderNumber: `CORT-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
@@ -347,7 +347,7 @@ async function generateCourtesyTicket(invitation: {
     },
   });
 
-  // Crear ticket
+  
   const ticket = await prisma.ticket.create({
     data: {
       qrCode: generateQRCode(),
@@ -361,7 +361,7 @@ async function generateCourtesyTicket(invitation: {
   return ticket;
 }
 
-// Generar código QR único
+
 function generateQRCode(): string {
   return crypto.randomBytes(16).toString('hex').toUpperCase();
 }

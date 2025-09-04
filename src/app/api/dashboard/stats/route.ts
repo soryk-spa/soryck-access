@@ -10,18 +10,18 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Intentar obtener estadísticas desde Redis primero
+    
     const cachedStats = await cache.getDashboardStats(userId);
     if (cachedStats) {
       return NextResponse.json(cachedStats);
     }
 
-    // Si no está en caché, calcular estadísticas
+    
     const now = new Date();
     const twelveMonthsAgo = new Date(now);
     twelveMonthsAgo.setMonth(now.getMonth() - 11);
 
-    // Generar array de los últimos 12 meses
+    
     const months = [];
     for (let i = 11; i >= 0; i--) {
       const date = new Date(now);
@@ -34,13 +34,13 @@ export async function GET() {
       });
     }
 
-    // Obtener estadísticas mensuales
+    
     const monthlyStats = await Promise.all(
       months.map(async (month) => {
         const startOfMonth = new Date(month.year, month.month - 1, 1);
         const endOfMonth = new Date(month.year, month.month, 0, 23, 59, 59);
 
-        // Ingresos del mes
+        
         const revenue = await prisma.order.aggregate({
           where: {
             event: { organizerId: userId },
@@ -53,7 +53,7 @@ export async function GET() {
           _sum: { totalAmount: true }
         });
 
-        // Eventos creados en el mes
+        
         const eventsCount = await prisma.event.count({
           where: {
             organizerId: userId,
@@ -64,7 +64,7 @@ export async function GET() {
           }
         });
 
-        // Tickets vendidos en el mes
+        
         const ticketsCount = await prisma.ticket.count({
           where: {
             event: { organizerId: userId },
@@ -85,7 +85,7 @@ export async function GET() {
       })
     );
 
-    // Guardar en caché por 5 minutos (las estadísticas cambian frecuentemente)
+    
     await cache.setDashboardStats(userId, monthlyStats, 300);
 
     return NextResponse.json(monthlyStats);

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function SettingsPage() {
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
         <p className="text-muted-foreground">
@@ -18,7 +18,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* Coming Soon */}
+      {}
       <Card className="text-center py-12">
         <CardContent>
           <Settings className="h-16 w-16 mx-auto text-muted-foreground mb-4" />

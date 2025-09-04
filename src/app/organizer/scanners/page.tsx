@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default async function OrganizersScannersPage() {
   const user = await requireAuth();
 
-  // Verificar que el usuario sea organizador
+  
   if (user.role !== "ORGANIZER" && user.role !== "ADMIN") {
     redirect("/unauthorized");
   }
 
-  // Obtener todos los scanners asignados por este organizador
+  
   const organizerScanners = await prisma.eventScanner.findMany({
     where: {
       assignedBy: user.id,
@@ -54,7 +54,7 @@ export default async function OrganizersScannersPage() {
     },
   });
 
-  // Obtener eventos del organizador para poder asignar scanners
+  
   const organizerEvents = await prisma.event.findMany({
     where: {
       organizerId: user.id,
@@ -70,7 +70,7 @@ export default async function OrganizersScannersPage() {
     },
   });
 
-  // Obtener usuarios con rol SCANNER disponibles
+  
   const availableScanners = await prisma.user.findMany({
     where: {
       role: "SCANNER",
@@ -89,7 +89,7 @@ export default async function OrganizersScannersPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Gestión de Validadores</h1>
@@ -102,7 +102,7 @@ export default async function OrganizersScannersPage() {
         </Badge>
       </div>
 
-      {/* Management Component */}
+      {}
       <OrganizersScannersManagement
         organizerScanners={organizerScanners.map(scanner => ({
           ...scanner,

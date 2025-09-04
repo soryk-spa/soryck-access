@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // await sendRoleRequestNotification(roleRequest)
+    
 
     return NextResponse.json({
       message: 'Solicitud de rol enviada exitosamente',

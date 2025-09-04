@@ -7,6 +7,6 @@ export const metadata: Metadata = {
 };
 
 export default function OrganizerDashboardPage() {
-  // Redirect to the unified main dashboard
+  
   redirect("/dashboard");
 }

@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { qrCode } = await params;
 
-    // Validar formato del código QR
+    
     if (!validateQRCode(qrCode)) {
       return NextResponse.json(
         { error: "Código QR inválido" },

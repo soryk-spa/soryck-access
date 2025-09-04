@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
 import { logger } from './logger';
 
-// Types
+
 export interface UserProfile {
   id: string;
   clerkId: string;
@@ -42,9 +42,9 @@ export interface EventData {
   organizerId: string;
 }
 
-// Redis configuration - supports both REDIS_URL (Vercel/Upstash) and individual env vars
+
 const getRedisConfig = () => {
-  // If REDIS_URL is provided (Vercel/Upstash format)
+  
   if (process.env.REDIS_URL) {
     return {
       connectionName: 'vercel-redis',
@@ -52,20 +52,20 @@ const getRedisConfig = () => {
       retryDelayOnFailover: 100,
       enableReadyCheck: false,
       maxRetriesPerRequest: 3,
-      // Optimizaciones de rendimiento
+      
       connectTimeout: 60000,
       commandTimeout: 5000,
       keepAlive: 30000,
-      // Pool de conexiones
+      
       family: 4,
-      // Configuración de pipeline
+      
       enableAutoPipelining: true,
-      // Configuración de compresión
+      
       compression: 'gzip',
     };
   }
   
-  // Fallback to individual environment variables
+  
   return {
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379'),
@@ -75,23 +75,23 @@ const getRedisConfig = () => {
     enableReadyCheck: false,
     maxRetriesPerRequest: 3,
     lazyConnect: true,
-    // Optimizaciones de rendimiento
+    
     connectTimeout: 60000,
     commandTimeout: 5000,
     keepAlive: 30000,
-    // Pool de conexiones
+    
     family: 4,
-    // Configuración de pipeline
+    
     enableAutoPipelining: true,
   };
 };
 
-// Configuración de Redis
+
 const redis = process.env.REDIS_URL 
   ? new Redis(process.env.REDIS_URL, getRedisConfig())
   : new Redis(getRedisConfig());
 
-// Event listeners para logging
+
 redis.on('connect', () => {
   logger.info('✅ Redis connected successfully');
 });
@@ -104,7 +104,7 @@ redis.on('close', () => {
   logger.info('🔌 Redis connection closed');
 });
 
-// Cache utilities
+
 export class CacheService {
   private static instance: CacheService;
   private redis: Redis;
@@ -120,7 +120,7 @@ export class CacheService {
     return CacheService.instance;
   }
 
-  // Métodos básicos de caché
+  
   async get<T>(key: string): Promise<T | null> {
     try {
       const cached = await this.redis.get(key);
@@ -163,7 +163,7 @@ export class CacheService {
     }
   }
 
-  // Métodos específicos para la aplicación
+  
   async getUserRole(clerkId: string): Promise<string | null> {
     return this.get(`user:role:${clerkId}`);
   }
@@ -180,7 +180,7 @@ export class CacheService {
     await this.set(`user:profile:${clerkId}`, profile, ttl);
   }
 
-  // Nuevos métodos optimizados para roles y permisos
+  
   async getUserFullData(clerkId: string): Promise<UserProfile | null> {
     return this.get(`user:full:${clerkId}`);
   }
@@ -197,7 +197,7 @@ export class CacheService {
     await this.set(`user:permissions:${clerkId}`, permissions, ttl);
   }
 
-  // Batch operations para mejorar rendimiento
+  
   async setUserBatch(clerkId: string, userData: UserProfile, ttl = 3600): Promise<void> {
     const pipeline = this.redis.pipeline();
     pipeline.setex(`user:full:${clerkId}`, ttl, JSON.stringify(userData));
@@ -238,7 +238,7 @@ export class CacheService {
     }
   }
 
-  // Contador de rate limiting
+  
   async incrementRateLimit(key: string, windowSeconds: number, limit: number): Promise<{ allowed: boolean; remaining: number }> {
     try {
       const current = await this.redis.incr(key);
@@ -256,7 +256,7 @@ export class CacheService {
     }
   }
 
-  // Session cache (para datos temporales de sesión)
+  
   async setSession(sessionId: string, data: Record<string, unknown>, ttl = 86400): Promise<void> {
     await this.set(`session:${sessionId}`, data, ttl);
   }
@@ -269,7 +269,7 @@ export class CacheService {
     await this.del(`session:${sessionId}`);
   }
 
-  // Health check
+  
   async ping(): Promise<boolean> {
     try {
       const response = await this.redis.ping();
@@ -280,7 +280,7 @@ export class CacheService {
     }
   }
 
-  // Graceful shutdown
+  
   async disconnect(): Promise<void> {
     try {
       await this.redis.quit();
@@ -290,6 +290,6 @@ export class CacheService {
   }
 }
 
-// Export singleton instance
+
 export const cache = CacheService.getInstance();
 export default redis;

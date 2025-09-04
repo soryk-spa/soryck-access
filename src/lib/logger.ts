@@ -1,7 +1,4 @@
-/**
- * Professional logging system for SorykPass
- * Replaces console.log with structured logging
- */
+
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -47,7 +44,7 @@ class Logger {
     };
 
     if (this.isDevelopment) {
-      // Development: Pretty console logging
+      
       const emoji = { debug: '🔍', info: 'ℹ️', warn: '⚠️', error: '❌' }[level];
       const color = { debug: '\x1b[36m', info: '\x1b[32m', warn: '\x1b[33m', error: '\x1b[31m' }[level];
       const reset = '\x1b[0m';
@@ -60,7 +57,7 @@ class Logger {
         console.error(`${color}   Error:${reset}`, error);
       }
     } else {
-      // Production: Structured JSON logging
+      
       console.log(JSON.stringify(logEntry));
     }
   }
@@ -81,7 +78,7 @@ class Logger {
     this.formatMessage('error', message, context, error);
   }
 
-  // Email service specific logging
+  
   email = {
     sent: (type: string, recipient: string, subject: string, context?: LogContext) => {
       this.info(`Email sent: ${type}`, {
@@ -112,7 +109,7 @@ class Logger {
     }
   };
 
-  // API request logging
+  
   api = {
     request: (method: string, path: string, context?: LogContext) => {
       this.debug(`API Request: ${method} ${path}`, {
@@ -145,7 +142,7 @@ class Logger {
     }
   };
 
-  // Event management logging
+  
   event = {
     created: (eventId: string, title: string, organizerId: string, context?: LogContext) => {
       this.info(`Event created: ${title}`, {
@@ -177,7 +174,7 @@ class Logger {
     }
   };
 
-  // Payment logging
+  
   payment = {
     initiated: (orderId: string, amount: number, currency: string, context?: LogContext) => {
       this.info(`Payment initiated`, {
@@ -211,7 +208,7 @@ class Logger {
 
 export const logger = new Logger();
 
-// Utility function to create contextual logger
+
 export function createLogger(defaultContext: LogContext) {
   return {
     debug: (message: string, context?: LogContext) => 

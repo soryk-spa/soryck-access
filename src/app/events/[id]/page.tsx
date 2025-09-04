@@ -4,9 +4,9 @@ import { getCurrentUser } from "@/lib/auth";
 import EventDetailView from "@/components/event-detail-view";
 import type { Metadata } from "next";
 
-// ✅ CORRECCIÓN: Interface actualizada para Next.js 15
+
 interface EventPageProps {
-  params: Promise<{ id: string }>; // ← Promise añadida aquí
+  params: Promise<{ id: string }>; 
 }
 
 async function getEvent(id: string) {
@@ -67,7 +67,7 @@ async function getEvent(id: string) {
 export async function generateMetadata({
   params,
 }: EventPageProps): Promise<Metadata> {
-  const { id } = await params; // ← Await añadido aquí
+  const { id } = await params; 
   const event = await getEvent(id);
 
   if (!event) {
@@ -100,7 +100,7 @@ export async function generateMetadata({
 }
 
 export default async function EventPage({ params }: EventPageProps) {
-  const { id } = await params; // ← Await añadido aquí
+  const { id } = await params; 
   const event = await getEvent(id);
   const user = await getCurrentUser();
 
@@ -112,7 +112,7 @@ export default async function EventPage({ params }: EventPageProps) {
     ...event,
     description: event.description ?? undefined,
     imageUrl: event.imageUrl ?? undefined,
-    allowCourtesy: event.allowCourtesy, // Incluir el campo de cortesías
+    allowCourtesy: event.allowCourtesy, 
     startDate: event.startDate.toISOString(),
     endDate: event.endDate ? event.endDate.toISOString() : undefined,
     createdAt: event.createdAt.toISOString(),

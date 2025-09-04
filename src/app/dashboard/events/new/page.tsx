@@ -5,7 +5,7 @@ import { DashboardEventNewPage } from "@/components/dashboard-event-new-page";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@/types";
 
-// Loading component
+
 function LoadingSkeleton() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">
@@ -18,12 +18,12 @@ function LoadingSkeleton() {
   );
 }
 
-// Main component
+
 async function CreateEventPage() {
-  // Verificar autenticación y permisos
+  
   await requireOrganizer();
 
-  // Obtener las categorías disponibles
+  
   const categories = await prisma.category.findMany({
     orderBy: { name: "asc" },
     select: {
@@ -33,7 +33,7 @@ async function CreateEventPage() {
     },
   });
 
-  // Transformar para evitar problemas de tipos
+  
   const transformedCategories: Category[] = categories.map(cat => ({
     id: cat.id,
     name: cat.name,

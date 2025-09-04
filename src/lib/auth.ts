@@ -15,11 +15,11 @@ export async function getCurrentUser() {
   try {
     const cache = CacheService.getInstance()
 
-    // Intentar obtener desde caché primero
+    
     const cachedUser = await cache.getUserFullData(userId)
     if (cachedUser) {
-      // Obtener datos completos de la BD cuando hay caché
-      // El caché es para verificaciones rápidas, pero para operaciones críticas necesitamos todos los datos
+      
+      
       const user = await prisma.user.findUnique({
         where: {
           clerkId: userId
@@ -47,7 +47,7 @@ export async function getCurrentUser() {
       }
     }
 
-    // Guardar en caché para futuras consultas
+    
     if (user) {
       const userData = {
         id: user.id,
@@ -58,7 +58,7 @@ export async function getCurrentUser() {
         role: user.role,
       }
       
-      // Usar batch operation para eficiencia
+      
       await cache.setUserBatch(userId, userData)
     }
 
@@ -69,7 +69,7 @@ export async function getCurrentUser() {
   }
 }
 
-// Nueva función optimizada solo para verificaciones de rol
+
 export async function getCurrentUserRole() {
   const { userId } = await auth()
   
@@ -80,20 +80,20 @@ export async function getCurrentUserRole() {
   try {
     const cache = CacheService.getInstance()
 
-    // Obtener rol desde caché
+    
     const cachedRole = await cache.getUserRole(userId)
     if (cachedRole) {
       return cachedRole as UserRole
     }
 
-    // Si no está en caché, obtener de BD
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: { role: true, id: true }
     })
 
     if (user) {
-      // Guardar en caché
+      
       await cache.setUserRole(userId, user.role)
       return user.role
     }

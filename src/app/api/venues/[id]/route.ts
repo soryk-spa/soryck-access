@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { name, description, address, capacity } = body;
 
-    // Verificar que el venue existe y pertenece al usuario
+    
     const existingVenue = await prisma.venue.findFirst({
       where: {
         id,
@@ -121,7 +121,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -132,7 +132,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
 
-    // Verificar que el venue existe y pertenece al usuario
+    
     const existingVenue = await prisma.venue.findFirst({
       where: {
         id,
@@ -144,11 +144,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    // Verificar si el venue está siendo usado en algún evento
-    // En el futuro podríamos verificar si hay eventos que usan este venue
-    // const eventsUsingVenue = await prisma.event.findMany({ ... });
+    
+    
+    
 
-    // Por simplicidad, permitimos eliminar por ahora
+    
 
     await prisma.venue.delete({
       where: {

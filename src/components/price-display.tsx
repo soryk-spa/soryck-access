@@ -142,7 +142,7 @@ export default function PriceDisplay({
     );
   }
 
-  // Default variant
+  
   return (
     <div className={`space-y-3 ${className}`}>
       <div className="flex justify-between items-center text-lg">
@@ -193,7 +193,7 @@ export default function PriceDisplay({
   );
 }
 
-// Hook personalizado para cálculos de precio en tiempo real
+
 export function usePriceCalculation(
   basePrice: number,
   quantity: number,

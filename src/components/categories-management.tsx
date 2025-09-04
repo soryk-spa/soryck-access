@@ -194,7 +194,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Gestión de Categorías</h2>
@@ -222,7 +222,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
         </Dialog>
       </div>
 
-      {/* Categories List */}
+      {}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {categories.map((category) => (
           <Card key={category.id}>

@@ -1,18 +1,15 @@
-/**
- * Custom hooks para el formulario de compra de tickets
- * Maneja selección de tickets, códigos promocionales y validaciones
- */
+
 
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import type { Event, TicketType as BaseTicketType } from "@/types";
 import { calculateTotalPrice } from "@/lib/commission";
 
-// ============================================================================
-// TIPOS PARA EL FORMULARIO DE COMPRA
-// ============================================================================
 
-// Extender TicketType para incluir conteo de tickets vendidos
+
+
+
+
 export interface TicketTypeWithCount extends BaseTicketType {
   _count: { tickets: number };
 }
@@ -23,7 +20,7 @@ export interface PromoCodeData {
   type: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
   name: string;
   description?: string;
-  // Información del descuento ya calculada
+  
   discountAmount: number;
   finalAmount: number;
   percentage: number;
@@ -47,16 +44,16 @@ export interface PurchaseCalculation {
   subtotal: number;
   discountAmount: number;
   finalAmount: number;
-  totalPrice: number; // Con comisiones
+  totalPrice: number; 
   savings: number;
 }
 
-// ============================================================================
-// HOOK PRINCIPAL PARA COMPRA DE TICKETS
-// ============================================================================
+
+
+
 
 export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount[]) {
-  // Estado del formulario
+  
   const [formData, setFormData] = useState<PurchaseFormData>({
     selectedTicketType: "",
     quantity: 1,
@@ -64,12 +61,12 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     promoCode: "",
   });
 
-  // Estado de validación de código promocional
+  
   const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCodeData | null>(null);
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
 
-  // Estados derivados
+  
   const selectedType = ticketTypes.find((t) => t.id === formData.selectedTicketType);
   const isEventFull = ticketTypes.every(
     (type) => type._count.tickets >= type.capacity
@@ -80,7 +77,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     ? Math.min(10, selectedType.capacity - selectedType._count.tickets)
     : 0;
 
-  // Configuración inicial automática
+  
   useEffect(() => {
     const firstAvailable = ticketTypes.find(
       (type) => type._count.tickets < type.capacity
@@ -90,7 +87,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     }
   }, [ticketTypes, formData.selectedTicketType]);
 
-  // Cálculos de precios
+  
   const calculations: PurchaseCalculation = useCallback(() => {
     if (!selectedType) {
       return {
@@ -106,7 +103,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     let discountAmount = 0;
 
     if (appliedPromoCode) {
-      // Usar el descuento ya calculado por el API
+      
       discountAmount = appliedPromoCode.discountAmount;
     }
 
@@ -123,7 +120,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     };
   }, [selectedType, formData.quantity, appliedPromoCode])();
 
-  // Validar código promocional
+  
   const validatePromoCode = useCallback(async (code: string) => {
     if (!code.trim()) {
       setAppliedPromoCode(null);
@@ -160,7 +157,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
         };
         setAppliedPromoCode(promoData);
         
-        // Mensaje específico según el tipo de código
+        
         const codeTypeMessage = data.codeType === 'COURTESY_CODE' 
           ? '¡Código de cortesía aplicado!' 
           : '¡Código promocional aplicado!';
@@ -178,29 +175,29 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     }
   }, [formData.selectedTicketType, formData.quantity]);
 
-  // Aplicar código promocional
+  
   const applyPromoCode = useCallback(() => {
     validatePromoCode(formData.promoCode);
   }, [formData.promoCode, validatePromoCode]);
 
-  // Remover código promocional
+  
   const removePromoCode = useCallback(() => {
     setFormData(prev => ({ ...prev, promoCode: "" }));
     setAppliedPromoCode(null);
     setPromoError(null);
   }, []);
 
-  // Manejar cambios en el formulario
+  
   const updateFormData = useCallback((field: keyof PurchaseFormData, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
-    // Si cambia el tipo de ticket, validar nuevamente el promo code
+    
     if (field === "selectedTicketType" && appliedPromoCode) {
       validatePromoCode(formData.promoCode);
     }
   }, [appliedPromoCode, formData.promoCode, validatePromoCode]);
 
-  // Incrementar/decrementar cantidad
+  
   const incrementQuantity = useCallback(() => {
     if (formData.quantity < maxQuantityAllowed) {
       updateFormData("quantity", formData.quantity + 1);
@@ -213,7 +210,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     }
   }, [formData.quantity, updateFormData]);
 
-  // Validaciones
+  
   const canPurchase = 
     formData.selectedTicketType &&
     formData.quantity > 0 &&
@@ -223,38 +220,38 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     !isEventPast;
 
   return {
-    // Estado del formulario
+    
     formData,
     updateFormData,
     
-    // Información del ticket seleccionado
+    
     selectedType,
     maxQuantityAllowed,
     
-    // Códigos promocionales
+    
     appliedPromoCode,
     isValidatingPromo,
     promoError,
     applyPromoCode,
     removePromoCode,
     
-    // Cálculos
+    
     calculations,
     
-    // Controles de cantidad
+    
     incrementQuantity,
     decrementQuantity,
     
-    // Validaciones
+    
     canPurchase,
     isEventFull,
     isEventPast,
   };
 }
 
-// ============================================================================
-// HOOK PARA FORMATEO DE DESCUENTOS
-// ============================================================================
+
+
+
 
 export function usePromoCodeDisplay() {
   const formatDiscount = useCallback((type: string, value: number): string => {
@@ -289,9 +286,9 @@ export function usePromoCodeDisplay() {
   };
 }
 
-// ============================================================================
-// HOOK PARA DISPONIBILIDAD DE TICKETS
-// ============================================================================
+
+
+
 
 export function useTicketAvailability(ticketTypes: TicketTypeWithCount[]) {
   const getTicketAvailability = useCallback((ticketType: TicketTypeWithCount) => {

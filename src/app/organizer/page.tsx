@@ -187,7 +187,7 @@ export default function OrganizerPage() {
           </Card>
         </section>
 
-        {/* Nueva sección destacada para cortesías */}
+        {}
         <section>
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
             <div className="bg-gradient-to-r from-[#CC66CC]/10 via-[#FE4F00]/10 to-[#FDBD00]/10 p-6">

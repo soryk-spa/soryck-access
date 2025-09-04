@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Componente para tarjetas de estadísticas modernas
+
 const ModernStatCard = ({
   title,
   value,
@@ -105,7 +105,7 @@ const ModernStatCard = ({
   );
 };
 
-// Componente para filtros de tickets (versión estática para server component)
+
 const TicketFiltersStatic = ({
   counts,
 }: {
@@ -146,7 +146,7 @@ const TicketFiltersStatic = ({
     <div className="flex flex-wrap gap-3">
       {filters.map((filter) => {
         const Icon = filter.icon;
-        const isActive = filter.key === "all"; // Por defecto "Todos" está activo
+        const isActive = filter.key === "all"; 
 
         return (
           <div
@@ -230,7 +230,7 @@ export default async function TicketsPage() {
   const [activeTickets, usedTickets, cancelledTickets] = ticketStats;
   const totalTickets = tickets.length;
 
-  // Próximos eventos (tickets válidos para eventos futuros)
+  
   const upcomingEvents = tickets.filter((ticket) => {
     const eventDate = new Date(ticket.event.startDate);
     const today = new Date();
@@ -274,7 +274,7 @@ export default async function TicketsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Hero Section */}
+        {}
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-green-600 via-teal-600 to-blue-600 p-8 text-white shadow-2xl">
           <div className="absolute inset-0 bg-gradient-to-r from-green-600/90 to-blue-600/90"></div>
           <div className="absolute top-4 right-4 opacity-20">
@@ -316,7 +316,7 @@ export default async function TicketsPage() {
           </div>
         </div>
 
-        {/* Estadísticas Principales */}
+        {}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <ModernStatCard
             title="Total Tickets"
@@ -353,7 +353,7 @@ export default async function TicketsPage() {
           />
         </div>
 
-        {/* Controles y Filtros */}
+        {}
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border-0">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div>
@@ -377,7 +377,7 @@ export default async function TicketsPage() {
           </div>
         </div>
 
-        {/* Filtros de Tickets */}
+        {}
         <div className="flex justify-center">
           <TicketFiltersStatic
             counts={{
@@ -389,7 +389,7 @@ export default async function TicketsPage() {
           />
         </div>
 
-        {/* Lista de Tickets */}
+        {}
         {serializedTickets.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {serializedTickets.map((ticket) => (
@@ -431,7 +431,7 @@ export default async function TicketsPage() {
           </Card>
         )}
 
-        {/* Panel de Insights (solo si hay tickets) */}
+        {}
         {serializedTickets.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <Card className="lg:col-span-2 border-0 shadow-lg bg-white dark:bg-gray-800">

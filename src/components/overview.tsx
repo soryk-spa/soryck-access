@@ -23,7 +23,7 @@ interface OverviewProps {
   type?: "bar" | "line" | "area"
 }
 
-// Componente personalizado para tooltip
+
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean
   payload?: Array<{ value: number }>

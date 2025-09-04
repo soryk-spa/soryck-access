@@ -35,7 +35,7 @@ export function useUserRole(): UserRole {
       } catch (err) {
         console.error("Error fetching user role:", err);
         setError(err instanceof Error ? err.message : "Error desconocido");
-        setRole("CLIENT"); // Fallback a CLIENT en caso de error
+        setRole("CLIENT"); 
       } finally {
         setLoading(false);
       }

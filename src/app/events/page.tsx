@@ -196,7 +196,7 @@ function EventsPageSkeleton() {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-20">
         <div className="space-y-16">
-          {/* Categories skeleton */}
+          {}
           <div className="space-y-6">
             <div className="h-8 bg-muted rounded w-64 animate-pulse"></div>
             <div className="flex flex-wrap gap-3">
@@ -209,7 +209,7 @@ function EventsPageSkeleton() {
             </div>
           </div>
 
-          {/* Events grid skeleton */}
+          {}
           <div className="space-y-6">
             <div className="h-10 bg-muted rounded w-80 animate-pulse"></div>
             <div className="bg-muted/50 border border-border rounded-3xl p-8">
@@ -245,7 +245,7 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
     maxPrice: params.maxPrice || "",
     dateFrom: params.dateFrom || "",
     dateTo: params.dateTo || "",
-    isFree: params.isFree || "all",
+    isFree: params.isFree || "all",   
     sortBy: params.sortBy || "startDate",
     sortOrder: params.sortOrder || "asc",
     page: params.page || "1",
@@ -253,7 +253,7 @@ async function EventsPageContent({ searchParams }: EventsPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Events Section */}
+      {}
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-12">

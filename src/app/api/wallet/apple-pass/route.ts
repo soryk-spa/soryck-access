@@ -1,4 +1,4 @@
-// src/app/api/wallet/apple-pass/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     const user = await requireAuth()
     
-    // Obtener información del ticket
+    
     const ticket = await prisma.ticket.findFirst({
       where: {
         id: ticketId,
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Ticket no encontrado' }, { status: 404 })
     }
 
-    // Preparar datos para el pase
+    
     const organizerName = ticket.event.organizer.firstName 
       ? `${ticket.event.organizer.firstName} ${ticket.event.organizer.lastName || ''}`.trim()
       : ticket.event.organizer.email
@@ -73,15 +73,15 @@ export async function GET(request: NextRequest) {
       orderNumber: ticket.order.orderNumber
     }
 
-    // Generar el JSON del pase
+    
     const passJson = generateAppleWalletPass(passData)
     
-    // En un entorno de producción, aquí deberías:
-    // 1. Crear un archivo .pkpass completo con certificados
-    // 2. Firmarlo con el certificado de Apple
-    // 3. Comprimirlo en formato ZIP
     
-    // Por ahora, devolvemos el JSON para desarrollo
+    
+    
+    
+    
+    
     return NextResponse.json(passJson, {
       headers: {
         'Content-Type': 'application/json',
@@ -89,17 +89,8 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // TODO: Implementación completa para producción
-    /*
-    const pkpassBuffer = await generatePKPassFile(passJson)
     
-    return new NextResponse(pkpassBuffer, {
-      headers: {
-        'Content-Type': 'application/vnd.apple.pkpass',
-        'Content-Disposition': `attachment; filename="ticket-${ticket.qrCode}.pkpass"`
-      }
-    })
-    */
+    
 
   } catch (error) {
     console.error('Error generating Apple Wallet pass:', error)

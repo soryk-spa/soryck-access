@@ -340,7 +340,7 @@ export default function RoleRequestsManagement({
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-4">
-                    {/* Información del usuario */}
+                    {}
                     <div className="flex items-start gap-4 flex-1">
                       <Avatar className="w-12 h-12">
                         <AvatarImage src={request.user.imageUrl || undefined} />
@@ -398,7 +398,7 @@ export default function RoleRequestsManagement({
                           </div>
                         </div>
 
-                        {/* Mensaje de solicitud */}
+                        {}
                         <div
                           className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 ${!isExpanded ? "cursor-pointer" : ""}`}
                         >
@@ -445,7 +445,7 @@ export default function RoleRequestsManagement({
                           </div>
                         </div>
 
-                        {/* Información adicional cuando está expandido */}
+                        {}
                         {isExpanded && (
                           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -473,7 +473,7 @@ export default function RoleRequestsManagement({
                       </div>
                     </div>
 
-                    {/* Acciones */}
+                    {}
                     <div className="flex flex-col gap-2">
                       {request.status === "PENDING" && (
                         <>
@@ -523,7 +523,7 @@ export default function RoleRequestsManagement({
         )}
       </div>
 
-      {/* Dialog de revisión */}
+      {}
       <Dialog open={reviewDialogOpen} onOpenChange={setReviewDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

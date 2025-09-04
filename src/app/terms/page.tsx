@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
@@ -52,12 +52,12 @@ export default function TermsPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
           <div className="p-8 lg:p-12">
             
-            {/* Introducción */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <FileText className="h-6 w-6 text-blue-600" />
@@ -78,7 +78,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Definiciones */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Users className="h-6 w-6 text-green-600" />
@@ -114,7 +114,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Uso de la Plataforma */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Shield className="h-6 w-6 text-purple-600" />
@@ -153,7 +153,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Eventos y Tickets */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Calendar className="h-6 w-6 text-orange-600" />
@@ -190,7 +190,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Pagos y Reembolsos */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <CreditCard className="h-6 w-6 text-blue-600" />
@@ -227,7 +227,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Propiedad Intelectual */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <FileText className="h-6 w-6 text-indigo-600" />
@@ -249,7 +249,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Privacidad y Datos */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Shield className="h-6 w-6 text-green-600" />
@@ -276,7 +276,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Limitación de Responsabilidad */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Bell className="h-6 w-6 text-yellow-600" />
@@ -300,7 +300,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Modificaciones */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <FileText className="h-6 w-6 text-purple-600" />
@@ -320,7 +320,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Ley Aplicable */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Scale className="h-6 w-6 text-red-600" />
@@ -336,7 +336,7 @@ export default function TermsPage() {
               </div>
             </section>
 
-            {/* Contacto */}
+            {}
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-6">
                 <Mail className="h-6 w-6 text-blue-600" />
@@ -368,7 +368,7 @@ export default function TermsPage() {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="mt-12 text-center">
           <Link 
             href="/"

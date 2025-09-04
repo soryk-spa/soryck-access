@@ -73,7 +73,7 @@ export default function Footer() {
           </p>
         </div>
         
-        {/* Enlaces móviles */}
+        {}
         <div className="md:hidden flex justify-center gap-4 mt-4 pt-4 border-t border-border">
           {links.map((link) => (
             <Link 

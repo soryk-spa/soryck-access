@@ -50,7 +50,7 @@ interface OrganizerProfileFormProps {
   user: UserProfile;
 }
 
-// Componente para tarjetas de estadísticas modernas
+
 const ModernStatCard = ({
   title,
   value,
@@ -166,7 +166,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
     }
   };
 
-  // Configuración del header
+  
   const headerConfig = {
     title: "Mi Perfil",
     description: "gestiona tu información pública como organizador",
@@ -190,7 +190,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
 
   return (
     <DashboardPageLayout header={headerConfig}>
-      {/* Estadísticas del perfil */}
+      {}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <ModernStatCard
           title="Eventos Publicados"
@@ -230,7 +230,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
         />
       </div>
 
-      {/* Información actual del usuario */}
+      {}
       <Card className="bg-gradient-to-r from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-950 dark:via-blue-950 dark:to-purple-950 border-0">
         <CardContent className="p-8">
           <div className="flex items-center gap-6">
@@ -264,7 +264,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
         </CardContent>
       </Card>
 
-      {/* Formulario de perfil */}
+      {}
       <form onSubmit={handleSubmit} className="space-y-8">
         <Card className="border-0 bg-white dark:bg-gray-800 shadow-lg">
           <CardContent className="p-8">
@@ -316,7 +316,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.websiteUrl}
                   onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
-                  placeholder="https://mi-sitio.com"
+                  placeholder="https:
                   className="mt-2 h-12"
                 />
               </div>
@@ -331,7 +331,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.twitterUrl}
                   onChange={(e) => handleInputChange("twitterUrl", e.target.value)}
-                  placeholder="https://twitter.com/usuario"
+                  placeholder="https:
                   className="mt-2 h-12"
                 />
               </div>
@@ -346,7 +346,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.instagramUrl}
                   onChange={(e) => handleInputChange("instagramUrl", e.target.value)}
-                  placeholder="https://instagram.com/usuario"
+                  placeholder="https:
                   className="mt-2 h-12"
                 />
               </div>
@@ -354,7 +354,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
           </CardContent>
         </Card>
 
-        {/* Botón de guardar */}
+        {}
         <div className="flex justify-end">
           <Button
             type="submit"
@@ -377,7 +377,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
         </div>
       </form>
 
-      {/* Información adicional */}
+      {}
       <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">

@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verificar que el usuario sea administrador
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { role: true }
@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
-    // Obtener estadísticas de usuarios
+    
     const [
       totalUsers,
       clientsCount,

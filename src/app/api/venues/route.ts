@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -40,7 +40,7 @@ export async function GET() {
       },
     });
 
-    // Calcular estadísticas para cada venue
+    
     const venuesWithStats = venues.map(venue => {
       const totalSeats = venue.sections.reduce((total, section) => {
         return total + section.venueSeats.length;
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener el usuario de la base de datos usando clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });

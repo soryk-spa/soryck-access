@@ -24,7 +24,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const validatedData = settingsSchema.parse(body);
 
-    // Buscar usuario por clerkId
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { id: true }
@@ -34,7 +34,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
     }
 
-    // Actualizar información del usuario en la base de datos
+    
     const updatedUser = await prisma.user.update({
       where: { clerkId },
       data: {
@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
       }
     });
 
-    // Invalidar caché de usuario después de actualizar configuraciones
+    
     await CacheInvalidation.invalidateUserProfile(clerkId);
     await CacheInvalidation.invalidateUserCache(clerkId);
 

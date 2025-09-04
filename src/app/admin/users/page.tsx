@@ -9,7 +9,7 @@ import UserManagementClient from "@/components/user-management-client";
 export default function UsersManagementPage() {
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Gestión de Usuarios</h1>
@@ -29,12 +29,12 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {}
       <Suspense fallback={<UserStatsSkeleton />}>
         <UserStats />
       </Suspense>
 
-      {/* Filters and Table */}
+      {}
       <UserManagementClient />
     </div>
   );

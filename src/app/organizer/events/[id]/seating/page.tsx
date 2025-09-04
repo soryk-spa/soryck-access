@@ -52,13 +52,13 @@ export default function EventSeatingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch event and seating data
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true)
         
-        // Fetch event details
+        
         const eventResponse = await fetch(`/api/events/${eventId}`)
         if (!eventResponse.ok) {
           throw new Error('Failed to fetch event')
@@ -66,11 +66,11 @@ export default function EventSeatingPage() {
         const eventData = await eventResponse.json()
         setEvent(eventData)
 
-        // Fetch seating data if it exists
+        
         const seatingResponse = await fetch(`/api/events/${eventId}/seating`)
         if (seatingResponse.ok) {
           const seatingData = await seatingResponse.json()
-          // Agregar la propiedad type a todas las secciones para compatibilidad
+          
           const sectionsWithType = (seatingData.sections || []).map((section: {
             id: string;
             name: string;
@@ -94,7 +94,7 @@ export default function EventSeatingPage() {
     }
   }, [eventId])
 
-  // Save seating configuration
+  
   const handleSave = async (newSections: Section[]) => {
     try {
       setSaving(true)
@@ -117,14 +117,14 @@ export default function EventSeatingPage() {
 
       setSections(newSections)
       
-      // Update event state to reflect it now has a seating plan
+      
       if (event) {
         setEvent({ ...event, hasSeatingPlan: true })
       }
     } catch (err) {
       console.error('Error saving seating plan:', err)
       setError(err instanceof Error ? err.message : 'Error saving seating plan')
-      throw err // Re-throw to let the editor handle it
+      throw err 
     } finally {
       setSaving(false)
     }

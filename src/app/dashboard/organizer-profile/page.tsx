@@ -5,7 +5,7 @@ import OrganizerProfileForm from "@/components/organizer-profile-form-updated";
 export default async function OrganizerProfilePage() {
   const user = await requireOrganizer();
 
-  // Obtener estadísticas del usuario
+  
   const [eventsCount, ordersCount] = await Promise.all([
     prisma.event.count({
       where: { organizerId: user.id },

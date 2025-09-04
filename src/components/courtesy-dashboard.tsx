@@ -56,7 +56,7 @@ export function CourtesyDashboard({ eventId }: CourtesyDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   
-  // Estados para aprobar solicitud
+  
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [approvalType, setApprovalType] = useState<'FREE' | 'DISCOUNT'>('FREE');
   const [discountAmount, setDiscountAmount] = useState<string>('');
@@ -118,7 +118,7 @@ export function CourtesyDashboard({ eventId }: CourtesyDashboardProps) {
       const data = await response.json();
       toast.success(`Solicitud aprobada. Código: ${data.code}`);
       
-      // Refrescar la lista
+      
       await fetchCourtesyRequests();
       setApprovingId(null);
       setDiscountAmount('');
@@ -209,7 +209,7 @@ export function CourtesyDashboard({ eventId }: CourtesyDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Estadísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
@@ -262,7 +262,7 @@ export function CourtesyDashboard({ eventId }: CourtesyDashboardProps) {
         </Card>
       </div>
 
-      {/* Lista de solicitudes */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export function CourtesyDashboard({ eventId }: CourtesyDashboardProps) {
                     )}
                   </div>
 
-                  {/* Modal de aprobación */}
+                  {}
                   {approvingId === request.id && (
                     <div className="mt-4 p-4 border-t bg-gray-50 dark:bg-gray-800/50 rounded-b-lg">
                       <div className="space-y-4">

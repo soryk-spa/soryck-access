@@ -179,7 +179,7 @@ async function processSuccessfulPayment(payment: FullPayment, transbankResponse:
       orderNumber: updatedOrder.id,
       tickets: updatedOrder.tickets.map(ticket => ({
         qrCode: ticket.qrCode!,
-        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` // Placeholder for actual QR image
+        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` 
       }))
     });
     

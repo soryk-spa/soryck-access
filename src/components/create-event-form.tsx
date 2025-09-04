@@ -37,7 +37,7 @@ import {
   Activity,
 } from "lucide-react";
 
-// Importaciones optimizadas desde utilidades centralizadas
+
 import type { Category } from "@/types";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -48,9 +48,9 @@ import {
   type InitialEventData,
 } from "@/hooks/useEventForm";
 
-// ============================================================================
-// COMPONENTES AUXILIARES
-// ============================================================================
+
+
+
 
 const StatCard = ({
   icon,
@@ -94,9 +94,9 @@ const StatCard = ({
   );
 };
 
-// ============================================================================
-// TIPOS Y INTERFACES
-// ============================================================================
+
+
+
 
 interface EventFormProps {
   categories: Category[];
@@ -104,28 +104,28 @@ interface EventFormProps {
   mode: "create" | "edit";
 }
 
-// ============================================================================
-// COMPONENTE PRINCIPAL
-// ============================================================================
+
+
+
 
 export default function CreateEventForm({
   categories,
   initialData,
   mode = "create",
 }: EventFormProps) {
-  // Hooks personalizados para manejo de estado y lógica
+  
   const eventForm = useEventForm(initialData, mode);
   const ticketTypesHook = useTicketTypes(initialData?.ticketTypes);
   const { imageUrl, handleImageChange } = useEventImage(initialData?.imageUrl);
   const stats = useEventFormStats(ticketTypesHook.ticketTypes);
 
-  // Sincronizar imageUrl con el formulario
+  
   const handleFormImageChange = (newImageUrl: string) => {
     handleImageChange(newImageUrl);
     eventForm.handleInputChange('imageUrl', newImageUrl);
   };
 
-  // Manejar envío del formulario
+  
   const handleFormSubmit = (e: React.FormEvent) => {
     eventForm.handleSubmit(e, ticketTypesHook.ticketTypes);
   };
@@ -133,7 +133,7 @@ export default function CreateEventForm({
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-full text-sm font-semibold mb-4 shadow-lg">
             <Sparkles className="h-4 w-4" />
@@ -153,7 +153,7 @@ export default function CreateEventForm({
           </p>
         </div>
 
-        {/* Estadísticas del formulario */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <StatCard
             icon={<Ticket className="h-5 w-5" />}
@@ -185,12 +185,12 @@ export default function CreateEventForm({
           />
         </div>
 
-        {/* Formulario */}
+        {}
         <form onSubmit={handleFormSubmit} className="space-y-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Columna izquierda - Información básica */}
+            {}
             <div className="lg:col-span-2 space-y-6">
-              {/* Información básica del evento */}
+              {}
               <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export default function CreateEventForm({
                     )}
                   </div>
 
-                  {/* Campo de cortesías */}
+                  {}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="space-y-1">
@@ -297,7 +297,7 @@ export default function CreateEventForm({
                 </CardContent>
               </Card>
 
-              {/* Fechas y horarios */}
+              {}
               <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export default function CreateEventForm({
                 </CardContent>
               </Card>
 
-              {/* Tipos de tickets */}
+              {}
               <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-t-lg">
                   <div className="flex justify-between items-center">
@@ -455,7 +455,7 @@ export default function CreateEventForm({
               </Card>
             </div>
 
-            {/* Columna derecha - Imagen */}
+            {}
             <div className="space-y-6">
               <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
                 <CardHeader className="pb-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-t-lg">
@@ -489,7 +489,7 @@ export default function CreateEventForm({
                 </CardContent>
               </Card>
 
-              {/* Resumen del evento */}
+              {}
               <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
                 <CardHeader className="pb-4">
                   <CardTitle className="flex items-center gap-2">
@@ -521,7 +521,7 @@ export default function CreateEventForm({
             </div>
           </div>
 
-          {/* Errores generales */}
+          {}
           {eventForm.errors.general && (
             <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
               <AlertDescription className="text-red-700 dark:text-red-200">
@@ -530,7 +530,7 @@ export default function CreateEventForm({
             </Alert>
           )}
 
-          {/* Botones de acción */}
+          {}
           <div className="flex justify-end gap-4 pt-8 border-t border-gray-200">
             <Button
               type="button"

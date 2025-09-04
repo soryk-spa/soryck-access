@@ -11,7 +11,7 @@ export default function Layout({
 }) {
   const pathname = usePathname();
 
-  // Rutas que requieren rol de organizador
+  
   const organizerRoutes = [
     "/dashboard/events",
     "/dashboard/promo-codes", 
@@ -19,7 +19,7 @@ export default function Layout({
     "/dashboard/organizer"
   ];
 
-  // Verificar si la ruta actual requiere permisos de organizador
+  
   const requiresOrganizer = organizerRoutes.some(route => 
     pathname.startsWith(route)
   );

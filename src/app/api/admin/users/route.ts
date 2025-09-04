@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verificar que el usuario sea administrador
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { role: true }
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
     }
 
-    // Obtener parámetros de consulta
+    
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "10");
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const sortBy = url.searchParams.get("sortBy") || "createdAt";
     const sortOrder = url.searchParams.get("sortOrder") || "desc";
 
-    // Construir filtros
+    
     const where: Prisma.UserWhereInput = {};
     
     if (search) {
@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
       where.role = role as UserRole;
     }
 
-    // Calcular offset
+    
     const offset = (page - 1) * limit;
 
-    // Obtener usuarios con paginación
+    
     const [users, totalCount] = await Promise.all([
       prisma.user.findMany({
         where,

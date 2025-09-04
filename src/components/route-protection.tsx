@@ -21,7 +21,7 @@ export default function RouteProtection({
   const router = useRouter();
 
   const hasPermission = () => {
-    if (role === "ADMIN") return true; // Admin siempre tiene acceso
+    if (role === "ADMIN") return true; 
     if (requiredRole === "ORGANIZER" && (role === "ORGANIZER" || role === "SCANNER")) return true;
     if (requiredRole === "SCANNER" && role === "SCANNER") return true;
     return false;

@@ -194,12 +194,12 @@ export default function Homepage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section Mejorado */}
+      {}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-blue-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-blue-950/20 dark:to-gray-900">
-        {/* Background Pattern */}
+        {}
         <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
         
-        {/* Floating Elements */}
+        {}
         <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full opacity-10 blur-xl animate-pulse"></div>
         <div className="absolute top-40 right-20 w-32 h-32 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-full opacity-10 blur-xl animate-pulse delay-1000"></div>
         <div className="absolute bottom-40 left-20 w-24 h-24 bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] rounded-full opacity-10 blur-xl animate-pulse delay-500"></div>
@@ -207,20 +207,20 @@ export default function Homepage() {
         <div className="container mx-auto px-4 relative">
           <div className="grid lg:grid-cols-2 gap-16 items-center py-20 lg:py-28">
             
-            {/* Left Column - Content */}
+            {}
             <div className="text-center lg:text-left space-y-8">
-              {/* Logo */}
+              {}
               <div className="inline-block lg:mx-0 mx-auto">
                 <SorykPassLogo size="lg" />
               </div>
 
-              {/* Badge */}
+              {}
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#0053CC]/10 to-[#01CBFE]/10 border border-[#0053CC]/20 rounded-full text-sm font-medium text-[#0053CC] dark:text-[#01CBFE]">
                 <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full animate-pulse"></div>
                 Sistema completo de eventos
               </div>
 
-              {/* Main Heading */}
+              {}
               <div className="space-y-4">
                 <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tighter leading-tight">
                   <span className="block text-foreground">Eventos que</span>
@@ -238,7 +238,7 @@ export default function Homepage() {
                 </p>
               </div>
 
-              {/* Stats */}
+              {}
               <div className="grid grid-cols-3 gap-6 py-6 border-t border-b border-border/20">
                 <div className="text-center lg:text-left">
                   <div className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
@@ -260,7 +260,7 @@ export default function Homepage() {
                 </div>
               </div>
 
-              {/* CTAs */}
+              {}
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
@@ -289,7 +289,7 @@ export default function Homepage() {
                 </Button>
               </div>
 
-              {/* Trust Indicators */}
+              {}
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle className="w-4 h-4 text-green-500" />
@@ -306,16 +306,16 @@ export default function Homepage() {
               </div>
             </div>
 
-            {/* Right Column - Visual */}
+            {}
             <div className="relative lg:pl-8">
-              {/* Main Dashboard Mockup */}
+              {}
               <div className="relative">
-                {/* Background Glow */}
+                {}
                 <div className="absolute -inset-8 bg-gradient-to-r from-[#0053CC]/20 via-[#01CBFE]/20 to-[#FDBD00]/20 rounded-3xl blur-2xl opacity-60"></div>
                 
-                {/* Dashboard Container */}
+                {}
                 <div className="relative bg-background/80 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden">
-                  {/* Header */}
+                  {}
                   <div className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -335,9 +335,9 @@ export default function Homepage() {
                     </div>
                   </div>
 
-                  {/* Content */}
+                  {}
                   <div className="p-6 space-y-6">
-                    {/* Stats Cards */}
+                    {}
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 p-4 rounded-xl border border-green-200/50 dark:border-green-800/50">
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">347</div>
@@ -349,7 +349,7 @@ export default function Homepage() {
                       </div>
                     </div>
 
-                    {/* QR Code */}
+                    {}
                     <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 p-4 rounded-xl border">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-sm font-semibold">Validación QR</div>
@@ -360,7 +360,7 @@ export default function Homepage() {
                       </div>
                     </div>
 
-                    {/* Promo Codes */}
+                    {}
                     <div className="space-y-2">
                       <div className="text-sm font-semibold">Códigos Promocionales</div>
                       <div className="space-y-2">
@@ -376,7 +376,7 @@ export default function Homepage() {
                   </div>
                 </div>
 
-                {/* Floating Features */}
+                {}
                 <div className="absolute -top-4 -right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-lg flex items-center justify-center">
@@ -455,7 +455,7 @@ export default function Homepage() {
         </div>
       </section>
 
-      {/* Nueva sección de funcionalidades técnicas */}
+      {}
       <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-800 dark:to-blue-950/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">

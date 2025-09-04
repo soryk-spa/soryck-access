@@ -1,10 +1,10 @@
-// src/app/api/events/[id]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent, getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-// ✅ VALIDACIÓN MEJORADA DE FECHAS
+
 const ticketTypeEditSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'El nombre del tipo de entrada es requerido').max(100),
@@ -49,7 +49,7 @@ const updateEventSchema = z.object({
   message: 'La fecha de fin debe ser posterior a la fecha de inicio',
   path: ['endDate']
 }).refine((data) => {
-  // Validar que si allowCourtesy es true, courtesyLimit debe estar presente y ser mayor a 0
+  
   if (data.allowCourtesy && (!data.courtesyLimit || data.courtesyLimit <= 0)) {
     return false;
   }
@@ -58,7 +58,7 @@ const updateEventSchema = z.object({
   message: 'El límite de cortesías debe ser mayor a 0 cuando están habilitadas',
   path: ['courtesyLimit']
 }).refine((data) => {
-  // Validar que si se define hora límite, también se debe definir precio
+  
   if (data.allowCourtesy && data.courtesyValidUntil && (!data.courtesyPriceAfter || data.courtesyPriceAfter < 0)) {
     return false;
   }
@@ -129,7 +129,7 @@ export async function GET(
       )
     }
 
-    // ✅ SERIALIZACIÓN CORRECTA DE FECHAS
+    
     const serializedEvent = {
       ...event,
       startDate: event.startDate.toISOString(),
@@ -186,8 +186,8 @@ export async function PUT(
 
     const { ticketTypes, ...eventData } = validation.data;
 
-    // ✅ CONVERSIÓN CORRECTA DE FECHAS
-    // Las fechas ya vienen en formato ISO desde el frontend
+    
+    
     const startDate = new Date(eventData.startDate);
     const endDate = eventData.endDate ? new Date(eventData.endDate) : null;
     
@@ -198,7 +198,7 @@ export async function PUT(
       endDateLocal: endDate?.toLocaleString('es-CL', { timeZone: 'America/Santiago' }) || null
     });
 
-    // Validaciones adicionales
+    
     if (isNaN(startDate.getTime())) {
       return NextResponse.json({ error: "Fecha de inicio inválida" }, { status: 400 });
     }
@@ -231,7 +231,7 @@ export async function PUT(
       }
 
       await prisma.$transaction(async (tx) => {
-        // ✅ ACTUALIZAR EVENTO CON FECHAS CORRECTAS
+        
         console.log('🖼️ Updating imageUrl to:', eventData.imageUrl);
         await tx.event.update({
           where: { id },
@@ -239,8 +239,8 @@ export async function PUT(
             title: eventData.title,
             description: eventData.description,
             location: eventData.location,
-            startDate: startDate, // Ya es un objeto Date válido
-            endDate: endDate,     // Ya es un objeto Date válido o null
+            startDate: startDate, 
+            endDate: endDate,     
             categoryId: eventData.categoryId,
             capacity: totalCapacity,
             isFree: ticketTypes.every(tt => tt.price === 0),
@@ -304,7 +304,7 @@ export async function PUT(
         }
       });
     } else {
-      // Actualizar solo los campos básicos del evento cuando no se envían tipos de tickets
+      
       await prisma.event.update({
         where: { id },
         data: {

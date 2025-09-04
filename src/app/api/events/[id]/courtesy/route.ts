@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
-// Schema de validación para solicitud de cortesía
+
 const courtesyRequestSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   rut: z.string().min(8, "RUT inválido"),
@@ -16,12 +16,12 @@ interface RouteParams {
   }>;
 }
 
-// Obtener solicitudes de cortesía de un evento
+
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: eventId } = await params;
 
-    // Verificar que el evento existe y permite cortesías
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       select: { 
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Obtener todas las solicitudes de cortesía
+    
     const courtesyRequests = await prisma.courtesyRequest.findMany({
       where: { eventId },
       orderBy: { createdAt: 'desc' },
@@ -94,16 +94,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// Crear solicitud de cortesía
+
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: eventId } = await params;
     const body = await request.json();
 
-    // Validar datos de entrada
+    
     const validatedData = courtesyRequestSchema.parse(body);
 
-    // Verificar que el evento existe y permite cortesías
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verificar límite de cortesías
+    
     if (event.courtesyLimit && event._count.courtesyRequests >= event.courtesyLimit) {
       return NextResponse.json(
         { error: "Se ha alcanzado el límite de cortesías para este evento" },
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verificar si ya existe una solicitud con este email o RUT
+    
     const existingRequest = await prisma.courtesyRequest.findFirst({
       where: {
         eventId,
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Crear la solicitud de cortesía
+    
     const courtesyRequest = await prisma.courtesyRequest.create({
       data: {
         eventId,

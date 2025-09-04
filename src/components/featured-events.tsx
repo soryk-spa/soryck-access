@@ -125,7 +125,7 @@ export default function FeaturedEvents() {
   return (
     <section className="py-20 bg-background border-t border-border">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        {}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted border border-border mb-6">
             <Sparkles className="h-4 w-4 text-primary" />
@@ -139,7 +139,7 @@ export default function FeaturedEvents() {
           </p>
         </div>
 
-        {/* Usar el nuevo componente expandable */}
+        {}
         <EventsExpandableCards events={events} />
       </div>
     </section>

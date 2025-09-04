@@ -63,7 +63,7 @@ async function getEventForScanning(id: string) {
       return null;
     }
 
-    // Verificar permisos específicos para escanear
+    
     const isOrganizer = event.organizerId === user!.id;
     const isScanner = event.scanners.length > 0 && event.scanners[0].isActive;
     const isAdmin = user!.role === 'ADMIN';
@@ -97,7 +97,7 @@ export default async function EventScanPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
+      {}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <Link href="/organizer" className="hover:text-foreground">Dashboard</Link>
         <span>/</span>
@@ -108,7 +108,7 @@ export default async function EventScanPage({
         <span className="text-foreground">Escáner</span>
       </nav>
 
-      {/* Información del evento y escáner */}
+      {}
       <div className="bg-card rounded-lg border p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
@@ -131,7 +131,7 @@ export default async function EventScanPage({
         </div>
       </div>
 
-      {/* Advertencia si el evento ya terminó */}
+      {}
       {event.endDate && new Date() > event.endDate && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-2 text-yellow-800">
@@ -144,7 +144,7 @@ export default async function EventScanPage({
         </div>
       )}
 
-      {/* Componente del escáner */}
+      {}
       <TicketScanner 
         eventId={event.id} 
         eventTitle={event.title}

@@ -34,7 +34,7 @@ export async function GET(
   try {
     const { id: eventId } = await context.params
 
-    // Get event with sections and seats
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -63,7 +63,7 @@ export async function GET(
       )
     }
 
-    // Transform data and update seat statuses based on reservations
+    
     const sections = event.sections.map(section => ({
       id: section.id,
       name: section.name,
@@ -116,7 +116,7 @@ export async function POST(
     const { id: eventId } = await context.params
     const { sections }: { sections: SectionData[] } = await request.json()
 
-    // Verify user owns the event
+    
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
@@ -131,14 +131,14 @@ export async function POST(
       )
     }
 
-    // Save seating plan in a transaction
+    
     await prisma.$transaction(async (tx) => {
-      // Delete existing sections and seats
+      
       await tx.section.deleteMany({
         where: { eventId }
       })
 
-      // Create new sections and seats
+      
       for (const section of sections) {
         const createdSection = await tx.section.create({
           data: {
@@ -172,7 +172,7 @@ export async function POST(
         }
       }
 
-      // Update event to mark it has seating plan
+      
       await tx.event.update({
         where: { id: eventId },
         data: { hasSeatingPlan: true }

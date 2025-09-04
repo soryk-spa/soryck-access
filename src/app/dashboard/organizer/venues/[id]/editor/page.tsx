@@ -41,24 +41,24 @@ export default function VenueEditorPage() {
   const [layoutData, setLayoutData] = useState<{ venueId: string; sections: Section[] } | null>(null);
   const [venue, setVenue] = useState<{ name: string; description?: string } | null>(null);
 
-  // Cargar datos del venue
+  
   useEffect(() => {
     const fetchVenueData = async () => {
       try {
         setIsLoading(true);
 
-        // Cargar información básica del venue
+        
         const venueResponse = await fetch(`/api/venues/${venueId}`);
         if (venueResponse.ok) {
           const venueData = await venueResponse.json();
           setVenue(venueData);
         }
 
-        // Cargar layout del venue
+        
         const layoutResponse = await fetch(`/api/venues/${venueId}/layout`);
         if (layoutResponse.ok) {
           const data = await layoutResponse.json();
-          // Agregar la propiedad type a todas las secciones para compatibilidad
+          
           const sectionsWithType = (data.sections || []).map((section: {
             id: string;
             name: string;
@@ -72,7 +72,7 @@ export default function VenueEditorPage() {
             sections: sectionsWithType
           });
         } else {
-          // Si no hay layout, crear uno vacío
+          
           setLayoutData({
             venueId,
             sections: [],
@@ -107,7 +107,7 @@ export default function VenueEditorPage() {
 
       toast.success("Layout guardado exitosamente");
       
-      // Actualizar datos locales
+      
       setLayoutData({
         venueId,
         sections,
@@ -148,7 +148,7 @@ export default function VenueEditorPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      {/* Header */}
+      {}
       <div className="border-b bg-background p-4">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -177,7 +177,7 @@ export default function VenueEditorPage() {
         </div>
       </div>
 
-      {/* Editor */}
+      {}
       <div className="flex-1 overflow-hidden">
         <SeatingEditor
           initialSections={layoutData.sections}

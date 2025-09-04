@@ -37,7 +37,7 @@ export function useUpdateSettings() {
       const result = await response.json();
       setSuccess(true);
       
-      // Auto-clear success after 3 seconds
+      
       setTimeout(() => setSuccess(false), 3000);
       
       return result;

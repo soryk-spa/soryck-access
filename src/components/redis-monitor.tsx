@@ -96,7 +96,7 @@ export function RedisMonitor() {
   useEffect(() => {
     checkHealth();
     getRedisConfig();
-    // Verificar salud cada 30 segundos
+    
     const interval = setInterval(checkHealth, 30000);
     return () => clearInterval(interval);
   }, []);

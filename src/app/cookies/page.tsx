@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function CookiesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
@@ -52,12 +52,12 @@ export default function CookiesPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
           <div className="p-8 lg:p-12">
             
-            {/* Introducción */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Cookie className="h-6 w-6 text-amber-600" />
@@ -79,7 +79,7 @@ export default function CookiesPage() {
               </div>
             </section>
 
-            {/* Tipos de Cookies */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Settings className="h-6 w-6 text-blue-600" />
@@ -89,7 +89,7 @@ export default function CookiesPage() {
               </div>
 
               <div className="space-y-6">
-                {/* Cookies Necesarias */}
+                {}
                 <div className="border border-green-200 dark:border-green-800 rounded-xl p-6 bg-green-50 dark:bg-green-900/20">
                   <div className="flex items-start gap-4">
                     <div className="p-2 bg-green-500 text-white rounded-lg">
@@ -131,7 +131,7 @@ export default function CookiesPage() {
                   </div>
                 </div>
 
-                {/* Cookies de Funcionalidad */}
+                {}
                 <div className="border border-blue-200 dark:border-blue-800 rounded-xl p-6 bg-blue-50 dark:bg-blue-900/20">
                   <div className="flex items-start gap-4">
                     <div className="p-2 bg-blue-500 text-white rounded-lg">
@@ -172,7 +172,7 @@ export default function CookiesPage() {
                   </div>
                 </div>
 
-                {/* Cookies de Analytics */}
+                {}
                 <div className="border border-purple-200 dark:border-purple-800 rounded-xl p-6 bg-purple-50 dark:bg-purple-900/20">
                   <div className="flex items-start gap-4">
                     <div className="p-2 bg-purple-500 text-white rounded-lg">
@@ -213,7 +213,7 @@ export default function CookiesPage() {
                   </div>
                 </div>
 
-                {/* Cookies de Marketing */}
+                {}
                 <div className="border border-orange-200 dark:border-orange-800 rounded-xl p-6 bg-orange-50 dark:bg-orange-900/20">
                   <div className="flex items-start gap-4">
                     <div className="p-2 bg-orange-500 text-white rounded-lg">
@@ -256,7 +256,7 @@ export default function CookiesPage() {
               </div>
             </section>
 
-            {/* Gestión de Cookies */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Shield className="h-6 w-6 text-green-600" />
@@ -297,16 +297,16 @@ export default function CookiesPage() {
                       Herramientas de Terceros
                     </h4>
                     <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-                      <li>• <a href="https://optout.aboutads.info" className="text-blue-600 hover:underline" target="_blank" rel="noopener">Digital Advertising Alliance</a></li>
-                      <li>• <a href="https://youronlinechoices.eu" className="text-blue-600 hover:underline" target="_blank" rel="noopener">Your Online Choices</a></li>
-                      <li>• <a href="https://tools.google.com/dlpage/gaoptout" className="text-blue-600 hover:underline" target="_blank" rel="noopener">Google Analytics Opt-out</a></li>
+                      <li>• <a href="https:
+                      <li>• <a href="https:
+                      <li>• <a href="https:
                     </ul>
                   </div>
                 </div>
               </div>
             </section>
 
-            {/* Impacto de Deshabilitar Cookies */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Info className="h-6 w-6 text-amber-600" />
@@ -346,7 +346,7 @@ export default function CookiesPage() {
               </div>
             </section>
 
-            {/* Cookies de Terceros */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Eye className="h-6 w-6 text-purple-600" />
@@ -369,7 +369,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Análisis de uso y comportamiento del sitio web.
                     </p>
-                    <a href="https://policies.google.com/privacy" className="text-xs text-blue-600 hover:underline" target="_blank" rel="noopener">
+                    <a href="https:
                       Ver política de privacidad →
                     </a>
                   </div>
@@ -382,7 +382,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Procesamiento seguro de pagos y prevención de fraude.
                     </p>
-                    <a href="https://www.transbank.cl/privacidad" className="text-xs text-blue-600 hover:underline" target="_blank" rel="noopener">
+                    <a href="https:
                       Ver política de privacidad →
                     </a>
                   </div>
@@ -395,7 +395,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Gestión de sesiones de usuario y autenticación segura.
                     </p>
-                    <a href="https://clerk.com/privacy" className="text-xs text-blue-600 hover:underline" target="_blank" rel="noopener">
+                    <a href="https:
                       Ver política de privacidad →
                     </a>
                   </div>
@@ -403,7 +403,7 @@ export default function CookiesPage() {
               </div>
             </section>
 
-            {/* Actualizaciones */}
+            {}
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-6">
                 <Info className="h-6 w-6 text-blue-600" />
@@ -428,7 +428,7 @@ export default function CookiesPage() {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="mt-12 text-center space-y-4">
           <div className="flex justify-center gap-6">
             <Link 

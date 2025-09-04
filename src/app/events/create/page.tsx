@@ -93,7 +93,7 @@ export default async function CreateEventPage() {
     },
   });
 
-  // Obtener estadísticas del organizador para mostrar contexto
+  
   const [userEvents, userStats] = await Promise.all([
     prisma.event.count({
       where: { organizerId: user.id },
@@ -112,7 +112,7 @@ export default async function CreateEventPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
-      {/* Navegación superior */}
+      {}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -157,7 +157,7 @@ export default async function CreateEventPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Información importante para nuevos organizadores */}
+        {}
         {userEvents === 0 && (
           <div className="space-y-6">
             <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
@@ -183,7 +183,7 @@ export default async function CreateEventPage() {
               </CardContent>
             </Card>
 
-            {/* Características principales */}
+            {}
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <FeatureCard
                 icon={Shield}
@@ -213,7 +213,7 @@ export default async function CreateEventPage() {
           </div>
         )}
 
-        {/* Alertas importantes */}
+        {}
         <div className="space-y-4">
           <Alert>
             <Info className="h-4 w-4" />
@@ -235,7 +235,7 @@ export default async function CreateEventPage() {
           )}
         </div>
 
-        {/* Formulario principal */}
+        {}
         {categories.length > 0 ? (
           <CreateEventForm categories={categories} mode="create" />
         ) : (
@@ -266,7 +266,7 @@ export default async function CreateEventPage() {
           </Card>
         )}
 
-        {/* Información adicional al final */}
+        {}
         <div className="grid md:grid-cols-2 gap-6 mt-12">
           <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950">
             <CardContent className="p-6">

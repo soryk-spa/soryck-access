@@ -37,15 +37,15 @@ export default function DashboardNavbar({
   return (
     <nav className={cn(
       "fixed top-0 right-0 z-[100] h-16 border-b transition-all duration-300",
-      collapsed ? "left-0 lg:left-16" : "left-0 lg:left-64", // Responsive positioning based on sidebar state
+      collapsed ? "left-0 lg:left-16" : "left-0 lg:left-64", 
       isAtTop 
         ? "bg-background/80 backdrop-blur-sm" 
         : "bg-background/95 backdrop-blur-md shadow-sm"
     )}>
       <div className="flex h-full items-center justify-between px-4 lg:px-6">
-        {/* Left section */}
+        {}
         <div className="flex items-center gap-4">
-          {/* Desktop sidebar toggle button */}
+          {}
           <Button
             variant="ghost"
             size="sm"
@@ -55,7 +55,7 @@ export default function DashboardNavbar({
             {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </Button>
           
-          {/* Mobile menu button */}
+          {}
           <Button
             variant="ghost"
             size="sm"
@@ -65,7 +65,7 @@ export default function DashboardNavbar({
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Title */}
+          {}
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-semibold text-foreground">{title}</h1>
             <Badge variant="secondary" className="hidden sm:inline-flex">
@@ -74,7 +74,7 @@ export default function DashboardNavbar({
           </div>
         </div>
 
-        {/* Center section - Search */}
+        {}
         {showSearch && (
           <div className="hidden md:flex flex-1 max-w-md mx-4">
             <div className="relative w-full">
@@ -90,11 +90,11 @@ export default function DashboardNavbar({
           </div>
         )}
 
-        {/* Right section */}
+        {}
         <div className="flex items-center gap-2">
           <DashboardNavbarActions actions={actions} />
 
-          {/* User Menu */}
+          {}
           <div className="z-[110]">
             <UserButton 
               afterSignOutUrl="/"

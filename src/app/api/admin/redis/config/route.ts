@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verificar que el usuario sea ADMIN
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { role: true }
@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: "Permisos insuficientes" }, { status: 403 });
     }
 
-    // Obtener configuración de Redis (sin mostrar la contraseña completa por seguridad)
+    
     const getRedisConfig = () => {
       if (process.env.REDIS_URL) {
         try {
@@ -28,7 +28,7 @@ export async function GET() {
           return {
             host: redisUrl.hostname,
             port: redisUrl.port || '6379',
-            database: '0', // Default for Redis Cloud/Upstash
+            database: '0', 
             hasPassword: !!redisUrl.password,
             passwordLength: redisUrl.password?.length || 0,
             maskedPassword: redisUrl.password 

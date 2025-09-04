@@ -33,13 +33,13 @@ async function getOrganizerData(organizerId: string) {
       return null;
     }
 
-    // ✅ CORRECIÓN: Incluir ticketTypes en la consulta de eventos
+    
     const events = await prisma.event.findMany({
       where: {
         organizerId: organizerId,
         isPublished: true,
         startDate: {
-          gte: new Date(), // Solo eventos futuros
+          gte: new Date(), 
         },
       },
       include: {
@@ -57,7 +57,7 @@ async function getOrganizerData(organizerId: string) {
             email: true,
           },
         },
-        // ✅ AGREGAR: Incluir ticketTypes
+        
         ticketTypes: {
           select: {
             price: true,
@@ -131,7 +131,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
     notFound();
   }
 
-  // ✅ SERIALIZACIÓN: Convertir fechas y manejar null/undefined
+  
   const serializedEvents = data.events.map((event) => ({
     ...event,
     startDate: event.startDate.toISOString(),
@@ -140,7 +140,7 @@ export default async function OrganizerPage({ params }: OrganizerPageProps) {
     imageUrl: event.imageUrl ?? undefined,
     createdAt: event.createdAt.toISOString(),
     updatedAt: event.updatedAt.toISOString(),
-    // ticketTypes ya está incluido desde la consulta
+    
   }));
 
   return (

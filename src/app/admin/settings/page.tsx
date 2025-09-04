@@ -8,7 +8,7 @@ import { Settings, Check, Shield, Database, Monitor, Users, Activity, BarChart3 
 export default async function AdminSettingsPage() {
   const user = await requireAdmin();
 
-  // Configuración del header
+  
   const headerConfig = {
     title: "Configuración del Sistema",
     description: "Configuraciones avanzadas de administración y monitoreo del sistema",
@@ -35,7 +35,7 @@ export default async function AdminSettingsPage() {
   return (
     <DashboardPageLayout header={headerConfig}>
       <div className="space-y-8">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Configuración del Sistema</h1>
@@ -45,7 +45,7 @@ export default async function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* Admin Success Message */}
+      {}
       <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
@@ -102,7 +102,7 @@ export default async function AdminSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Admin Settings */}
+      {}
       <div className="grid gap-6">
         <Card>
           <CardHeader>

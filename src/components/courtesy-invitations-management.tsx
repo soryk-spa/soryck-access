@@ -79,7 +79,7 @@ export default function CourtesyInvitationsManagement({
   const [isAddingInvitation, setIsAddingInvitation] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
-  // Form states
+  
   const [singleEmail, setSingleEmail] = useState('');
   const [singleName, setSingleName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
@@ -89,7 +89,7 @@ export default function CourtesyInvitationsManagement({
       const response = await fetch(`/api/events/${eventId}/invitations`);
       if (response.ok) {
         const data = await response.json();
-        // La API devuelve { event, invitations }, extraer solo las invitaciones
+        
         if (data.invitations && Array.isArray(data.invitations)) {
           setInvitations(data.invitations);
         } else {
@@ -105,7 +105,7 @@ export default function CourtesyInvitationsManagement({
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast.error('Error al cargar las invitaciones');
-      setInvitations([]); // Asegurar que sea un array vacío en caso de error
+      setInvitations([]); 
     } finally {
       setLoading(false);
     }
@@ -308,7 +308,7 @@ export default function CourtesyInvitationsManagement({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Invitaciones de Cortesía</h2>
@@ -360,7 +360,7 @@ export default function CourtesyInvitationsManagement({
         </div>
       </div>
 
-      {/* Add Single Invitation */}
+      {}
       <div className="bg-card rounded-lg border p-6">
         <h3 className="text-lg font-semibold mb-4">Agregar Invitación Individual</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -396,7 +396,7 @@ export default function CourtesyInvitationsManagement({
         </div>
       </div>
 
-      {/* Invitations Table */}
+      {}
       <div className="bg-card rounded-lg border">
         <div className="p-6 border-b">
           <h3 className="text-lg font-semibold">

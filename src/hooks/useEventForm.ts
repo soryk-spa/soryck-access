@@ -1,7 +1,4 @@
-/**
- * Custom hooks para manejo de formularios de eventos
- * Separa la lógica de negocio del componente UI
- */
+
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -13,9 +10,9 @@ import {
   isValidDateRange 
 } from "@/lib/date-utils";
 
-// ============================================================================
-// TIPOS ESPECÍFICOS PARA FORMULARIOS DE EVENTOS
-// ============================================================================
+
+
+
 
 export interface TicketTypeForm {
   name: string;
@@ -70,9 +67,9 @@ export interface InitialEventData {
   ticketTypes?: TicketTypeForm[];
 }
 
-// ============================================================================
-// HOOK PRINCIPAL PARA MANEJO DE EVENTOS
-// ============================================================================
+
+
+
 
 export function useEventForm(
   initialData?: InitialEventData,
@@ -82,7 +79,7 @@ export function useEventForm(
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<EventFormErrors>({});
 
-  // Estado del formulario
+  
   const [formData, setFormData] = useState<EventFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
@@ -97,7 +94,7 @@ export function useEventForm(
     courtesyPriceAfter: initialData?.courtesyPriceAfter || null,
   });
 
-  // Validaciones del formulario
+  
   const validateForm = useCallback((data: EventFormData, tickets: TicketTypeForm[]): EventFormErrors => {
     const newErrors: EventFormErrors = {};
 
@@ -140,12 +137,12 @@ export function useEventForm(
       newErrors.categoryId = "La categoría es requerida";
     }
 
-    // Validación del sistema de cortesías
+    
     if (data.allowCourtesy && (!data.courtesyLimit || data.courtesyLimit <= 0)) {
       newErrors.courtesyLimit = "El límite de cortesías debe ser mayor a 0 cuando están habilitadas";
     }
 
-    // Validar hora límite de cortesía
+    
     if (data.allowCourtesy && data.courtesyValidUntil) {
       const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeRegex.test(data.courtesyValidUntil)) {
@@ -153,7 +150,7 @@ export function useEventForm(
       }
     }
 
-    // Validar precio después de cortesía
+    
     if (data.allowCourtesy && data.courtesyValidUntil && (!data.courtesyPriceAfter || data.courtesyPriceAfter < 0)) {
       newErrors.courtesyPriceAfter = "El precio después de la hora límite debe ser mayor o igual a 0";
     }
@@ -172,34 +169,34 @@ export function useEventForm(
     return newErrors;
   }, []);
 
-  // Manejo de cambios en el formulario
+  
   const handleInputChange = useCallback((field: keyof EventFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Limpiar error del campo cuando el usuario empiece a escribir
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   }, [errors]);
 
-  // Manejo de cambios en campos booleanos
+  
   const handleBooleanChange = useCallback((field: keyof EventFormData, value: boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Limpiar error del campo cuando el usuario cambie el valor
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   }, [errors]);
 
-  // Manejo de cambios en campos numéricos
+  
   const handleNumberChange = useCallback((field: keyof EventFormData, value: number | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Limpiar error del campo cuando el usuario cambie el valor
+    
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   }, [errors]);
 
-  // Manejo de envío del formulario
+  
   const handleSubmit = useCallback(async (
     e: React.FormEvent, 
     ticketTypes: TicketTypeForm[]
@@ -239,8 +236,8 @@ export function useEventForm(
         })),
       };
 
-  // Use structured logging for API submissions
-  // Import logger lazily to avoid client-side bundling in hooks
+  
+  
   const { logger } = await import('@/lib/logger');
   logger.debug('📤 Sending eventData to API', { eventData });
 
@@ -296,9 +293,9 @@ export function useEventForm(
   };
 }
 
-// ============================================================================
-// HOOK PARA MANEJO DE TIPOS DE TICKETS
-// ============================================================================
+
+
+
 
 export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>(
@@ -332,7 +329,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
     }
   }, [ticketTypes.length]);
 
-  // Cálculos derivados
+  
   const totalCapacity = ticketTypes.reduce((sum, ticket) => sum + ticket.capacity, 0);
   const averagePrice = ticketTypes.length > 0 
     ? ticketTypes.reduce((sum, ticket) => sum + ticket.price, 0) / ticketTypes.length 
@@ -350,9 +347,9 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   };
 }
 
-// ============================================================================
-// HOOK PARA MANEJO DE IMAGEN
-// ============================================================================
+
+
+
 
 export function useEventImage(initialImageUrl?: string) {
   const [imageUrl, setImageUrl] = useState(initialImageUrl || "");
@@ -372,9 +369,9 @@ export function useEventImage(initialImageUrl?: string) {
   };
 }
 
-// ============================================================================
-// UTILIDADES PARA ESTADÍSTICAS DEL FORMULARIO
-// ============================================================================
+
+
+
 
 export function useEventFormStats(ticketTypes: TicketTypeForm[]) {
   const totalCapacity = ticketTypes.reduce((sum, ticket) => sum + ticket.capacity, 0);

@@ -3,7 +3,7 @@ import { requireOrganizer, getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
-// Esquema para validar cada objeto de tipo de entrada individualmente.
+
 const ticketTypeSchema = z.object({
   name: z.string().min(1, 'El nombre del tipo de entrada es requerido').max(100),
   description: z.string().optional().nullable(),
@@ -12,7 +12,7 @@ const ticketTypeSchema = z.object({
   ticketsGenerated: z.number().min(1, 'Debe generar al menos 1 ticket').default(1),
 });
 
-// Esquema principal actualizado para la creación de eventos.
+
 const createEventSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(100, 'El título es demasiado largo'),
   description: z.string().optional().nullable(),
@@ -45,7 +45,7 @@ const updateEventSchema = z.object({
   imageUrl: z.string().url().optional().or(z.literal('')).nullable(),
   allowCourtesy: z.boolean().default(false),
   ticketTypes: z.array(ticketTypeSchema.extend({
-    id: z.string().optional(), // Para updates
+    id: z.string().optional(), 
   })).min(1, 'Se requiere al menos un tipo de entrada.'),
 });
 
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Serializar fechas
+    
     const serializedEvents = events.map(event => ({
       ...event,
       startDate: event.startDate.toISOString(),
@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Calcular la capacidad total sumando la capacidad de todos los tipos de entrada
+    
     const totalCapacity = ticketTypes.reduce((sum, tt) => sum + (tt.capacity * tt.ticketsGenerated), 0);
 
     const event = await prisma.event.create({
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         organizerId: user.id,
         isPublished: false,
         capacity: totalCapacity,
-        price: 0, // Ya no es relevante, pero mantenemos para compatibilidad
+        price: 0, 
         isFree: ticketTypes.every(tt => tt.price === 0),
         allowCourtesy: eventData.allowCourtesy,
         
@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Serializar fechas para la respuesta
+    
     const serializedEvent = {
       ...event,
       startDate: event.startDate.toISOString(),
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT method para actualizar eventos
+
 export async function PUT(request: NextRequest) {
   try {
     const user = await requireOrganizer()
@@ -282,7 +282,7 @@ export async function PUT(request: NextRequest) {
 
     const { ticketTypes, ...eventData } = validation.data
 
-    // Verificar permisos
+    
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
       select: { organizerId: true }
@@ -302,11 +302,11 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Actualizar evento y tipos de entrada
+    
     const totalCapacity = ticketTypes.reduce((sum, tt) => sum + (tt.capacity * tt.ticketsGenerated), 0);
 
     const updatedEvent = await prisma.$transaction(async (tx) => {
-      // Actualizar evento principal
+      
       const event = await tx.event.update({
         where: { id: eventId },
         data: {
@@ -318,15 +318,15 @@ export async function PUT(request: NextRequest) {
         }
       })
 
-      // Manejar tipos de entrada (simplificado: eliminar todos y recrear)
+      
       await tx.ticketType.deleteMany({
         where: { 
           eventId: eventId,
-          tickets: { none: {} } // Solo eliminar tipos sin tickets vendidos
+          tickets: { none: {} } 
         }
       })
 
-      // Crear nuevos tipos de entrada
+      
       await tx.ticketType.createMany({
         data: ticketTypes.map(tt => ({
           eventId: eventId,

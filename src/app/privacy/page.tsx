@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
@@ -52,12 +52,12 @@ export default function PrivacyPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg">
           <div className="p-8 lg:p-12">
             
-            {/* Introducción */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Shield className="h-6 w-6 text-green-600" />
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Información que Recopilamos */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Database className="h-6 w-6 text-blue-600" />
@@ -136,7 +136,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Cómo Utilizamos su Información */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <UserCheck className="h-6 w-6 text-indigo-600" />
@@ -197,7 +197,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Compartir Información */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Eye className="h-6 w-6 text-orange-600" />
@@ -246,7 +246,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Cookies */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Cookie className="h-6 w-6 text-amber-600" />
@@ -290,7 +290,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Seguridad */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Lock className="h-6 w-6 text-red-600" />
@@ -321,7 +321,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Sus Derechos */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <UserCheck className="h-6 w-6 text-green-600" />
@@ -382,7 +382,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Retención de Datos */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <Database className="h-6 w-6 text-indigo-600" />
@@ -410,7 +410,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Cambios a esta Política */}
+            {}
             <section className="mb-12">
               <div className="flex items-center gap-3 mb-6">
                 <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -432,7 +432,7 @@ export default function PrivacyPage() {
               </div>
             </section>
 
-            {/* Contacto */}
+            {}
             <section className="mb-8">
               <div className="flex items-center gap-3 mb-6">
                 <Mail className="h-6 w-6 text-blue-600" />
@@ -470,7 +470,7 @@ export default function PrivacyPage() {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="mt-12 text-center space-y-4">
           <Link 
             href="/terms"

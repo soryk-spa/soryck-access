@@ -14,10 +14,10 @@ export async function PATCH(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Obtener los parámetros de la ruta
+    
     const { userId } = await params;
 
-    // Verificar que el usuario sea administrador
+    
     const user = await prisma.user.findUnique({
       where: { clerkId },
       select: { role: true }
@@ -29,12 +29,12 @@ export async function PATCH(
 
     const { role } = await request.json();
 
-    // Validar que el rol sea válido
+    
     if (!Object.values(UserRole).includes(role)) {
       return NextResponse.json({ error: "Rol inválido" }, { status: 400 });
     }
 
-    // Actualizar el rol del usuario
+    
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { role },

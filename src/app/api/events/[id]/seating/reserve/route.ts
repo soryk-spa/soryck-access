@@ -16,7 +16,7 @@ export async function POST(
       )
     }
 
-    // Check if seats are available
+    
     const seats = await prisma.eventSeat.findMany({
       where: {
         id: { in: seatIds },
@@ -32,7 +32,7 @@ export async function POST(
       }
     })
 
-    // Check if any seats are already reserved or unavailable
+    
     const unavailableSeats = seats.filter(seat => 
       seat.status !== 'AVAILABLE' || seat.reservations.length > 0
     )
@@ -54,11 +54,11 @@ export async function POST(
       )
     }
 
-    // Create reservations (expires in 15 minutes)
+    
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
     
     await prisma.$transaction(async (tx) => {
-      // Delete any existing reservations for this session
+      
       await tx.seatReservation.deleteMany({
         where: {
           sessionId,
@@ -66,7 +66,7 @@ export async function POST(
         }
       })
 
-      // Create new reservations
+      
       await tx.seatReservation.createMany({
         data: seatIds.map(seatId => ({
           seatId,

@@ -84,7 +84,7 @@ export default async function EventCourtesyPage({
 
   const { event } = result;
 
-  // Verificar si las cortesías están habilitadas para este evento
+  
   if (!event.allowCourtesy) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -117,7 +117,7 @@ export default async function EventCourtesyPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb */}
+      {}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
         <Link href="/organizer" className="hover:text-foreground">Dashboard</Link>
         <span>/</span>
@@ -128,7 +128,7 @@ export default async function EventCourtesyPage({
         <span className="text-foreground">Cortesías</span>
       </nav>
 
-      {/* Información del evento */}
+      {}
       <div className="bg-card rounded-lg border p-6 mb-6">
         <div className="flex items-start justify-between">
           <div>
@@ -154,7 +154,7 @@ export default async function EventCourtesyPage({
         </div>
       </div>
 
-      {/* Componente de gestión de cortesías */}
+      {}
       <CourtesyInvitationsManagement 
         eventId={event.id} 
         eventTitle={event.title}

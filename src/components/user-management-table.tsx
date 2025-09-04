@@ -110,7 +110,7 @@ export default function UserManagementTable({
   };
 
   const handleRoleChanged = () => {
-    // Refrescar la lista de usuarios
+    
     const fetchUsers = async () => {
       try {
         setLoading(true);
@@ -270,7 +270,7 @@ export default function UserManagementTable({
             </TableBody>
           </Table>
 
-          {/* Paginación */}
+          {}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ export default function UserManagementTable({
         </>
       )}
 
-      {/* Change Role Modal */}
+      {}
       <ChangeRoleModal
         user={selectedUser}
         isOpen={isRoleModalOpen}

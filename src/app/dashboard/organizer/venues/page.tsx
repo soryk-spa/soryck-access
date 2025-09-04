@@ -42,7 +42,7 @@ export default async function VenuesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Gestión de Venues</h1>
@@ -59,7 +59,7 @@ export default async function VenuesPage() {
       </div>
 
       {venues.length === 0 ? (
-        /* Estado vacío */
+        
         <Card className="border-dashed border-2 border-border">
           <CardContent className="p-12 text-center">
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-6">
@@ -80,7 +80,7 @@ export default async function VenuesPage() {
           </CardContent>
         </Card>
       ) : (
-        /* Lista de venues */
+        
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {venues.map((venue) => (
             <Card key={venue.id} className="border hover:shadow-lg transition-shadow">
@@ -167,7 +167,7 @@ export default async function VenuesPage() {
         </div>
       )}
 
-      {/* Información adicional */}
+      {}
       {venues.length > 0 && (
         <Card className="border">
           <CardHeader>

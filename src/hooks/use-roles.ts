@@ -12,9 +12,9 @@ interface UserWithRole {
   role: UserRole
 }
 
-// Cache en memoria para evitar múltiples llamadas
+
 const userCache = new Map<string, { data: UserWithRole; timestamp: number; ttl: number }>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutos
+const CACHE_TTL = 5 * 60 * 1000 
 
 function getCachedUser(userId: string): UserWithRole | null {
   const cached = userCache.get(userId)
@@ -49,7 +49,7 @@ export function useRoles() {
     fetchAttempted.current = true
 
     try {
-      // Verificar caché primero
+      
       const cachedUser = getCachedUser(clerkUser.id)
       if (cachedUser) {
         setDbUser(cachedUser)
@@ -66,7 +66,7 @@ export function useRoles() {
       const userData = await response.json()
       const user = userData.user
 
-      // Guardar en caché
+      
       setCachedUser(clerkUser.id, user)
       
       setDbUser(user)
@@ -83,7 +83,7 @@ export function useRoles() {
     fetchUserRole()
   }, [fetchUserRole])
 
-  // Función para invalidar caché manualmente
+  
   const invalidateCache = useCallback(() => {
     if (clerkUser) {
       userCache.delete(clerkUser.id)

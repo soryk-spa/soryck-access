@@ -32,7 +32,7 @@ export default async function EventsDashboardPage() {
       }
     },
     orderBy: {
-      createdAt: 'desc' // Ordenar por fecha de creación, más reciente primero
+      createdAt: 'desc' 
     }
   })
 

@@ -20,10 +20,10 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12')
     const skip = (page - 1) * limit
 
-    // Crear clave única para caché basada en los parámetros de búsqueda
+    
     const cacheKey = `events:public:${searchParams.toString()}`
     
-    // Intentar obtener desde Redis primero
+    
     const cachedResult = await cache.get(cacheKey);
     if (cachedResult) {
       return NextResponse.json(cachedResult);
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
       }
     };
 
-    // Guardar en caché por 10 minutos (eventos públicos no cambian tan frecuentemente)
+    
     await cache.set(cacheKey, result, 600);
 
     return NextResponse.json(result);

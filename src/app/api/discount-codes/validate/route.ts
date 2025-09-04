@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determinar el tipo basado en el resultado
+    
     let codeType = 'FIXED_AMOUNT';
     if (result.type === 'COURTESY_CODE') {
       const courtesyData = result.codeData as CourtesyRequest;
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       codeType = promoData.type || 'FIXED_AMOUNT';
     }
 
-    // Respuesta unificada compatible con la interfaz existente
+    
     return NextResponse.json({
       valid: true,
       codeType: result.type,

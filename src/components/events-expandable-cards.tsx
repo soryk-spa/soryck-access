@@ -40,7 +40,7 @@ interface Event {
 }
 
 export function EventsExpandableCards({ events }: { events?: Event[] }) {
-  // map incoming events into the card shape the component expects
+  
   const transformEventsToCards = (evts: Event[]) =>
     evts.map((e) => ({
       title: e.title,
@@ -127,7 +127,7 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
       ),
     }))
 
-  // Siempre usar eventos reales si están disponibles, sino mostrar mensaje
+  
   const cards: CardItem[] = events && events.length > 0 ? transformEventsToCards(events) : []
 
   const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(
@@ -253,7 +253,7 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
         ) : null}
       </AnimatePresence>
       
-      {/* Mostrar eventos reales o mensaje cuando no hay eventos */}
+      {}
       {cards.length > 0 ? (
         <ul className="max-w-2xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 items-start gap-4">
           {cards.map((card: CardItem) => (
@@ -287,7 +287,7 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
                     {card.description}
                   </motion.p>
                   
-                  {/* Event-specific information */}
+                  {}
                   {card.date && (
                     <div className="text-xs text-neutral-500 dark:text-neutral-500 text-center space-y-1">
                       <div className="flex items-center justify-center gap-1">
@@ -347,10 +347,10 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
           duration: 0.05,
         },
       }}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
@@ -380,5 +380,5 @@ type CardItem = {
   organizer?: string
 }
 
-// Removemos los datos de demostración ya que ahora solo usamos eventos reales
+
 

@@ -12,7 +12,7 @@ import { Order, Event, User, TicketType } from "@prisma/client";
 const createPaymentSchema = z.object({
   ticketTypeId: z.string().min(1, "Se requiere el tipo de ticket"),
   quantity: z.number().min(1, "La cantidad debe ser al menos 1").max(10, "No puedes comprar más de 10 tickets a la vez."),
-  promoCode: z.string().optional(), // Ahora incluye códigos de cortesía también
+  promoCode: z.string().optional(), 
 });
 
 function generateShortBuyOrder(prefix: string = "SP"): string {
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
 
       console.log(`[DISCOUNT] ✅ Código válido (${discountCodeValidation.type}). Descuento: ${discountCodeValidation.discountAmount}`);
       
-      // Usar la función correcta para calcular el breakdown con descuento
+      
       finalPriceBreakdown = calculatePriceBreakdownWithDiscount(
         baseTotalAmount,
         discountCodeValidation.discountAmount || 0,
@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
         totalAmount: finalTotalAmount,
         baseAmount: finalPriceBreakdown.basePrice,
         commissionAmount: finalPriceBreakdown.commission,
-        originalAmount: finalPriceBreakdown.originalAmount, // ✅ NUEVO: Monto original
-        discountAmount: finalPriceBreakdown.discountAmount, // ✅ NUEVO: Descuento aplicado
+        originalAmount: finalPriceBreakdown.originalAmount, 
+        discountAmount: finalPriceBreakdown.discountAmount, 
         currency: event.currency,
         quantity,
         status: "PENDING",
@@ -161,12 +161,12 @@ export async function POST(request: NextRequest) {
       promoApplied: !!promoCode
     });
 
-    // Manejar entrada gratuita (incluyendo 100% de descuento)
+    
     const isFree = finalTotalAmount === 0;
     if (isFree) {
       console.log("Entrada gratuita o con descuento del 100%, procesando directamente...");
       
-      // Si hay código de descuento, registrar su uso
+      
       if (discountCodeValidation && discountCodeValidation.isValid) {
         await DiscountCodeService.applyCodeUsage(
           discountCodeValidation,
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
       return await handleAndGenerateTickets(order, event, user, ticketType);
     }
 
-    // Para pagos con monto > 0, proceder con Transbank
+    
     const sessionId = generateShortSessionId("sess");
     const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`;
 
@@ -202,10 +202,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Si hay código de descuento, guardarlo temporalmente en la orden para aplicarlo después del pago
+    
     if (discountCodeValidation && discountCodeValidation.isValid) {
-      // Podríamos usar un campo temporal o metadata, pero por simplicidad 
-      // lo manejaremos en el return de Transbank
+      
+      
       console.log(`[DISCOUNT] Código ${promoCode} (${discountCodeValidation.type}) quedará pendiente para aplicar tras pago exitoso`);
     }
 
@@ -282,7 +282,7 @@ async function handleAndGenerateTickets(order: Order, event: Event, user: User, 
       orderNumber: updatedOrder.id,
       tickets: updatedOrder.tickets.map(ticket => ({
         qrCode: ticket.qrCode!,
-        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` // Placeholder for actual QR image
+        qrCodeImage: `data:image/png;base64,${ticket.qrCode}` 
       }))
     });
   }

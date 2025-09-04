@@ -28,15 +28,15 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Token generado exitosamente:', response.token)
 
-    // Determinar qué tarjeta usar según el tipo de test
+    
     const cardData = testType === 'reject' ? {
-      number: '5186 1741 1062 9480', // Tarjeta de RECHAZO
+      number: '5186 1741 1062 9480', 
       cvv: '123',
       month: '11',
       year: '23',
       result: 'SERÁ RECHAZADA ❌'
     } : {
-      number: '4051 8860 0005 6590', // Tarjeta de APROBACIÓN
+      number: '4051 8860 0005 6590', 
       cvv: '123', 
       month: '11',
       year: '23',
@@ -93,8 +93,8 @@ export async function GET() {
       endpoint: '/api/test/generate-token',
       method: 'POST',
       body: {
-        amount: 1000, // opcional, default 1000
-        testType: 'approve' // 'approve' o 'reject'
+        amount: 1000, 
+        testType: 'approve' 
       }
     },
     examples: [

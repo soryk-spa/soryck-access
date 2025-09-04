@@ -62,7 +62,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                 overflow: "hidden",
               }}
             >
-              {/* Header */}
+              {}
               <tr>
                 <td
                   style={{
@@ -73,7 +73,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="https://sorykpass.com/sorykpass_horizontal_white.png"
+                    src="https:
                     alt="SorykPass"
                     width="150"
                     height="40"
@@ -96,7 +96,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                 </td>
               </tr>
 
-              {/* Contenido principal */}
+              {}
               <tr>
                 <td style={{ padding: "40px" }}>
                   <p
@@ -159,7 +159,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     </>
                   )}
 
-                  {/* Información del evento */}
+                  {}
                   <table
                     width="100%"
                     cellPadding="0"
@@ -208,7 +208,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     </tr>
                   </table>
 
-                  {/* Instrucciones */}
+                  {}
                   <h3
                     style={{
                       color: "#374151",
@@ -252,7 +252,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     </div>
                   )}
 
-                  {/* Botones de acción */}
+                  {}
                   <table width="100%" cellPadding="0" cellSpacing="0" style={{ margin: "32px 0 16px" }}>
                     <tr>
                       <td align="center">
@@ -302,7 +302,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     </tr>
                   </table>
 
-                  {/* Información importante */}
+                  {}
                   <table
                     width="100%"
                     cellPadding="0"
@@ -345,7 +345,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                 </td>
               </tr>
 
-              {/* Footer */}
+              {}
               <tr>
                 <td
                   style={{
@@ -365,7 +365,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                   >
                     Este email fue enviado por{" "}
                     <a
-                      href="https://sorykpass.com"
+                      href="https:
                       style={{
                         color: "#2563eb",
                         textDecoration: "underline",

@@ -16,7 +16,7 @@ export async function GET() {
       }, { status: 401 });
     }
 
-    // Buscar usuario en la base de datos
+    
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: {
@@ -32,7 +32,7 @@ export async function GET() {
 
     console.log("🔍 Debug - Usuario en DB:", user);
 
-    // También busquemos todos los usuarios para ver qué hay en la DB
+    
     const allUsers = await prisma.user.findMany({
       select: {
         id: true,

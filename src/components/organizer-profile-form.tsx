@@ -124,7 +124,7 @@ export default function OrganizerProfileForm({
                 onChange={(e) =>
                   handleInputChange("websiteUrl", e.target.value)
                 }
-                placeholder="https://tudominio.com"
+                placeholder="https:
               />
             </div>
             <div className="space-y-2">
@@ -136,7 +136,7 @@ export default function OrganizerProfileForm({
                 onChange={(e) =>
                   handleInputChange("instagramUrl", e.target.value)
                 }
-                placeholder="https://instagram.com/tu_usuario"
+                placeholder="https:
               />
             </div>
             <div className="space-y-2">
@@ -148,7 +148,7 @@ export default function OrganizerProfileForm({
                 onChange={(e) =>
                   handleInputChange("twitterUrl", e.target.value)
                 }
-                placeholder="https://x.com/tu_usuario"
+                placeholder="https:
               />
             </div>
           </div>

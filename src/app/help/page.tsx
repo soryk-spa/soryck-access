@@ -144,7 +144,7 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
+      {}
       <div className="bg-white dark:bg-gray-900 shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-4">
@@ -174,7 +174,7 @@ export default function HelpPage() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -193,7 +193,7 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {quickActions.map((action, index) => {
             const href = action.link && action.link !== '#' ? action.link : `/help/articles/${slugify(action.title)}`;
@@ -221,7 +221,7 @@ export default function HelpPage() {
           })}
         </div>
 
-        {/* Help Categories */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {helpCategories.map((category, index) => (
             <div key={index} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
@@ -270,7 +270,7 @@ export default function HelpPage() {
           ))}
         </div>
 
-        {/* Popular Articles */}
+        {}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
@@ -307,7 +307,7 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* Getting Started */}
+        {}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-8 text-white">
           <div className="flex items-center gap-3 mb-4">
             <Play className="h-6 w-6" />
@@ -337,7 +337,7 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* Still Need Help */}
+        {}
         <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
           <div className="text-center">
             <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg w-fit mx-auto mb-4">

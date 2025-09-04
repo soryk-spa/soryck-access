@@ -16,10 +16,10 @@ export async function PATCH(
     const user = await requireOrganizer();
     const body = await request.json();
 
-    // Validar los datos de entrada
+    
     const validatedData = toggleStatusSchema.parse(body);
 
-    // Verificar que el código promocional existe y pertenece al usuario
+    
     const promoCode = await prisma.promoCode.findFirst({
       where: {
         id,
@@ -39,7 +39,7 @@ export async function PATCH(
       );
     }
 
-    // No permitir cambios de estado en códigos expirados o agotados
+    
     if (promoCode.status === "EXPIRED" || promoCode.status === "USED_UP") {
       return NextResponse.json(
         { error: "No se puede cambiar el estado de códigos expirados o agotados" },
@@ -47,7 +47,7 @@ export async function PATCH(
       );
     }
 
-    // Actualizar el estado del código promocional
+    
     const updatedPromoCode = await prisma.promoCode.update({
       where: { id },
       data: { 
