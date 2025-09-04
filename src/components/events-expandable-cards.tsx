@@ -43,19 +43,85 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
   const transformEventsToCards = (evts: Event[]) =>
     evts.map((e) => ({
       title: e.title,
-      description: e.description ?? "",
+      description: e.category.name,
+      location: e.location,
+      date: new Date(e.startDate).toLocaleDateString('es-ES', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short'
+      }),
+      time: new Date(e.startDate).toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
       src: e.imageUrl ?? "/sorykpass_1.jpg",
-      ctaText: e.isFree ? "Gratis" : e.price ? `$${e.price}` : "Ver",
+      ctaText: e.isFree ? "Gratis" : `$${e.price.toLocaleString()}`,
       ctaLink: `/events/${e.id}`,
+      capacity: e.capacity,
+      ticketsSold: e._count.tickets,
+      organizer: `${e.organizer.firstName} ${e.organizer.lastName}`.trim(),
       content: () => (
-        <div className="space-y-2">
-          <p>{e.description}</p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            {new Date(e.startDate).toLocaleString()} • {e.location}
+        <div className="space-y-4">
+          <p className="text-neutral-700 dark:text-neutral-300">
+            {e.description || "Descripción del evento no disponible."}
           </p>
-          <p className="text-sm text-neutral-600 dark:text-neutral-400">
-            Organizador: {e.organizer.firstName} {e.organizer.lastName}
-          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">📅 Fecha:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  {new Date(e.startDate).toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">⏰ Hora:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  {new Date(e.startDate).toLocaleTimeString('es-ES', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">📍 Ubicación:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">{e.location}</span>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">💰 Precio:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  {e.isFree ? "Gratis" : `$${e.price.toLocaleString()}`}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">👥 Capacidad:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">
+                  {e._count.tickets}/{e.capacity} entradas
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">🏷️ Categoría:</span>
+                <span className="text-neutral-600 dark:text-neutral-400">{e.category.name}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-neutral-800 dark:text-neutral-200">👤 Organizador:</span>
+              <span className="text-neutral-600 dark:text-neutral-400">
+                {`${e.organizer.firstName} ${e.organizer.lastName}`.trim() || e.organizer.email}
+              </span>
+            </div>
+          </div>
         </div>
       ),
     }))
@@ -142,23 +208,26 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
                   <div className="">
                     <motion.h3
                       layoutId={`title-${active.title}-${id}`}
-                      className="font-bold text-neutral-700 dark:text-neutral-200"
+                      className="font-medium text-neutral-700 dark:text-neutral-200 text-base mb-2"
                     >
                       {active.title}
                     </motion.h3>
                     <motion.p
                       layoutId={`description-${active.description}-${id}`}
-                      className="text-neutral-600 dark:text-neutral-400"
+                      className="text-neutral-600 dark:text-neutral-400 text-sm"
                     >
                       {active.description}
                     </motion.p>
                   </div>
 
                   <motion.a
-                    layoutId={`button-${active.title}-${id}`}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
                     href={active.ctaLink}
                     target="_blank"
-                    className="px-4 py-3 text-sm rounded-full font-bold bg-green-500 text-white"
+                    className="px-4 py-3 text-sm rounded-full font-bold bg-green-500 hover:bg-green-600 text-white transition-colors"
                   >
                     {active.ctaText}
                   </motion.a>
@@ -202,16 +271,36 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
               <div className="flex justify-center items-center flex-col">
                 <motion.h3
                   layoutId={`title-${card.title}-${id}`}
-                  className="font-medium text-neutral-800 dark:text-neutral-200 text-center md:text-left text-base"
+                  className="font-medium text-neutral-800 dark:text-neutral-200 text-center text-base mb-1"
                 >
                   {card.title}
                 </motion.h3>
                 <motion.p
                   layoutId={`description-${card.description}-${id}`}
-                  className="text-neutral-600 dark:text-neutral-400 text-center md:text-left text-base"
+                  className="text-neutral-600 dark:text-neutral-400 text-center text-sm mb-2"
                 >
                   {card.description}
                 </motion.p>
+                
+                {/* Event-specific information */}
+                {card.date && (
+                  <div className="text-xs text-neutral-500 dark:text-neutral-500 text-center space-y-1">
+                    <div className="flex items-center justify-center gap-1">
+                      <span>📅 {card.date}</span>
+                      {card.time && <span>• ⏰ {card.time}</span>}
+                    </div>
+                    {card.location && (
+                      <div className="flex items-center justify-center gap-1">
+                        <span>📍 {card.location}</span>
+                      </div>
+                    )}
+                    {card.ticketsSold !== undefined && card.capacity && (
+                      <div className="flex items-center justify-center gap-1">
+                        <span>🎫 {card.ticketsSold}/{card.capacity}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -261,6 +350,12 @@ type CardItem = {
   ctaText: string
   ctaLink: string
   content: string | (() => React.ReactNode)
+  location?: string
+  date?: string
+  time?: string
+  capacity?: number
+  ticketsSold?: number
+  organizer?: string
 }
 
 const demoCards: CardItem[] = [
