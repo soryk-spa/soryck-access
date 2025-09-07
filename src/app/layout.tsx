@@ -33,7 +33,7 @@ const roboto = Roboto({
 
 export const metadata: Metadata = {
   
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http:
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
   title: "SorykPass - La Puerta de Entrada al Presente",
   description:
     "Plataforma digital que funciona como una tarjeta de acceso inteligente o pase digital. Un sistema ágil, confiable y sin fricciones para eventos.",
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     title: "SorykPass - La Puerta de Entrada al Presente",
     description:
       "Un sistema ágil, confiable y sin fricciones, donde el pase digital se vuelve parte natural del día a día.",
-    url: "https:
+    url: "https://sorykpass.com",
     siteName: "SorykPass",
     images: [
       {

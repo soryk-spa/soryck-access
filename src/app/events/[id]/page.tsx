@@ -45,6 +45,24 @@ async function getEvent(id: string) {
             price: "asc",
           },
         },
+        sections: {
+          include: {
+            seats: {
+              include: {
+                reservations: {
+                  where: {
+                    expiresAt: {
+                      gt: new Date()
+                    }
+                  }
+                }
+              }
+            }
+          },
+          orderBy: {
+            name: "asc",
+          },
+        },
       },
     });
     if (!event) {
@@ -128,6 +146,29 @@ export default async function EventPage({ params }: EventPageProps) {
       description: tt.description ?? undefined,
       createdAt: tt.createdAt.toISOString(),
       updatedAt: tt.updatedAt.toISOString(),
+    })),
+    sections: event.sections.map((section) => ({
+      id: section.id,
+      name: section.name,
+      color: section.color,
+      basePrice: section.basePrice ?? 0,
+      seatCount: section.seatCount,
+      rowCount: section.rowCount,
+      seatsPerRow: section.seatsPerRow,
+      hasSeats: section.hasSeats,
+      description: section.description ?? undefined,
+      seats: section.seats.map((seat) => ({
+        id: seat.id,
+        row: seat.row,
+        number: seat.number,
+        displayName: `${seat.row}${seat.number}`,
+        price: section.basePrice ?? 0,
+        status: seat.status === 'BLOCKED' ? 'RESERVED' : (seat.status as "AVAILABLE" | "RESERVED" | "SOLD"),
+        isAccessible: false,
+        sectionId: seat.sectionId,
+        isReserved: seat.reservations.length > 0,
+        isAvailable: seat.status === 'AVAILABLE' && seat.reservations.length === 0
+      }))
     })),
   };
 

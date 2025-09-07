@@ -50,6 +50,32 @@ model Category {
   @@map("categories")
 }
 
+model Region {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String?  @unique // Código de región (ej: "RM", "V", "VIII")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  comunas   Comuna[]
+  events    Event[]
+
+  @@map("regions")
+}
+
+model Comuna {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  // Código de comuna
+  regionId  String
+  region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  events    Event[]
+
+  @@unique([name, regionId])
+  @@map("comunas")
+}
+
 model EventScanner {
   id         String   @id @default(cuid())
   eventId    String
@@ -73,6 +99,11 @@ model Event {
   description      String?
   imageUrl         String?
   location         String
+  address          String?           // Dirección específica
+  comuna           String?           // Comuna (mantener por compatibilidad)
+  region           String?           // Región (mantener por compatibilidad)
+  regionId         String?           // Nueva relación con Region
+  comunaId         String?           // Nueva relación con Comuna
   startDate        DateTime
   endDate          DateTime?
   price            Float             @default(0)
@@ -95,6 +126,8 @@ model Event {
   category         Category          @relation(fields: [categoryId], references: [id])
   venueId          String?
   venue              Venue?              @relation(fields: [venueId], references: [id], onDelete: SetNull)
+  regionRef          Region?             @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  comunaRef          Comuna?             @relation(fields: [comunaId], references: [id], onDelete: SetNull)
   tickets            Ticket[]
   orders             Order[]
   ticketTypes        TicketType[]
@@ -380,81 +413,96 @@ model Commission {
   @@map("commissions")
 }
 
-// Seating System Models
+// Complex Venue System (commented out for simplified approach)
+// model Venue {
+//   id          String   @id @default(cuid())
+//   name        String
+//   description String?
+//   address     String?
+//   capacity    Int?
+//   layout      Json? // Store the venue layout configuration
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   createdBy   String
+//   creator     User     @relation("CreatedVenues", fields: [createdBy], references: [id], onDelete: Cascade)
+
+//   events   Event[]
+//   sections VenueSection[]
+
+//   @@map("venues")
+// }
+
+// model VenueSection {
+//   id         String   @id @default(cuid())
+//   name       String
+//   color      String   @default("#3B82F6") // Default blue color
+//   x          Float // X position in the layout
+//   y          Float // Y position in the layout
+//   width      Float // Width of the section
+//   height     Float // Height of the section
+//   rotation   Float    @default(0) // Rotation in degrees
+//   seatLayout Json // Seat arrangement within section
+//   priceZone  String? // Price zone identifier
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+//   venueId    String
+//   venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
+
+//   venueSeats VenueSeat[]
+
+//   @@map("venue_sections")
+// }
+
+// model VenueSeat {
+//   id           String       @id @default(cuid())
+//   row          String // Row identifier (A, B, C, 1, 2, 3, etc.)
+//   number       String // Seat number within the row
+//   x            Float // X position within the section
+//   y            Float // Y position within the section
+//   status       SeatStatus   @default(AVAILABLE)
+//   isAccessible Boolean      @default(false) // For accessibility seats
+//   createdAt    DateTime     @default(now())
+//   updatedAt    DateTime     @updatedAt
+//   sectionId    String
+//   section      VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+//   eventSeats EventSeat[]
+
+//   @@unique([sectionId, row, number])
+//   @@map("venue_seats")
+// }
+
+// Simplified Venue System
 model Venue {
   id          String   @id @default(cuid())
   name        String
   description String?
   address     String?
   capacity    Int?
-  layout      Json? // Store the venue layout configuration
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdBy   String
   creator     User     @relation("CreatedVenues", fields: [createdBy], references: [id], onDelete: Cascade)
 
-  events   Event[]
-  sections VenueSection[]
+  events Event[]
 
   @@map("venues")
 }
 
-model VenueSection {
+model Section {
   id         String   @id @default(cuid())
-  name       String
-  color      String   @default("#3B82F6") // Default blue color
-  x          Float // X position in the layout
-  y          Float // Y position in the layout
-  width      Float // Width of the section
-  height     Float // Height of the section
-  rotation   Float    @default(0) // Rotation in degrees
-  seatLayout Json // Seat arrangement within section
-  priceZone  String? // Price zone identifier
+  name       String   // Nombre de la sección (ej: "Platea", "Galería", "VIP")
+  color      String   @default("#3B82F6") // Color para identificar la sección visualmente
+  basePrice  Float?   // Precio base para esta sección
+  seatCount  Int      @default(0) // Cantidad total de asientos en esta sección
+  rowCount   Int      @default(1) // Cantidad de filas (para generar grilla)
+  seatsPerRow Int     @default(1) // Asientos por fila (para generar grilla)
+  hasSeats   Boolean  @default(true) // Si tiene asientos numerados o es general
+  description String? // Descripción adicional de la sección
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  venueId    String
-  venue      Venue    @relation(fields: [venueId], references: [id], onDelete: Cascade)
-
-  venueSeats VenueSeat[]
-
-  @@map("venue_sections")
-}
-
-model VenueSeat {
-  id           String       @id @default(cuid())
-  row          String // Row identifier (A, B, C, 1, 2, 3, etc.)
-  number       String // Seat number within the row
-  x            Float // X position within the section
-  y            Float // Y position within the section
-  status       SeatStatus   @default(AVAILABLE)
-  isAccessible Boolean      @default(false) // For accessibility seats
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  sectionId    String
-  section      VenueSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  eventSeats EventSeat[]
-
-  @@unique([sectionId, row, number])
-  @@map("venue_seats")
-}
-
-model Section {
-  id        String   @id @default(cuid())
-  name      String
-  color     String   @default("#3B82F6")
-  x         Float
-  y         Float
-  width     Float
-  height    Float
-  rotation  Float    @default(0)
-  priceZone String?
-  basePrice Float? // Base price for this section
-  capacity  Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  eventId   String
-  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   seats EventSeat[]
 
@@ -463,19 +511,16 @@ model Section {
 
 model EventSeat {
   id           String     @id @default(cuid())
-  row          String
-  number       String
-  x            Float
-  y            Float
-  price        Float?
+  row          String     // Fila (A, B, C, etc.)
+  number       String     // Número de asiento en la fila (1, 2, 3, etc.)
+  displayName  String?    // Nombre para mostrar (ej: "A1", "B15")
+  price        Float?     // Precio específico del asiento (opcional)
   status       SeatStatus @default(AVAILABLE)
-  isAccessible Boolean    @default(false)
+  isAccessible Boolean    @default(false) // Para asientos de accesibilidad
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   sectionId    String
   section      Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  venueSeatId  String?
-  venueSeat    VenueSeat? @relation(fields: [venueSeatId], references: [id], onDelete: SetNull)
 
   tickets      Ticket[]
   reservations SeatReservation[]

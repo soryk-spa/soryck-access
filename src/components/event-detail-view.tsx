@@ -26,8 +26,6 @@ import {
   Star,
   Copy,
   Globe,
-  Twitter,
-  Phone,
   X,
   Sparkles,
   TrendingUp,
@@ -36,6 +34,7 @@ import {
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
+import PurchaseFlow from "@/components/purchase-flow";
 import { formatFullDateTime } from "@/lib/date";
 import { toast } from "sonner";
 
@@ -68,6 +67,28 @@ type EventDetailViewProps = {
       capacity: number;
       _count: { tickets: number };
     }>;
+    sections?: Array<{
+      id: string;
+      name: string;
+      color: string;
+      basePrice: number;
+      seatCount: number;
+      rowCount: number;
+      seatsPerRow: number;
+      hasSeats: boolean;
+      description?: string;
+      seats: Array<{
+        id: string;
+        row: string;
+        number: string;
+        displayName: string;
+        price: number;
+        status: 'AVAILABLE' | 'RESERVED' | 'SOLD';
+        isAccessible: boolean;
+        isReserved?: boolean;
+        isAvailable?: boolean;
+      }>;
+    }>;
     _count: {
       tickets: number;
       orders: number;
@@ -87,6 +108,7 @@ export default function EventDetailView({
   userTicketsCount,
 }: EventDetailViewProps) {
   const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [showPurchaseFlow, setShowPurchaseFlow] = useState(false);
   const [isPublished, setIsPublished] = useState(event.isPublished);
   const [loadingPublish, setLoadingPublish] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -659,18 +681,27 @@ export default function EventDetailView({
                               </Link>
                             </Button>
                             <Button
-                              onClick={() => setShowPurchaseForm(true)}
+                              onClick={() => event.hasSeatingPlan && event.sections && event.sections.length > 0 
+                                ? setShowPurchaseFlow(true) 
+                                : setShowPurchaseForm(true)
+                              }
                               variant="outline"
                               className="w-full"
                               size="lg"
                             >
                               <Ticket className="h-5 w-5 mr-2" />
-                              Compra Rápida (Sin Asiento Específico)
+                              {event.hasSeatingPlan && event.sections && event.sections.length > 0 
+                                ? "Compra con Selección de Asientos"
+                                : "Compra Rápida (Sin Asiento Específico)"
+                              }
                             </Button>
                           </div>
                         ) : (
                           <Button
-                            onClick={() => setShowPurchaseForm(true)}
+                            onClick={() => event.hasSeatingPlan && event.sections && event.sections.length > 0 
+                              ? setShowPurchaseFlow(true) 
+                              : setShowPurchaseForm(true)
+                            }
                             className="w-full bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90"
                             size="lg"
                           >
@@ -879,36 +910,6 @@ export default function EventDetailView({
                         <Copy className="h-4 w-4 mr-3" />
                         Copiar enlace
                       </Button>
-
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start border-2 hover:border-[#0053CC] transition-colors"
-                        asChild
-                      >
-                        <a
-                          href={`https:
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Twitter className="h-4 w-4 mr-3" />
-                          Compartir en Twitter
-                        </a>
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start border-2 hover:border-[#0053CC] transition-colors"
-                        asChild
-                      >
-                        <a
-                          href={`https:
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Phone className="h-4 w-4 mr-3" />
-                          Compartir por WhatsApp
-                        </a>
-                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -989,6 +990,28 @@ export default function EventDetailView({
             </div>
           </div>
         </div>
+      )}
+
+      {/* New Purchase Flow with Seat Selection */}
+      {showPurchaseFlow && event.sections && (
+        <PurchaseFlow
+          event={{
+            id: event.id,
+            title: event.title,
+            startDate: event.startDate,
+            location: event.location,
+            hasSeatingPlan: event.hasSeatingPlan || false
+          }}
+          sections={event.sections}
+          isOpen={showPurchaseFlow}
+          onClose={() => setShowPurchaseFlow(false)}
+          onPurchaseComplete={() => {
+            setShowPurchaseFlow(false)
+            toast.success('¡Compra realizada exitosamente!')
+            // Aquí podrías redirigir a una página de confirmación
+            // router.push(`/orders/${orderId}`)
+          }}
+        />
       )}
     </div>
   );
