@@ -6,31 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { SeatingEditor } from "@/components/seating/seating-editor";
-
-interface Seat {
-  id: string;
-  row: string;
-  number: string;
-  x: number;
-  y: number;
-  status: 'AVAILABLE' | 'BLOCKED' | 'MAINTENANCE';
-  isAccessible: boolean;
-}
-
-interface Section {
-  id: string;
-  type: 'section';
-  name: string;
-  color: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  priceZone?: string;
-  seats: Seat[];
-}
+import { SeatingEditor, Section, type VenueElement } from "@/components/seating/seating-editor";
 
 export default function VenueEditorPage() {
   const params = useParams();
@@ -38,7 +14,7 @@ export default function VenueEditorPage() {
   const venueId = params.id as string;
   
   const [isLoading, setIsLoading] = useState(true);
-  const [layoutData, setLayoutData] = useState<{ venueId: string; sections: Section[] } | null>(null);
+  const [layoutData, setLayoutData] = useState<{ venueId: string; sections: Section[]; elements: VenueElement[] } | null>(null);
   const [venue, setVenue] = useState<{ name: string; description?: string } | null>(null);
 
   
@@ -76,6 +52,7 @@ export default function VenueEditorPage() {
           setLayoutData({
             venueId,
             sections: [],
+            elements: [],
           });
         }
       } catch (error) {
@@ -91,30 +68,32 @@ export default function VenueEditorPage() {
     }
   }, [venueId]);
 
-  const handleSaveLayout = async (sections: Section[]) => {
+  const handleSaveLayout = async (sections: Section[], elements: VenueElement[] = []) => {
     try {
       const response = await fetch(`/api/venues/${venueId}/layout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ sections }),
+        body: JSON.stringify({ sections, elements }),
       });
 
       if (!response.ok) {
         throw new Error("Error al guardar el layout");
       }
 
+      const result = await response.json();
       toast.success("Layout guardado exitosamente");
       
       
       setLayoutData({
         venueId,
         sections,
+        elements: result.elements || [],
       });
 
     } catch (error) {
-      console.error("Error saving layout:", error);
+      console.error("❌ Error saving layout:", error);
       toast.error("Error al guardar el layout");
     }
   };
@@ -181,6 +160,7 @@ export default function VenueEditorPage() {
       <div className="flex-1 overflow-hidden">
         <SeatingEditor
           initialSections={layoutData.sections}
+          initialElements={layoutData.elements}
           onSave={handleSaveLayout}
         />
       </div>

@@ -33,14 +33,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         createdBy: user.id,
       },
       include: {
-        sections: {
-          include: {
-            venueSeats: true,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
+        creator: true,
+        events: true,
       },
     });
 

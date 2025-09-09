@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 interface Section {
   id: string
   name: string
-  price: number
+  basePrice?: number
   hasSeats: boolean
   seats?: EventSeat[]
 }
@@ -19,9 +19,18 @@ interface EventSeat {
   status: 'AVAILABLE' | 'SOLD' | 'RESERVED'
 }
 
+interface SelectedSeat {
+  id: string
+  sectionId?: string
+  sectionName?: string
+  row?: string
+  number?: string
+  price?: number
+}
+
 interface SeatMapViewerProps {
   sections: Section[]
-  onSeatSelect: (seatIds: string[], selectedSeats: any[]) => void
+  onSeatSelect: (seatIds: string[], selectedSeats: SelectedSeat[]) => void
   reservedSeats: string[]
 }
 
@@ -32,7 +41,7 @@ export default function SeatMapViewer({
 }: SeatMapViewerProps) {
   const [selectedSeats, setSelectedSeats] = useState<string[]>([])
 
-  const handleSeatClick = (seat: EventSeat, section: Section) => {
+  const handleSeatClick = (seat: EventSeat) => {
     if (seat.status === 'SOLD' || reservedSeats.includes(seat.id)) {
       return
     }
@@ -54,7 +63,7 @@ export default function SeatMapViewer({
         sectionName: seatSection?.name,
         row: seatInfo?.row,
         number: seatInfo?.number,
-        price: seatSection?.price
+        price: seatSection?.basePrice
       }
     })
 
@@ -147,7 +156,7 @@ export default function SeatMapViewer({
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg">{section.name}</CardTitle>
                 <Badge variant="outline">
-                  ${section.price.toLocaleString()} CLP
+                  ${section.basePrice?.toLocaleString()} CLP
                 </Badge>
               </div>
             </CardHeader>
@@ -165,7 +174,7 @@ export default function SeatMapViewer({
                         {rowSeats.map(seat => (
                           <button
                             key={seat.id}
-                            onClick={() => handleSeatClick(seat, section)}
+                            onClick={() => handleSeatClick(seat)}
                             disabled={seat.status === 'SOLD' || reservedSeats.includes(seat.id)}
                             className={`
                               w-8 h-8 rounded text-xs font-medium text-white
