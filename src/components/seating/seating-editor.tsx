@@ -27,10 +27,26 @@ import {
   Grid3X3,
   MousePointer,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  FlipHorizontal,
+  Undo,
+  Redo,
+  Copy,
+  Clipboard,
+  Layers,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Download,
+  Upload,
+  RotateCcw,
+  RotateCw,
+  Group,
+  Ungroup,
+  Hand
 } from 'lucide-react'
 
-interface Section {
+export interface Section {
   id: string
   type: 'section'
   name: string
@@ -52,6 +68,7 @@ interface PolygonSection {
   points: { x: number; y: number }[]
   rotation: number
   priceZone?: string
+  capacity?: number
   seats: Seat[]
 }
 
@@ -129,7 +146,7 @@ interface Entrance {
   entranceType: 'main' | 'emergency' | 'vip' | 'service'
 }
 
-type VenueElement = Section | PolygonSection | Stage | Shape | TextElement | Entrance | Polygon
+export type VenueElement = Section | PolygonSection | Stage | Shape | TextElement | Entrance | Polygon
 
 interface SeatingEditorProps {
   initialSections?: Section[]
@@ -158,7 +175,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   const [sections, setSections] = useState<Section[]>(initialSections)
   const [elements, setElements] = useState<VenueElement[]>(initialElements)
   const [selectedElement, setSelectedElement] = useState<string | null>(null)
-  const [tool, setTool] = useState<'select' | 'section' | 'polygonSection' | 'seat' | 'stage' | 'rectangle' | 'circle' | 'text' | 'entrance' | 'polygon'>('select')
+  const [tool, setTool] = useState<'select' | 'hand' | 'section' | 'polygonSection' | 'seat' | 'stage' | 'rectangle' | 'circle' | 'text' | 'entrance' | 'polygon'>('select')
   const [isDrawing, setIsDrawing] = useState(false)
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
   const [scale, setScale] = useState(1)
@@ -196,6 +213,23 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   
+  // Estados para simetría
+  const [symmetryEnabled, setSymmetryEnabled] = useState(false)
+  const [symmetryAxis, setSymmetryAxis] = useState<'vertical' | 'horizontal'>('vertical')
+  const [symmetryLine, setSymmetryLine] = useState(600) // Posición de la línea de simetría
+  
+  // Sistema de Deshacer/Rehacer
+  const [history, setHistory] = useState<{sections: Section[], elements: VenueElement[]}[]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const [clipboard, setClipboard] = useState<{sections: Section[], elements: VenueElement[]} | null>(null)
+  
+  // Estados para herramientas avanzadas
+  const [selectedElements, setSelectedElements] = useState<string[]>([])
+  const [showLayers, setShowLayers] = useState(false)
+  const [layers, setLayers] = useState<{id: string, name: string, visible: boolean, locked: boolean}[]>([
+    { id: 'default', name: 'Capa Principal', visible: true, locked: false }
+  ])
+  
   
   const [newElementName, setNewElementName] = useState('')
   const [newElementColor, setNewElementColor] = useState(COLORS[0])
@@ -204,6 +238,11 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   
   const [sidebarVisible, setSidebarVisible] = useState(true)
+
+  // Estados para herramienta de mano (hand tool)
+  const [isDraggingElement, setIsDraggingElement] = useState(false)
+  const [draggedElementId, setDraggedElementId] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
 
   
   const getThemeColors = useCallback(() => {
@@ -542,18 +581,32 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.stroke()
     
     
-    if (isSelected) {
-      ctx.fillStyle = '#0053CC'
-      polygon.points.forEach(point => {
+    if (isSelected || scale > 0.5) {
+      ctx.fillStyle = isSelected ? '#0053CC' : polygon.color + '80'
+      polygon.points.forEach((point, index) => {
         ctx.beginPath()
         ctx.arc(
           (point.x * scale) + offset.x,
           (point.y * scale) + offset.y,
-          4,
+          isSelected ? 5 : 3,
           0,
           2 * Math.PI
         )
         ctx.fill()
+        
+        // Mostrar número del vértice si está seleccionado
+        if (isSelected && scale > 0.3) {
+          ctx.fillStyle = '#ffffff'
+          ctx.font = `bold ${Math.max(10, 8 * scale)}px Arial`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(
+            (index + 1).toString(),
+            (point.x * scale) + offset.x,
+            (point.y * scale) + offset.y
+          )
+          ctx.fillStyle = isSelected ? '#0053CC' : polygon.color + '80'
+        }
       })
     }
     
@@ -611,37 +664,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.lineWidth = isSelected ? 4 : 2
     ctx.stroke()
     
+    // No renderizar asientos individuales - solo mostrar la sección como área
     
-    if (scale > 0.5) {
-      polygonSection.seats.forEach(seat => {
-        const seatX = (seat.x * scale) + offset.x
-        const seatY = (seat.y * scale) + offset.y
-        
-        
-        switch (seat.status) {
-          case 'AVAILABLE':
-            ctx.fillStyle = '#10B981'
-            break
-          case 'BLOCKED':
-            ctx.fillStyle = '#EF4444'
-            break
-          case 'MAINTENANCE':
-            ctx.fillStyle = '#F59E0B'
-            break
-        }
-        
-        ctx.beginPath()
-        ctx.arc(seatX, seatY, Math.max(SEAT_SIZE * scale / 4, 2), 0, 2 * Math.PI)
-        ctx.fill()
-        
-        
-        ctx.strokeStyle = '#000000'
-        ctx.lineWidth = 1
-        ctx.stroke()
-      })
-    }
-    
-    
+    // Mostrar puntos de control cuando está seleccionada
     if (isSelected) {
       ctx.fillStyle = '#0053CC'
       polygonSection.points.forEach(point => {
@@ -679,7 +704,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       if (scale > 0.6) {
         ctx.font = `${Math.max(10 * scale, 8)}px Arial`
         ctx.fillText(
-          `${polygonSection.seats.length} asientos`,
+          `${polygonSection.capacity || 0} asientos`,
           (centerX * scale) + offset.x,
           (centerY * scale) + offset.y + 10
         )
@@ -802,12 +827,16 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     })
 
     if (elementUnderMouse) {
+      if (tool === 'hand') {
+        return isDraggingElement ? 'grabbing' : 'grab'
+      }
       return tool === 'select' ? 'pointer' : 'pointer'
     }
 
     
     switch (tool) {
       case 'select': return 'default'
+      case 'hand': return 'grab'
       case 'text': return 'text'
       case 'polygon': return isCreatingPolygon ? 'crosshair' : 'copy'
       case 'polygonSection': return 'crosshair'
@@ -820,7 +849,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       default: 
         return 'default'
     }
-  }, [scale, offset, selectedElement, elements, tool, isDrawing, isEditingInPlace, getResizeHandles])
+  }, [scale, offset, selectedElement, elements, tool, isDrawing, isEditingInPlace, getResizeHandles, isCreatingPolygon, isDraggingElement])
 
   
   const calculateOptimalDimensions = useCallback((totalSeats: number, seatsPerRow: number, seatSpacing: number, rowSpacing: number) => {
@@ -915,52 +944,196 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     return inside
   }, [])
 
-  
-  const generateSeatsForPolygonSection = useCallback((polygonSection: PolygonSection): Seat[] => {
-    const seats: Seat[] = []
-    
-    
-    const minX = Math.min(...polygonSection.points.map(p => p.x))
-    const maxX = Math.max(...polygonSection.points.map(p => p.x))
-    const minY = Math.min(...polygonSection.points.map(p => p.y))
-    const maxY = Math.max(...polygonSection.points.map(p => p.y))
-    
-    let seatCount = 0
-    const rows = Math.ceil((maxY - minY) / rowSpacing)
-    
-    for (let row = 0; row < rows; row++) {
-      const rowLabel = String.fromCharCode(65 + row) 
-      const y = minY + (row + 1) * rowSpacing
-      
-      let seatInRow = 0
-      for (let x = minX + seatSpacing; x <= maxX; x += seatSpacing) {
-        const seatPoint = { x, y }
-        
-        
-        if (isPointInPolygon(seatPoint, polygonSection.points)) {
-          seatCount++
-          seatInRow++
-          
-          seats.push({
-            id: `${polygonSection.id}-${rowLabel}${seatInRow}`,
-            row: rowLabel,
-            number: seatInRow.toString(),
-            x: seatPoint.x,
-            y: seatPoint.y,
-            status: 'AVAILABLE',
-            isAccessible: false
-          })
-          
-          
-          if (creationMode === 'bySeats' && seatCount >= desiredSeats) {
-            return seats
-          }
-        }
+  // Función para crear elemento simétrico
+  const createSymmetricElement = useCallback((element: VenueElement) => {
+    if (!symmetryEnabled) return null
+
+    const canvasWidth = 1200
+    const canvasHeight = 800
+    const centerX = canvasWidth / 2
+    const centerY = canvasHeight / 2
+
+    const symmetricElement: VenueElement = {
+      ...element,
+      id: `${element.id}-symmetric`,
+    } as VenueElement
+
+    if (symmetryAxis === 'vertical') {
+      // Simetría vertical (espejo horizontal)
+      if (element.type === 'section') {
+        (symmetricElement as Section).x = centerX * 2 - element.x - element.width
+      } else if (element.type === 'polygonSection') {
+        (symmetricElement as PolygonSection).points = element.points.map(point => ({
+          x: centerX * 2 - point.x,
+          y: point.y
+        }))
+      } else if ('x' in element && 'x' in symmetricElement) {
+        (symmetricElement as Stage | Shape | TextElement | Entrance).x = centerX * 2 - (element as Stage | Shape | TextElement | Entrance).x
+      }
+    } else {
+      // Simetría horizontal (espejo vertical)
+      if (element.type === 'section') {
+        (symmetricElement as Section).y = centerY * 2 - element.y - element.height
+      } else if (element.type === 'polygonSection') {
+        (symmetricElement as PolygonSection).points = element.points.map(point => ({
+          x: point.x,
+          y: centerY * 2 - point.y
+        }))
+      } else if ('y' in element && 'y' in symmetricElement) {
+        (symmetricElement as Stage | Shape | TextElement | Entrance).y = centerY * 2 - (element as Stage | Shape | TextElement | Entrance).y
       }
     }
+
+    return symmetricElement
+  }, [symmetryEnabled, symmetryAxis])
+
+  // Funciones del sistema de historial
+  const saveToHistory = useCallback(() => {
+    const currentState = { sections, elements }
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1)
+      newHistory.push(currentState)
+      // Mantener solo los últimos 50 estados
+      if (newHistory.length > 50) {
+        newHistory.shift()
+        return newHistory
+      }
+      return newHistory
+    })
+    setHistoryIndex(prev => Math.min(prev + 1, 49))
+  }, [sections, elements, historyIndex])
+
+  // Ref para guardar el timeout del debounce
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // useEffect para detectar cambios y activar guardado automático con debounce
+  useEffect(() => {
+    // Limpiar timeout anterior si existe
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    // Crear nuevo timeout
+    saveTimeoutRef.current = setTimeout(() => {
+      console.log("💾 Guardado automático:", { sections: sections.length, elements: elements.length });
+      onSave?.(sections, elements)
+      saveTimeoutRef.current = null
+    }, 3000)
+
+    // Cleanup function
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [sections, elements, onSave])
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const prevState = history[historyIndex - 1]
+      setSections(prevState.sections)
+      setElements(prevState.elements)
+      setHistoryIndex(prev => prev - 1)
+    }
+  }, [history, historyIndex])
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const nextState = history[historyIndex + 1]
+      setSections(nextState.sections)
+      setElements(nextState.elements)
+      setHistoryIndex(prev => prev + 1)
+    }
+  }, [history, historyIndex])
+
+  // Funciones de copiar/pegar
+  const copySelected = useCallback(() => {
+    const selectedSections = sections.filter(s => selectedElements.includes(s.id))
+    const selectedElementsList = elements.filter(e => selectedElements.includes(e.id))
+    setClipboard({ sections: selectedSections, elements: selectedElementsList })
+  }, [sections, elements, selectedElements])
+
+  const pasteFromClipboard = useCallback(() => {
+    if (!clipboard) return
     
-    return seats
-  }, [rowSpacing, seatSpacing, isPointInPolygon, creationMode, desiredSeats])
+    const newSections = clipboard.sections.map(section => ({
+      ...section,
+      id: `${section.id}-copy-${Date.now()}`,
+      x: section.x + 50,
+      y: section.y + 50
+    }))
+    
+    const newElements = clipboard.elements.map(element => {
+      const baseElement = {
+        ...element,
+        id: `${element.id}-copy-${Date.now()}`
+      }
+      
+      if ('x' in element && 'y' in element) {
+        return {
+          ...baseElement,
+          x: (element as Stage | Shape | TextElement | Entrance).x + 50,
+          y: (element as Stage | Shape | TextElement | Entrance).y + 50
+        }
+      } else if (element.type === 'polygonSection') {
+        return {
+          ...baseElement,
+          points: (element as PolygonSection).points.map(p => ({ x: p.x + 50, y: p.y + 50 }))
+        }
+      }
+      
+      return baseElement
+    })
+    
+    setSections(prev => [...prev, ...newSections])
+    setElements(prev => [...prev, ...newElements])
+    saveToHistory()
+  }, [clipboard, saveToHistory])
+
+  // Funciones de alineación
+  const alignElements = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+    if (selectedElements.length < 2) return
+    
+    const selectedSections = sections.filter(s => selectedElements.includes(s.id))
+    const selectedElementsList = elements.filter(e => selectedElements.includes(e.id))
+    
+    let referenceValue = 0
+    
+    // Calcular valor de referencia
+    if (alignment === 'left') {
+      referenceValue = Math.min(
+        ...selectedSections.map(s => s.x),
+        ...selectedElementsList.filter(e => 'x' in e).map(e => (e as any).x)
+      )
+    } else if (alignment === 'right') {
+      referenceValue = Math.max(
+        ...selectedSections.map(s => s.x + s.width),
+        ...selectedElementsList.filter(e => 'x' in e && 'width' in e).map(e => (e as any).x + (e as any).width)
+      )
+    } else if (alignment === 'top') {
+      referenceValue = Math.min(
+        ...selectedSections.map(s => s.y),
+        ...selectedElementsList.filter(e => 'y' in e).map(e => (e as any).y)
+      )
+    } else if (alignment === 'bottom') {
+      referenceValue = Math.max(
+        ...selectedSections.map(s => s.y + s.height),
+        ...selectedElementsList.filter(e => 'y' in e && 'height' in e).map(e => (e as any).y + (e as any).height)
+      )
+    }
+    
+    // Aplicar alineación
+    if (alignment === 'left') {
+      setSections(prev => prev.map(s => 
+        selectedElements.includes(s.id) ? { ...s, x: referenceValue } : s
+      ))
+      setElements(prev => prev.map(e => 
+        selectedElements.includes(e.id) && 'x' in e ? { ...e, x: referenceValue } : e
+      ))
+    }
+    
+    saveToHistory()
+  }, [selectedElements, sections, elements, saveToHistory])
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current
@@ -1148,7 +1321,35 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         ctx.setLineDash([])
       }
     }
-  }, [sections, elements, drawGrid, drawSection, drawStage, drawShape, drawText, drawEntrance, drawPolygon, drawPolygonSection, drawResizeHandles, getThemeColors, tool, isCreatingPolygonSection, polygonSectionPoints, newSectionColor, isCreatingPolygon, polygonPoints, mousePosition, scale, offset])
+
+    // Dibujar línea de simetría si está habilitada
+    if (symmetryEnabled) {
+      const canvasWidth = 1200
+      const canvasHeight = 800
+      const centerX = canvasWidth / 2
+      const centerY = canvasHeight / 2
+
+      ctx.strokeStyle = '#9333ea' // Color púrpura para la línea de simetría
+      ctx.lineWidth = 2
+      ctx.setLineDash([10, 5])
+      ctx.globalAlpha = 0.7
+
+      ctx.beginPath()
+      if (symmetryAxis === 'vertical') {
+        // Línea vertical en el centro
+        ctx.moveTo((centerX * scale) + offset.x, 0)
+        ctx.lineTo((centerX * scale) + offset.x, canvasHeight * scale + offset.y)
+      } else {
+        // Línea horizontal en el centro
+        ctx.moveTo(0, (centerY * scale) + offset.y)
+        ctx.lineTo(canvasWidth * scale + offset.x, (centerY * scale) + offset.y)
+      }
+      ctx.stroke()
+
+      ctx.globalAlpha = 1
+      ctx.setLineDash([])
+    }
+  }, [sections, elements, drawGrid, drawSection, drawStage, drawShape, drawText, drawEntrance, drawPolygon, drawPolygonSection, drawResizeHandles, getThemeColors, tool, isCreatingPolygonSection, polygonSectionPoints, newSectionColor, isCreatingPolygon, polygonPoints, mousePosition, scale, offset, symmetryEnabled, symmetryAxis])
 
   
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -1217,6 +1418,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
       setElements(prev => [...prev, newText])
       setSelectedElement(newText.id)
+      // Guardado automático se encarga del resto
     } else if (tool === 'polygon') {
       
       const snapPos = snapToGridCoords(x, y)
@@ -1228,7 +1430,41 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         setIsCreatingPolygon(true)
         setPolygonPoints([snapPos])
       } else {
+        // Verificar si se está clickeando cerca del primer punto para cerrar el polígono
+        if (polygonPoints.length >= 3) {
+          const firstPoint = polygonPoints[0]
+          const distance = Math.sqrt(
+            Math.pow(snapPos.x - firstPoint.x, 2) + 
+            Math.pow(snapPos.y - firstPoint.y, 2)
+          )
+          
+          // Si está cerca del primer punto (menos de 20 unidades), cerrar el polígono
+          if (distance < 20) {
+            const newPolygon: Polygon = {
+              id: currentPolygonId!,
+              type: 'polygon',
+              name: newElementName || `Polígono ${elements.filter(e => e.type === 'polygon').length + 1}`,
+              points: [...polygonPoints],
+              rotation: 0,
+              color: newElementColor,
+              strokeColor: newElementColor,
+              strokeWidth: 2,
+              filled: true
+            }
+            
+            setElements(prev => [...prev, newPolygon])
+            setSelectedElement(newPolygon.id)
+            
+            // Limpiar estado
+            setIsCreatingPolygon(false)
+            setPolygonPoints([])
+            setCurrentPolygonId(null)
+            setMousePosition(null)
+            return
+          }
+        }
         
+        // Agregar nuevo punto
         setPolygonPoints(prev => [...prev, snapPos])
       }
     } else if (tool === 'polygonSection') {
@@ -1282,6 +1518,53 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
       
       setSelectedElement(clickedElement?.id || null)
+    } else if (tool === 'hand') {
+      // Herramienta de mano - buscar elemento para arrastrar
+      let clickedElement: VenueElement | null = null
+      
+      // Buscar en elementos
+      for (const element of elements) {
+        if ('type' in element) {
+          const elem = element as Stage | Shape | TextElement | Entrance
+          if (elem.type === 'text') {
+            const textElem = elem as TextElement
+            if (Math.abs(x - textElem.x) < 50 && Math.abs(y - textElem.y) < 20) {
+              clickedElement = element
+              break
+            }
+          } else {
+            const rectElem = elem as Stage | Shape | Entrance
+            if (x >= rectElem.x && x <= rectElem.x + rectElem.width &&
+                y >= rectElem.y && y <= rectElem.y + rectElem.height) {
+              clickedElement = element
+              break
+            }
+          }
+        }
+      }
+      
+      // Buscar en secciones si no se encontró elemento
+      if (!clickedElement) {
+        const clickedSection = sections.find(section => 
+          x >= section.x && x <= section.x + section.width &&
+          y >= section.y && y <= section.y + section.height
+        )
+        clickedElement = clickedSection || null
+      }
+      
+      if (clickedElement) {
+        setIsDraggingElement(true)
+        setDraggedElementId(clickedElement.id)
+        setSelectedElement(clickedElement.id)
+        // Calcular offset del mouse respecto al elemento
+        if ('x' in clickedElement && 'y' in clickedElement) {
+          const elementWithPos = clickedElement as Section | Stage | Shape | TextElement | Entrance
+          setDragOffset({
+            x: x - elementWithPos.x,
+            y: y - elementWithPos.y
+          })
+        }
+      }
     }
   }
 
@@ -1504,6 +1787,27 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
     
     
+    // Dragging con herramienta de mano
+    if (isDraggingElement && draggedElementId && tool === 'hand') {
+      const snapPos = snapToGridCoords(currentX - dragOffset.x, currentY - dragOffset.y)
+      
+      // Actualizar posición del elemento arrastrado
+      const draggedSection = sections.find(s => s.id === draggedElementId)
+      if (draggedSection) {
+        setSections(prev => prev.map(s => 
+          s.id === draggedElementId ? { ...s, x: snapPos.x, y: snapPos.y } : s
+        ))
+      } else {
+        const draggedElement = elements.find(e => e.id === draggedElementId)
+        if (draggedElement && 'x' in draggedElement && 'y' in draggedElement) {
+          setElements(prev => prev.map(el => 
+            el.id === draggedElementId ? { ...el, x: snapPos.x, y: snapPos.y } : el
+          ))
+        }
+      }
+    }
+    
+    
     if ((tool === 'polygon' && isCreatingPolygon) || (tool === 'polygonSection' && isCreatingPolygonSection)) {
       setMousePosition({ x: currentX, y: currentY })
     }
@@ -1535,12 +1839,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       const x = Math.min(startPos.x, snapPos.x)
       const y = Math.min(startPos.y, snapPos.y)
 
-      if (width > 30 && height > 30) { 
+      if (width > 10 && height > 10) { 
         if (tool === 'section') {
           if (creationMode === 'bySeats') {
             
             const newSection = createSectionBySeats(x, y)
-            setSections(prev => [...prev, newSection])
+            const sectionsToAdd = [newSection]
+            
+            // Crear sección simétrica si está habilitado
+            if (symmetryEnabled) {
+              const symmetricElement = createSymmetricElement(newSection)
+              if (symmetricElement) {
+                sectionsToAdd.push(symmetricElement as Section)
+              }
+            }
+            
+            setSections(prev => [...prev, ...sectionsToAdd])
             setSelectedElement(newSection.id)
           } else {
             
@@ -1556,7 +1870,18 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
               rotation: 0,
               seats: []
             }
-            setSections(prev => [...prev, newSection])
+            
+            const sectionsToAdd = [newSection]
+            
+            // Crear sección simétrica si está habilitado
+            if (symmetryEnabled) {
+              const symmetricElement = createSymmetricElement(newSection)
+              if (symmetricElement) {
+                sectionsToAdd.push(symmetricElement as Section)
+              }
+            }
+            
+            setSections(prev => [...prev, ...sectionsToAdd])
             setSelectedElement(newSection.id)
           }
         } else if (tool === 'stage') {
@@ -1573,6 +1898,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newStage])
           setSelectedElement(newStage.id)
+          // Guardado automático se encarga del resto
         } else if (tool === 'rectangle') {
           const newShape: Shape = {
             id: `rect-${Date.now()}`,
@@ -1590,6 +1916,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newShape])
           setSelectedElement(newShape.id)
+          // Guardado automático se encarga del resto
         } else if (tool === 'circle') {
           const newShape: Shape = {
             id: `circle-${Date.now()}`,
@@ -1607,6 +1934,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newShape])
           setSelectedElement(newShape.id)
+          // Guardado automático se encarga del resto
         } else if (tool === 'entrance') {
           const newEntrance: Entrance = {
             id: `entrance-${Date.now()}`,
@@ -1622,10 +1950,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newEntrance])
           setSelectedElement(newEntrance.id)
+          // Guardado automático se encarga del resto
         }
+      } else {
+        console.log("❌ Figura demasiado pequeña para crear:", { width, height, minSize: 10, tool });
       }
 
       setIsDrawing(false)
+    }
+
+    // Finalizar dragging con herramienta de mano
+    if (isDraggingElement && tool === 'hand') {
+      setIsDraggingElement(false)
+      setDraggedElementId(null)
+      setDragOffset({ x: 0, y: 0 })
+      // Guardar en historial después del drag
+      saveToHistory()
     }
   }
 
@@ -1663,7 +2003,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
   
   const handleDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    
+    // Terminar polígono en creación con doble clic (solo si tiene al menos 3 puntos)
     if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length >= 3) {
       const newPolygon: Polygon = {
         id: currentPolygonId!,
@@ -1677,17 +2017,28 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         filled: true
       }
       
-      setElements(prev => [...prev, newPolygon])
+      const elementsToAdd = [newPolygon]
+      
+      // Crear elemento simétrico si está habilitado
+      if (symmetryEnabled) {
+        const symmetricElement = createSymmetricElement(newPolygon)
+        if (symmetricElement) {
+          elementsToAdd.push(symmetricElement as Polygon)
+        }
+      }
+      
+      setElements(prev => [...prev, ...elementsToAdd])
       setSelectedElement(newPolygon.id)
       
-      
+      // Limpiar estado
       setIsCreatingPolygon(false)
       setPolygonPoints([])
       setCurrentPolygonId(null)
+      setMousePosition(null)
       return
     }
     
-    
+    // Terminar sección polígono en creación con doble clic (solo si tiene al menos 3 puntos)
     if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length >= 3) {
       const newPolygonSection: PolygonSection = {
         id: currentPolygonSectionId!,
@@ -1696,19 +2047,28 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         points: [...polygonSectionPoints],
         rotation: 0,
         color: newSectionColor,
-        seats: []
+        capacity: 50, // Capacidad inicial por defecto
+        seats: [] // Sin generación automática de asientos
       }
       
+      const elementsToAdd = [newPolygonSection]
       
-      newPolygonSection.seats = generateSeatsForPolygonSection(newPolygonSection)
+      // Crear elemento simétrico si está habilitado
+      if (symmetryEnabled) {
+        const symmetricElement = createSymmetricElement(newPolygonSection)
+        if (symmetricElement) {
+          elementsToAdd.push(symmetricElement as PolygonSection)
+        }
+      }
       
-      setElements(prev => [...prev, newPolygonSection])
+      setElements(prev => [...prev, ...elementsToAdd])
       setSelectedElement(newPolygonSection.id)
       
-      
+      // Limpiar estado
       setIsCreatingPolygonSection(false)
       setPolygonSectionPoints([])
       setCurrentPolygonSectionId(null)
+      setMousePosition(null)
       return
     }
     
@@ -1793,6 +2153,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         case 'select': 
           canvas.style.cursor = 'default'
           break
+        case 'hand':
+          canvas.style.cursor = isDraggingElement ? 'grabbing' : 'grab'
+          break
         case 'text': 
           canvas.style.cursor = 'text'
           break
@@ -1813,7 +2176,161 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           canvas.style.cursor = 'default'
       }
     }
-  }, [tool, isCreatingPolygon, isCreatingPolygonSection])
+  }, [tool, isCreatingPolygon, isCreatingPolygonSection, isDraggingElement])
+
+  // useEffect para manejar teclas de acceso rápido
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Solo procesar si no estamos editando texto
+      if (isEditingInPlace) return
+
+      switch (e.key) {
+        case 'h':
+        case 'H':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            setTool('hand')
+          }
+          break
+        case 'v':
+          if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            setTool('select')
+          }
+          break
+        case 'z':
+        case 'Z':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            if (e.shiftKey) {
+              redo()
+            } else {
+              undo()
+            }
+          }
+          break
+        case 'y':
+        case 'Y':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            redo()
+          }
+          break
+        case 'c':
+        case 'C':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            copySelected()
+          }
+          break
+        case 'v':
+        case 'V':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            pasteFromClipboard()
+          }
+          break
+        case 'Delete':
+        case 'Backspace':
+          if (selectedElement) {
+            setElements(prev => prev.filter(e => e.id !== selectedElement))
+            setSections(prev => prev.filter(s => s.id !== selectedElement))
+            setSelectedElement(null)
+            saveToHistory()
+          }
+          break
+        case 'Enter':
+          // Completar polígono si tiene al menos 3 puntos
+          if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length >= 3) {
+            const newPolygon: Polygon = {
+              id: currentPolygonId!,
+              type: 'polygon',
+              name: newElementName || `Polígono ${elements.filter(e => e.type === 'polygon').length + 1}`,
+              points: [...polygonPoints],
+              rotation: 0,
+              color: newElementColor,
+              strokeColor: newElementColor,
+              strokeWidth: 2,
+              filled: true
+            }
+            
+            setElements(prev => [...prev, newPolygon])
+            setSelectedElement(newPolygon.id)
+            
+            // Limpiar estado
+            setIsCreatingPolygon(false)
+            setPolygonPoints([])
+            setCurrentPolygonId(null)
+            setMousePosition(null)
+          }
+          // Completar sección polígono si tiene al menos 3 puntos
+          else if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length >= 3) {
+            const newPolygonSection: PolygonSection = {
+              id: currentPolygonSectionId!,
+              type: 'polygonSection',
+              name: newSectionName || `Sección Polígono ${elements.filter(e => e.type === 'polygonSection').length + 1}`,
+              points: [...polygonSectionPoints],
+              rotation: 0,
+              color: newSectionColor,
+              capacity: 50, // Capacidad inicial por defecto
+              seats: []
+            }
+            
+            setElements(prev => [...prev, newPolygonSection])
+            setSelectedElement(newPolygonSection.id)
+            
+            // Limpiar estado
+            setIsCreatingPolygonSection(false)
+            setPolygonSectionPoints([])
+            setCurrentPolygonSectionId(null)
+            setMousePosition(null)
+          }
+          break
+        
+        case 'Escape':
+          // Cancelar creación de polígono
+          if (isCreatingPolygon) {
+            setIsCreatingPolygon(false)
+            setPolygonPoints([])
+            setCurrentPolygonId(null)
+            setMousePosition(null)
+          }
+          if (isCreatingPolygonSection) {
+            setIsCreatingPolygonSection(false)
+            setPolygonSectionPoints([])
+            setCurrentPolygonSectionId(null)
+            setMousePosition(null)
+          }
+          // Deseleccionar elemento
+          setSelectedElement(null)
+          break
+        
+        case 'Delete':
+        case 'Backspace':
+          // Eliminar elemento seleccionado
+          if (selectedElement) {
+            setSections(prev => prev.filter(s => s.id !== selectedElement))
+            setElements(prev => prev.filter(e => e.id !== selectedElement))
+            setSelectedElement(null)
+          }
+          break
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [tool, isCreatingPolygon, polygonPoints, currentPolygonId, newElementName, elements, newElementColor, isCreatingPolygonSection, polygonSectionPoints, currentPolygonSectionId, newSectionName, newSectionColor, selectedElement, isEditingInPlace, undo, redo, copySelected, pasteFromClipboard, saveToHistory, setSections, setElements, setSelectedElement, setTool])
+
+  // Auto-guardar en historial cuando cambian sections o elements
+  useEffect(() => {
+    if (sections.length > 0 || elements.length > 0) {
+      const timeoutId = setTimeout(() => {
+        saveToHistory()
+      }, 1000) // Guardar después de 1 segundo sin cambios
+      
+      return () => clearTimeout(timeoutId)
+    }
+  }, [sections, elements, saveToHistory])
 
   return (
     <div className="w-full h-full bg-background flex flex-col">
@@ -1833,6 +2350,18 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
               title="Seleccionar y mover elementos"
             >
               <Move className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={tool === 'hand' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setTool('hand')}
+              className={tool === 'hand' 
+                ? "bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-sm" 
+                : "hover:bg-orange-600/10"
+              }
+              title="Herramienta de mano - Arrastrar elementos libremente"
+            >
+              <Hand className="w-4 h-4" />
             </Button>
             <div className="w-px h-6 bg-border/50" />
             <Button
@@ -1985,6 +2514,100 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </Button>
           </div>
           
+          <div className="w-px h-6 bg-border/50" />
+          
+          {/* Controles de Simetría */}
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
+            <Button
+              variant={symmetryEnabled ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setSymmetryEnabled(!symmetryEnabled)}
+              className={symmetryEnabled 
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                : "hover:bg-purple-600/10"
+              }
+              title="Activar/desactivar simetría"
+            >
+              <FlipHorizontal className="w-4 h-4" />
+            </Button>
+            {symmetryEnabled && (
+              <>
+                <Button
+                  variant={symmetryAxis === 'vertical' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setSymmetryAxis('vertical')}
+                  className="text-xs px-2"
+                  title="Simetría vertical"
+                >
+                  |
+                </Button>
+                <Button
+                  variant={symmetryAxis === 'horizontal' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setSymmetryAxis('horizontal')}
+                  className="text-xs px-2"
+                  title="Simetría horizontal"
+                >
+                  —
+                </Button>
+              </>
+            )}
+          </div>
+          
+          <div className="w-px h-6 bg-border/50" />
+          
+          {/* Herramientas Avanzadas */}
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={undo}
+              disabled={historyIndex <= 0}
+              title="Deshacer (Ctrl+Z)"
+            >
+              <Undo className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={redo}
+              disabled={historyIndex >= history.length - 1}
+              title="Rehacer (Ctrl+Y)"
+            >
+              <Redo className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={copySelected}
+              disabled={selectedElements.length === 0}
+              title="Copiar (Ctrl+C)"
+            >
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={pasteFromClipboard}
+              disabled={!clipboard}
+              title="Pegar (Ctrl+V)"
+            >
+              <Clipboard className="w-4 h-4" />
+            </Button>
+          </div>
+          
+          <div className="w-px h-6 bg-border/50" />
+          
+          {/* Panel de Capas */}
+          <Button
+            variant={showLayers ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setShowLayers(!showLayers)}
+            title="Mostrar/ocultar capas"
+          >
+            <Layers className="w-4 h-4" />
+          </Button>
+          
           <Button
             variant="ghost"
             size="sm"
@@ -1996,6 +2619,60 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </Button>
           
           <div className="w-px h-6 bg-border/50" />
+          
+          <div className="w-px h-6 bg-border/50" />
+          
+          {/* Importar/Exportar */}
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const data = { sections, elements, layers }
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `venue-${Date.now()}.json`
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+              title="Exportar diseño"
+            >
+              <Download className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = '.json'
+                input.onchange = (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0]
+                  if (file) {
+                    const reader = new FileReader()
+                    reader.onload = (e) => {
+                      try {
+                        const data = JSON.parse(e.target?.result as string)
+                        if (data.sections) setSections(data.sections)
+                        if (data.elements) setElements(data.elements)
+                        if (data.layers) setLayers(data.layers)
+                        saveToHistory()
+                      } catch {
+                        alert('Error al cargar el archivo')
+                      }
+                    }
+                    reader.readAsText(file)
+                  }
+                }
+                input.click()
+              }}
+              title="Importar diseño"
+            >
+              <Upload className="w-4 h-4" />
+            </Button>
+          </div>
           
           <Button
             onClick={handleSave}
@@ -2009,34 +2686,42 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       </div>
 
       {}
-      <div className="flex flex-1 bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
+      <div className="flex flex-1 h-0 bg-gradient-to-br from-[#0053CC]/5 via-[#01CBFE]/5 to-[#CC66CC]/5">
         {}
         {sidebarVisible && (
-          <div className="w-72 transition-all duration-300 ease-in-out bg-background/95 backdrop-blur-sm border-r shadow-lg flex flex-col h-full">
-            <div className="p-4 space-y-4 overflow-y-auto flex-1 hover:scrollbar-thumb-muted-foreground/40 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/40">
+          <div className="w-[480px] transition-all duration-300 ease-in-out bg-background/95 backdrop-blur-sm border-r shadow-lg flex flex-col h-full">
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 max-h-full min-h-0 
+                        [&::-webkit-scrollbar]:w-3 
+                        [&::-webkit-scrollbar-track]:bg-transparent 
+                        [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 
+                        [&::-webkit-scrollbar-thumb]:rounded-full 
+                        [&::-webkit-scrollbar-thumb:hover]:bg-muted-foreground/40
+                        [&::-webkit-scrollbar-corner]:bg-transparent">
           {}
           <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <div className="w-6 h-6 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-md flex items-center justify-center">
-                  <MousePointer className="w-3 h-3 text-white" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-3 text-base">
+                <div className="w-8 h-8 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center">
+                  <MousePointer className="w-4 h-4 text-white" />
                 </div>
                 Herramienta Activa
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
-                {tool === 'select' && <Move className="w-4 h-4 text-primary" />}
-                {tool === 'section' && <Square className="w-4 h-4 text-[#CC66CC]" />}
-                {tool === 'polygonSection' && <Pentagon className="w-4 h-4 text-orange-600" />}
-                {tool === 'stage' && <Theater className="w-4 h-4 text-purple-600" />}
-                {tool === 'entrance' && <DoorOpen className="w-4 h-4 text-green-600" />}
-                {tool === 'rectangle' && <Square className="w-4 h-4 text-blue-600" />}
-                {tool === 'circle' && <Circle className="w-4 h-4 text-blue-600" />}
-                {tool === 'polygon' && <Shapes className="w-4 h-4 text-emerald-600" />}
-                {tool === 'text' && <Type className="w-4 h-4 text-amber-600" />}
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                {tool === 'select' && <Move className="w-5 h-5 text-primary" />}
+                {tool === 'hand' && <Hand className="w-5 h-5 text-orange-600" />}
+                {tool === 'section' && <Square className="w-5 h-5 text-[#CC66CC]" />}
+                {tool === 'polygonSection' && <Pentagon className="w-5 h-5 text-orange-600" />}
+                {tool === 'stage' && <Theater className="w-5 h-5 text-purple-600" />}
+                {tool === 'entrance' && <DoorOpen className="w-5 h-5 text-green-600" />}
+                {tool === 'rectangle' && <Square className="w-5 h-5 text-blue-600" />}
+                {tool === 'circle' && <Circle className="w-5 h-5 text-blue-600" />}
+                {tool === 'polygon' && <Shapes className="w-5 h-5 text-emerald-600" />}
+                {tool === 'text' && <Type className="w-5 h-5 text-amber-600" />}
                 <span className="text-sm font-medium">
                   {tool === 'select' && 'Seleccionar'}
+                  {tool === 'hand' && 'Mano (Arrastrar)'}
                   {tool === 'section' && 'Sección Rectangular'}
                   {tool === 'polygonSection' && 'Sección Poligonal'}
                   {tool === 'stage' && 'Escenario'}
@@ -2048,10 +2733,11 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                 </span>
               </div>
               {}
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
                 {tool === 'select' && 'Click en elementos para seleccionar y editar'}
+                {tool === 'hand' && 'Click y arrastra cualquier elemento para moverlo libremente'}
                 {tool === 'section' && 'Arrastra para crear una sección rectangular'}
-                {tool === 'polygonSection' && 'Click para crear puntos, doble click para finalizar'}
+                {tool === 'polygonSection' && 'Click para crear puntos, doble click para finalizar. Define capacidad numérica.'}
                 {tool === 'stage' && 'Arrastra para posicionar el escenario'}
                 {tool === 'entrance' && 'Arrastra para crear una entrada'}
                 {tool === 'rectangle' && 'Arrastra para dibujar un rectángulo'}
@@ -2059,38 +2745,128 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                 {tool === 'polygon' && 'Click para crear puntos, doble click para finalizar'}
                 {tool === 'text' && 'Click donde quieres agregar texto'}
               </p>
+              <div className="mt-2 text-xs text-muted-foreground/70 bg-muted/30 p-2 rounded">
+                💡 Atajos: V = Seleccionar, H = Mano, Ctrl+Z = Deshacer, Ctrl+Y = Rehacer
+              </div>
             </CardContent>
           </Card>
 
+          {/* Card de Simetría */}
+          {symmetryEnabled && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                    <FlipHorizontal className="w-4 h-4 text-white" />
+                  </div>
+                  Modo Simetría Activo
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="w-2 h-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">
+                      Simetría {symmetryAxis === 'vertical' ? 'Vertical' : 'Horizontal'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    ✨ Los elementos que crees se duplicarán automáticamente en espejo {symmetryAxis === 'vertical' ? 'del lado opuesto' : 'arriba/abajo'}.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant={symmetryAxis === 'vertical' ? 'default' : 'outline'}
+                      onClick={() => setSymmetryAxis('vertical')}
+                      className="flex-1"
+                    >
+                      Vertical |
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={symmetryAxis === 'horizontal' ? 'default' : 'outline'}
+                      onClick={() => setSymmetryAxis('horizontal')}
+                      className="flex-1"
+                    >
+                      Horizontal —
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Herramientas de Alineación */}
+          {selectedElements.length > 1 && (
+            <Card className="border-0 shadow-lg">
+              <CardHeader className="bg-gradient-to-r from-green-600/10 to-blue-600/10 pb-4">
+                <CardTitle className="flex items-center gap-3 text-lg">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <AlignCenter className="w-4 h-4 text-white" />
+                  </div>
+                  Alineación ({selectedElements.length} elementos)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-5">
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => alignElements('left')}
+                    title="Alinear a la izquierda"
+                  >
+                    <AlignLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => alignElements('center')}
+                    title="Alinear al centro"
+                  >
+                    <AlignCenter className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => alignElements('right')}
+                    title="Alinear a la derecha"
+                  >
+                    <AlignRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {}
         {tool === 'stage' && (
-          <Card className="mb-6 border-0 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
                   <Theater className="w-4 h-4 text-white" />
                 </div>
                 Nuevo Escenario
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-5 pt-5">
+              <div className="space-y-3">
                 <Label htmlFor="stage-name" className="text-sm font-medium">Nombre del escenario</Label>
                 <Input
                   id="stage-name"
                   value={newElementName}
                   onChange={(e) => setNewElementName(e.target.value)}
                   placeholder="Ej: Escenario Principal, Tarima VIP"
-                  className="border-2 focus:border-purple-600 transition-colors"
+                  className="border-2 focus:border-purple-600 transition-colors h-10"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className="text-sm font-medium">Color del escenario</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-4 gap-3 mt-2">
                   {COLORS.map(color => (
                     <button
                       key={color}
-                      className={`w-10 h-10 rounded-xl border-2 transition-all hover:scale-105 ${
+                      className={`w-12 h-12 rounded-xl border-2 transition-all hover:scale-105 ${
                         newElementColor === color ? 'border-foreground shadow-lg' : 'border-muted-foreground/30'
                       }`}
                       style={{ backgroundColor: color }}
@@ -2100,7 +2876,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                 </div>
               </div>
               <div className="pt-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   🎭 Arrastra en el lienzo para crear el escenario
                 </p>
               </div>
@@ -2434,7 +3210,10 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       
                       if (element.type === 'section') {
                         const newSections = sections.filter(s => s.id !== selectedElement);
-                        onSave?.(newSections);
+                        setSections(newSections);
+                        // Guardado automático se encarga del resto
+                      } else {
+                        // Si es un elemento (no sección), guardado automático se encarga del resto
                       }
                     }}
                     className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
@@ -2705,32 +3484,32 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         {}
         {tool === 'polygonSection' && (
           <Card className="border-0 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-orange-600/10 to-red-600/10 pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
+            <CardHeader className="bg-gradient-to-r from-orange-600/10 to-red-600/10 pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg">
                 <div className="w-8 h-8 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
                   <Pentagon className="w-4 h-4 text-white" />
                 </div>
                 Sección Poligonal
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-2">
+            <CardContent className="space-y-5 pt-5">
+              <div className="space-y-3">
                 <Label htmlFor="polygon-section-name" className="text-sm font-medium">Nombre de la sección</Label>
                 <Input
                   id="polygon-section-name"
                   value={newSectionName}
                   onChange={(e) => setNewSectionName(e.target.value)}
                   placeholder="Ej: Palco Lateral, VIP Especial"
-                  className="border-2 focus:border-orange-600 transition-colors"
+                  className="border-2 focus:border-orange-600 transition-colors h-10"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label className="text-sm font-medium">Color de la sección</Label>
-                <div className="grid grid-cols-4 gap-2 mt-2">
+                <div className="grid grid-cols-4 gap-3 mt-2">
                   {COLORS.map(color => (
                     <button
                       key={color}
-                      className={`w-10 h-10 rounded-xl border-2 transition-all hover:scale-105 ${
+                      className={`w-12 h-12 rounded-xl border-2 transition-all hover:scale-105 ${
                         newSectionColor === color ? 'border-foreground shadow-lg' : 'border-muted-foreground/30'
                       }`}
                       style={{ backgroundColor: color }}
@@ -2901,8 +3680,8 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
         {}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-4">
+            <CardTitle className="flex items-center gap-3 text-lg">
               <div className="w-8 h-8 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg flex items-center justify-center">
                 <Pentagon className="w-4 h-4 text-white" />
               </div>
@@ -2914,15 +3693,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-5">
             {elements.filter(e => e.type === 'polygonSection').length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <Pentagon className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <Pentagon className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-sm">No hay secciones poligonales creadas</p>
-                <p className="text-xs mt-1">Selecciona &quot;Sección Polígono&quot; y dibuja en el lienzo</p>
+                <p className="text-xs mt-2 leading-relaxed">Selecciona &quot;Sección Polígono&quot; y dibuja en el lienzo</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {elements
                   .filter(e => e.type === 'polygonSection')
                   .map(polygonSection => (
@@ -2938,37 +3717,40 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div
-                            className="w-6 h-6 rounded-lg shadow-sm flex items-center justify-center"
+                            className="w-8 h-8 rounded-lg shadow-sm flex items-center justify-center"
                             style={{ backgroundColor: polygonSection.color }}
                           >
-                            <Pentagon className="w-3 h-3 text-white" />
+                            <Pentagon className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <span className="font-semibold text-sm">{polygonSection.name}</span>
-                            <p className="text-xs text-muted-foreground">
-                              {polygonSection.seats.length} asientos • {polygonSection.points.length} puntos
+                            <span className="font-semibold text-base">{polygonSection.name}</span>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                              <span className="font-medium">{polygonSection.capacity || 0} asientos</span>
+                              <span>•</span>
+                              <span>{polygonSection.points.length} puntos</span>
                             </p>
                           </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              
-                              const newSeats = generateSeatsForPolygonSection(polygonSection)
-                              setElements(prev => prev.map(el => 
-                                el.id === polygonSection.id && el.type === 'polygonSection'
-                                  ? { ...el, seats: newSeats }
-                                  : el
-                              ))
-                            }}
-                            className="h-8 w-8 p-0 border-2 hover:border-green-500 hover:text-green-600"
-                            title="Regenerar asientos"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                        <div className="flex gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Capacidad:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="9999"
+                              value={polygonSection.capacity || 0}
+                              onChange={(e) => {
+                                const capacity = parseInt(e.target.value) || 0
+                                setElements(prev => prev.map(el => 
+                                  el.id === polygonSection.id && el.type === 'polygonSection'
+                                    ? { ...el, capacity }
+                                    : el
+                                ))
+                              }}
+                              className="w-20 h-8 px-2 text-sm border rounded-md"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
                           <Button
                             size="sm"
                             variant="outline"
@@ -2990,30 +3772,76 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </CardContent>
         </Card>
 
-        <Card className="mt-6 border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-3">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <div className="w-6 h-6 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+        {/* Panel de Capas */}
+        {showLayers && (
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 pb-4">
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Layers className="w-4 h-4 text-white" />
+                </div>
+                Capas
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-5">
+              <div className="space-y-3">
+                {layers.map(layer => (
+                  <div
+                    key={layer.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30"
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setLayers(prev => 
+                        prev.map(l => l.id === layer.id ? { ...l, visible: !l.visible } : l)
+                      )}
+                      className="h-6 w-6 p-0"
+                    >
+                      {layer.visible ? '👁️' : '🙈'}
+                    </Button>
+                    <span className="flex-1 text-sm font-medium">{layer.name}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setLayers(prev => 
+                        prev.map(l => l.id === layer.id ? { ...l, locked: !l.locked } : l)
+                      )}
+                      className="h-6 w-6 p-0"
+                    >
+                      {layer.locked ? '🔒' : '🔓'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent pb-4">
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#01CBFE] to-[#CC66CC] rounded-lg flex items-center justify-center">
+                <div className="w-3 h-3 bg-white rounded-full"></div>
               </div>
               Leyenda de asientos
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 pt-4">
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-4 h-4 rounded-full bg-green-500 shadow-sm"></div>
+          <CardContent className="space-y-4 pt-5">
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-5 h-5 rounded-full bg-green-500 shadow-sm"></div>
               <span>Asientos disponibles</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-4 h-4 rounded-full bg-red-500 shadow-sm"></div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-5 h-5 rounded-full bg-red-500 shadow-sm"></div>
               <span>Asientos bloqueados</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-4 h-4 rounded-full bg-amber-500 shadow-sm"></div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-5 h-5 rounded-full bg-amber-500 shadow-sm"></div>
               <span>En mantenimiento</span>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="w-4 h-4 rounded border-2 border-blue-500 bg-blue-50"></div>
+            <div className="flex items-center gap-4 text-sm">
+              <div className="w-5 h-5 rounded border-2 border-blue-500 bg-blue-50"></div>
               <span>Accesible (♿)</span>
             </div>
           </CardContent>
@@ -3031,6 +3859,16 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           <p className="text-xs text-center text-muted-foreground">
             Los cambios se guardarán automáticamente
           </p>
+          
+          {/* Indicador visual de scroll */}
+          <div className="mt-8 pt-4 border-t border-border/50">
+            <div className="text-center text-muted-foreground">
+              <div className="inline-flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-full text-xs">
+                <div className="w-2 h-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] rounded-full animate-pulse"></div>
+                Editor Visual de Venues
+              </div>
+            </div>
+          </div>
         </div>
             </div>
           </div>
@@ -3077,6 +3915,92 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </div>
         </div>
 
+        {/* Panel de instrucciones para polígonos */}
+        {(isCreatingPolygon || isCreatingPolygonSection) && (
+          <div className="absolute top-6 right-6 bg-blue-500/95 backdrop-blur-sm p-4 rounded-xl border-0 shadow-lg text-white max-w-sm">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                <span className="font-medium">
+                  {isCreatingPolygon ? 'Creando Polígono' : 'Creando Sección Polígono'}
+                </span>
+              </div>
+              
+              <div className="text-sm space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-200">Puntos:</span>
+                  <span className="font-medium">
+                    {(isCreatingPolygon ? polygonPoints.length : polygonSectionPoints.length)} / mín. 3
+                  </span>
+                </div>
+                
+                <div className="space-y-1 text-xs">
+                  <div>• Clic para agregar punto</div>
+                  <div>• Clic cerca del primer punto para cerrar</div>
+                  <div>• Doble clic para terminar</div>
+                  <div>• <kbd className="bg-white/20 px-1 rounded">Enter</kbd> para completar</div>
+                  <div>• <kbd className="bg-white/20 px-1 rounded">Esc</kbd> para cancelar</div>
+                </div>
+              </div>
+              
+              {(polygonPoints.length >= 3 || polygonSectionPoints.length >= 3) && (
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="text-xs flex-1"
+                    onClick={() => {
+                      if (isCreatingPolygon && polygonPoints.length >= 3) {
+                        const newPolygon: Polygon = {
+                          id: currentPolygonId!,
+                          type: 'polygon',
+                          name: newElementName || `Polígono ${elements.filter(e => e.type === 'polygon').length + 1}`,
+                          points: [...polygonPoints],
+                          rotation: 0,
+                          color: newElementColor,
+                          strokeColor: newElementColor,
+                          strokeWidth: 2,
+                          filled: true
+                        }
+                        
+                        setElements(prev => [...prev, newPolygon])
+                        setSelectedElement(newPolygon.id)
+                        setIsCreatingPolygon(false)
+                        setPolygonPoints([])
+                        setCurrentPolygonId(null)
+                        setMousePosition(null)
+                      }
+                    }}
+                  >
+                    ✓ Completar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                    onClick={() => {
+                      if (isCreatingPolygon) {
+                        setIsCreatingPolygon(false)
+                        setPolygonPoints([])
+                        setCurrentPolygonId(null)
+                        setMousePosition(null)
+                      }
+                      if (isCreatingPolygonSection) {
+                        setIsCreatingPolygonSection(false)
+                        setPolygonSectionPoints([])
+                        setCurrentPolygonSectionId(null)
+                        setMousePosition(null)
+                      }
+                    }}
+                  >
+                    ✕ Cancelar
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {sections.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center space-y-4 p-8 bg-background/80 backdrop-blur-sm rounded-2xl border shadow-lg">
@@ -3092,6 +4016,36 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </div>
           </div>
         )}
+
+        {/* Indicador de Estado */}
+        <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">
+          <div className="flex items-center gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span>Editor Activo</span>
+            </div>
+            <div className="w-px h-4 bg-border"></div>
+            <span className="text-muted-foreground">
+              {sections.length + elements.length} elementos
+            </span>
+            {historyIndex >= 0 && (
+              <>
+                <div className="w-px h-4 bg-border"></div>
+                <span className="text-muted-foreground">
+                  Historial: {historyIndex + 1}/{history.length}
+                </span>
+              </>
+            )}
+            {selectedElements.length > 0 && (
+              <>
+                <div className="w-px h-4 bg-border"></div>
+                <span className="text-blue-600 font-medium">
+                  {selectedElements.length} seleccionado{selectedElements.length > 1 ? 's' : ''}
+                </span>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
     </div>

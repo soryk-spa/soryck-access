@@ -33,14 +33,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         createdBy: user.id,
       },
       include: {
-        sections: {
-          include: {
-            venueSeats: true,
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
+        creator: true,
+        events: true,
       },
     });
 
@@ -48,28 +42,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    
-    const sections = venue.sections.map(section => ({
-      id: section.id,
-      name: section.name,
-      color: section.color,
-      x: section.x,
-      y: section.y,
-      width: section.width,
-      height: section.height,
-      seats: section.venueSeats.map(seat => ({
-        id: seat.id,
-        row: seat.row,
-        number: seat.number,
-        x: seat.x,
-        y: seat.y,
-        status: 'AVAILABLE' as const,
-      })),
-    }));
-
+    // Return venue layout with sections and elements
     return NextResponse.json({
       venueId: venue.id,
-      sections,
+      name: venue.name,
+      description: venue.description,
+      address: venue.address,
+      capacity: venue.capacity,
+      sections: venue.layoutSections || [], // Return the sections
+      elements: venue.layoutElements || [], // Return the visual elements
     });
   } catch (error) {
     console.error("Error fetching venue layout:", error);
@@ -98,10 +79,32 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
-    const body = await request.json();
-    const { sections } = body;
-
     
+    // Handle potential empty body
+    let body;
+    try {
+      const text = await request.text();
+      if (!text.trim()) {
+        console.log("⚠️ Petición con cuerpo vacío recibida, ignorando...");
+        return NextResponse.json({ 
+          message: "Petición vacía ignorada",
+          venueId: id
+        });
+      }
+      body = JSON.parse(text);
+    } catch (error) {
+      console.error("❌ Error parsing JSON:", error);
+      return NextResponse.json(
+        { error: "Formato JSON inválido" },
+        { status: 400 }
+      );
+    }
+
+    const { sections = [], elements = [] } = body;
+
+    console.log(`💾 Guardando venue ${id}: ${sections.length} secciones, ${elements.length} elementos`);
+
+    // Verify venue ownership
     const venue = await prisma.venue.findFirst({
       where: {
         id,
@@ -113,82 +116,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    
-    await prisma.$transaction(async (tx) => {
-      
-      await tx.venueSeat.deleteMany({
-        where: {
-          section: {
-            venueId: id,
-          },
-        },
-      });
+    // Calculate total capacity from sections
+    const totalCapacity = sections.reduce((total: number, section: { seats?: unknown[] }) => {
+      return total + (section.seats?.length || 0);
+    }, 0);
 
-      await tx.venueSection.deleteMany({
-        where: {
-          venueId: id,
-        },
-      });
-
-      
-      for (const section of sections) {
-        const createdSection = await tx.venueSection.create({
-          data: {
-            id: section.id,
-            name: section.name,
-            color: section.color,
-            x: section.x,
-            y: section.y,
-            width: section.width,
-            height: section.height,
-            seatLayout: {},
-            venueId: id,
-          },
-        });
-
-        
-        if (section.seats && section.seats.length > 0) {
-          const seatsData = section.seats.map((seat: {
-            id: string;
-            row: string;
-            number: string;
-            x: number;
-            y: number;
-          }) => ({
-            id: seat.id,
-            row: seat.row,
-            number: seat.number,
-            x: seat.x,
-            y: seat.y,
-            sectionId: createdSection.id,
-          }));
-
-          await tx.venueSeat.createMany({
-            data: seatsData,
-          });
-        }
-      }
-
-      
-      const totalSeats = sections.reduce((total: number, section: {
-        seats?: Array<{ id: string; row: string; number: string; x: number; y: number }>;
-      }) => {
-        return total + (section.seats?.length || 0);
-      }, 0);
-
-      await tx.venue.update({
-        where: {
-          id,
-        },
-        data: {
-          capacity: totalSeats,
-        },
-      });
+    // Update venue with both sections and elements
+    await prisma.venue.update({
+      where: { id },
+      data: {
+        capacity: totalCapacity || venue.capacity,
+        layoutSections: sections, // Store the sections
+        layoutElements: elements, // Store the visual elements
+      },
     });
+
+    console.log(`✅ Venue ${id} guardado exitosamente en DB`);
 
     return NextResponse.json({ 
       message: "Layout guardado exitosamente",
       venueId: id,
+      sections: sections,
+      elements: elements
     });
   } catch (error) {
     console.error("Error saving venue layout:", error);

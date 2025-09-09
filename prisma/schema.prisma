@@ -474,15 +474,17 @@ model Commission {
 
 // Simplified Venue System
 model Venue {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  address     String?
-  capacity    Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   String
-  creator     User     @relation("CreatedVenues", fields: [createdBy], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  address        String?
+  capacity       Int?
+  layoutElements Json?    // Store visual elements (shapes, stages, etc.)
+  layoutSections Json?    // Store seating sections for the venue layout
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String
+  creator        User     @relation("CreatedVenues", fields: [createdBy], references: [id], onDelete: Cascade)
 
   events Event[]
 
