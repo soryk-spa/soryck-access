@@ -112,6 +112,39 @@ const EventCard = ({ event }: { event: Event }) => {
 
   const { day, month, time } = formatDate(event.startDate);
   const soldOutPercentage = (event._count.tickets / event.capacity) * 100;
+  
+  const getPriceDisplay = () => {
+    // Si el evento está marcado como gratis, mostrar "Gratis"
+    if (event.isFree) return { text: "Gratis", isGreen: true };
+    
+    // Recopilar todos los precios disponibles
+    const allPrices: number[] = [];
+    
+    // Agregar el precio base del evento si existe
+    if (event.price && event.price > 0) {
+      allPrices.push(event.price);
+    }
+    
+    // Agregar precios de tipos de tickets si existen
+    if (event.ticketTypes?.length) {
+      const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+      allPrices.push(...ticketPrices);
+    }
+    
+    // Si no hay precios, mostrar como gratis
+    if (allPrices.length === 0) return { text: "Gratis", isGreen: true };
+    
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    
+    // Si todos los precios son iguales, mostrar precio único
+    if (minPrice === maxPrice) {
+      return { text: `$${minPrice.toLocaleString()}`, isGreen: false };
+    }
+    
+    // Si hay diferentes precios, mostrar rango
+    return { text: `Desde $${minPrice.toLocaleString()}`, isGreen: false };
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-900 shadow-sm">
@@ -173,13 +206,9 @@ const EventCard = ({ event }: { event: Event }) => {
         
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="space-y-1">
-            {event.isFree ? (
-              <div className="text-lg font-bold text-green-600">Gratis</div>
-            ) : (
-              <div className="text-lg font-bold text-gray-900 dark:text-white">
-                ${event.price.toLocaleString()}
-              </div>
-            )}
+            <div className={`text-lg font-bold ${getPriceDisplay().isGreen ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
+              {getPriceDisplay().text}
+            </div>
             <div className="text-xs text-gray-500">por persona</div>
           </div>
           
