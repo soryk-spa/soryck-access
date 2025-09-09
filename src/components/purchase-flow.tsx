@@ -27,6 +27,7 @@ interface Event {
   title: string
   location: string
   startDate: string
+  hasSeatingPlan?: boolean
 }
 
 interface SelectedSeat {

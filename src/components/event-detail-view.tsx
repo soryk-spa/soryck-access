@@ -1002,15 +1002,10 @@ export default function EventDetailView({
             location: event.location,
             hasSeatingPlan: event.hasSeatingPlan || false
           }}
+          eventId={event.id}
           sections={event.sections}
           isOpen={showPurchaseFlow}
           onClose={() => setShowPurchaseFlow(false)}
-          onPurchaseComplete={() => {
-            setShowPurchaseFlow(false)
-            toast.success('¡Compra realizada exitosamente!')
-            // Aquí podrías redirigir a una página de confirmación
-            // router.push(`/orders/${orderId}`)
-          }}
         />
       )}
     </div>

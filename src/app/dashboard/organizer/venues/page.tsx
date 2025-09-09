@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,15 +8,11 @@ import {
   Plus,
   MapPin,
   Users,
-  Calendar,
   Settings,
   Edit,
-  Trash2,
   ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
 
 export default async function VenuesPage() {
   const user = await requireAuth();

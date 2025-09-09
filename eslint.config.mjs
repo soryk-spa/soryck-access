@@ -20,12 +20,19 @@ const eslintConfig = [
     },
   },
   {
+    files: ["src/__tests__/**/*.test.ts", "src/__tests__/**/*.test.tsx"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/",
       ".next/",
       "out/",
       "dist/",
       "src/generated/**/*",
+      "src/__tests__/**/*",
     ],
   },
 ];
