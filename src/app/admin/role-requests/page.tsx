@@ -1,4 +1,4 @@
-
+// src/app/admin/role-requests/page.tsx
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RoleRequestsPageClient } from "@/components/role-requests-page-client";
@@ -6,14 +6,14 @@ import { RoleRequestsPageClient } from "@/components/role-requests-page-client";
 export default async function RoleRequestsPage() {
   const currentUser = await requireAdmin();
 
-  
+  // Obtener todas las solicitudes de rol con información detallada
   const [
     allRequests,
     pendingRequests,
     approvedRequests,
     rejectedRequests,
   ] = await Promise.all([
-    
+    // Todas las solicitudes
     prisma.roleRequest.findMany({
       include: {
         user: {
@@ -30,7 +30,7 @@ export default async function RoleRequestsPage() {
       orderBy: { createdAt: "desc" },
     }),
 
-    
+    // Solicitudes pendientes
     prisma.roleRequest.findMany({
       where: { status: "PENDING" },
       include: {
@@ -48,7 +48,7 @@ export default async function RoleRequestsPage() {
       orderBy: { createdAt: "desc" },
     }),
 
-    
+    // Solicitudes aprobadas (últimos 30 días)
     prisma.roleRequest.count({
       where: {
         status: "APPROVED",
@@ -58,7 +58,7 @@ export default async function RoleRequestsPage() {
       },
     }),
 
-    
+    // Solicitudes rechazadas (últimos 30 días)
     prisma.roleRequest.count({
       where: {
         status: "REJECTED",
@@ -76,7 +76,7 @@ export default async function RoleRequestsPage() {
       ? ((approvedRequests + rejectedRequests) / totalRequests) * 100
       : 0;
 
-  
+  // Serializar fechas para el componente cliente
   const serializedRequests = allRequests.map((request) => ({
     ...request,
     createdAt: request.createdAt.toISOString(),

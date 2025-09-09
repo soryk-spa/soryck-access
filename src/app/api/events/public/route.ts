@@ -138,6 +138,26 @@ export async function GET(request: NextRequest) {
               currency: true
             }
           },
+          regionRef: {
+            select: {
+              id: true,
+              name: true,
+              code: true
+            }
+          },
+          comunaRef: {
+            select: {
+              id: true,
+              name: true,
+              region: {
+                select: {
+                  id: true,
+                  name: true,
+                  code: true
+                }
+              }
+            }
+          },
           _count: {
             select: {
               tickets: true,
