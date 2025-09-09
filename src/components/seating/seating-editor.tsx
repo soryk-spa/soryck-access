@@ -39,10 +39,6 @@ import {
   AlignRight,
   Download,
   Upload,
-  RotateCcw,
-  RotateCw,
-  Group,
-  Ungroup,
   Hand
 } from 'lucide-react'
 
@@ -167,7 +163,7 @@ const ENTRANCE_COLORS = {
 }
 
 const SEAT_SIZE = 20
-const GRID_SIZE = 10
+// const GRID_SIZE = 10
 
 export function SeatingEditor({ initialSections = [], initialElements = [], onSave }: SeatingEditorProps) {
   const { resolvedTheme } = useTheme()
@@ -186,12 +182,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   
   const [isEditingInPlace, setIsEditingInPlace] = useState(false)
-  const [editingText, setEditingText] = useState('')
+  const [editingText, setEditingText] = useState('') // eslint-disable-line @typescript-eslint/no-unused-vars
   const [isResizing, setIsResizing] = useState(false)
   const [resizeHandle, setResizeHandle] = useState<'nw' | 'ne' | 'sw' | 'se' | null>(null)
   const [showGrid, setShowGrid] = useState(false)
-  const [snapToGrid, setSnapToGrid] = useState(true)
-  const [gridSize, setGridSize] = useState(20)
+  const [snapToGrid, setSnapToGrid] = useState(true) // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [gridSize, setGridSize] = useState(20) // eslint-disable-line @typescript-eslint/no-unused-vars
   
   
   const [creationMode, setCreationMode] = useState<'manual' | 'bySeats'>('manual')
@@ -216,7 +212,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   // Estados para simetría
   const [symmetryEnabled, setSymmetryEnabled] = useState(false)
   const [symmetryAxis, setSymmetryAxis] = useState<'vertical' | 'horizontal'>('vertical')
-  const [symmetryLine, setSymmetryLine] = useState(600) // Posición de la línea de simetría
+  const [symmetryLine, setSymmetryLine] = useState(600) // eslint-disable-line @typescript-eslint/no-unused-vars
   
   // Sistema de Deshacer/Rehacer
   const [history, setHistory] = useState<{sections: Section[], elements: VenueElement[]}[]>([])
@@ -224,7 +220,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   const [clipboard, setClipboard] = useState<{sections: Section[], elements: VenueElement[]} | null>(null)
   
   // Estados para herramientas avanzadas
-  const [selectedElements, setSelectedElements] = useState<string[]>([])
+  const [selectedElements, setSelectedElements] = useState<string[]>([]) // eslint-disable-line @typescript-eslint/no-unused-vars
   const [showLayers, setShowLayers] = useState(false)
   const [layers, setLayers] = useState<{id: string, name: string, visible: boolean, locked: boolean}[]>([
     { id: 'default', name: 'Capa Principal', visible: true, locked: false }
@@ -267,7 +263,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [snapToGrid, gridSize])
 
-  const getMousePos = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getMousePos = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => { // eslint-disable-line @typescript-eslint/no-unused-vars
     const canvas = canvasRef.current
     if (!canvas) return { x: 0, y: 0 }
     
@@ -872,31 +868,6 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [])
 
-  
-  const createSectionBySeats = useCallback((x: number, y: number) => {
-    const dimensions = calculateOptimalDimensions(desiredSeats, seatsPerRow, seatSpacing, rowSpacing)
-    
-    const newSection: Section = {
-      id: Date.now().toString(),
-      type: 'section',
-      name: newSectionName || `Sección ${sections.length + 1} (${dimensions.actualSeats} asientos)`,
-      color: newSectionColor,
-      x,
-      y,
-      width: dimensions.width,
-      height: dimensions.height,
-      rotation: 0,
-      seats: []
-    }
-    
-    
-    const seats = generateSeatsForSectionWithSpacing(newSection, seatsPerRow, seatSpacing, rowSpacing)
-    newSection.seats = seats
-    
-    return newSection
-  }, [desiredSeats, seatsPerRow, seatSpacing, rowSpacing, newSectionName, newSectionColor, sections.length, calculateOptimalDimensions])
-
-  
   const generateSeatsForSectionWithSpacing = useCallback((section: Section, seatsPerRow: number, seatSpacing: number, rowSpacing: number): Seat[] => {
     const seats: Seat[] = []
     const rows = Math.ceil(desiredSeats / seatsPerRow)
@@ -925,7 +896,31 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   }, [desiredSeats])
 
   
-  const isPointInPolygon = useCallback((point: { x: number; y: number }, polygon: { x: number; y: number }[]): boolean => {
+  const createSectionBySeats = useCallback((x: number, y: number) => {
+    const dimensions = calculateOptimalDimensions(desiredSeats, seatsPerRow, seatSpacing, rowSpacing)
+    
+    const newSection: Section = {
+      id: Date.now().toString(),
+      type: 'section',
+      name: newSectionName || `Sección ${sections.length + 1} (${dimensions.actualSeats} asientos)`,
+      color: newSectionColor,
+      x,
+      y,
+      width: dimensions.width,
+      height: dimensions.height,
+      rotation: 0,
+      seats: []
+    }
+    
+    
+    const seats = generateSeatsForSectionWithSpacing(newSection, seatsPerRow, seatSpacing, rowSpacing)
+    newSection.seats = seats
+    
+    return newSection
+  }, [desiredSeats, seatsPerRow, seatSpacing, rowSpacing, newSectionName, newSectionColor, sections.length, calculateOptimalDimensions, generateSeatsForSectionWithSpacing])
+
+  
+  const isPointInPolygon = useCallback((point: { x: number; y: number }, polygon: { x: number; y: number }[]): boolean => { // eslint-disable-line @typescript-eslint/no-unused-vars
     let inside = false
     let j = polygon.length - 1
 
@@ -1103,22 +1098,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     if (alignment === 'left') {
       referenceValue = Math.min(
         ...selectedSections.map(s => s.x),
-        ...selectedElementsList.filter(e => 'x' in e).map(e => (e as any).x)
+        ...selectedElementsList.filter(e => 'x' in e).map(e => (e as Section | Stage | Shape | TextElement | Entrance).x)
       )
     } else if (alignment === 'right') {
       referenceValue = Math.max(
         ...selectedSections.map(s => s.x + s.width),
-        ...selectedElementsList.filter(e => 'x' in e && 'width' in e).map(e => (e as any).x + (e as any).width)
+        ...selectedElementsList.filter(e => 'x' in e && 'width' in e).map(e => (e as Section | Stage | Shape | Entrance).x + (e as Section | Stage | Shape | Entrance).width)
       )
     } else if (alignment === 'top') {
       referenceValue = Math.min(
         ...selectedSections.map(s => s.y),
-        ...selectedElementsList.filter(e => 'y' in e).map(e => (e as any).y)
+        ...selectedElementsList.filter(e => 'y' in e).map(e => (e as Section | Stage | Shape | TextElement | Entrance).y)
       )
     } else if (alignment === 'bottom') {
       referenceValue = Math.max(
         ...selectedSections.map(s => s.y + s.height),
-        ...selectedElementsList.filter(e => 'y' in e && 'height' in e).map(e => (e as any).y + (e as any).height)
+        ...selectedElementsList.filter(e => 'y' in e && 'height' in e).map(e => (e as Section | Stage | Shape | Entrance).y + (e as Section | Stage | Shape | Entrance).height)
       )
     }
     
