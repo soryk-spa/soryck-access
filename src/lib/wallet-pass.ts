@@ -235,7 +235,7 @@ export function generateGooglePayURL(passData: WalletPassData): string {
   try {
     const googlePayData = generateGooglePayPass(passData);
     const jwt = generateJWT(googlePayData);
-    return `https:
+    return `https://pay.google.com/gp/v/save/${jwt}`;
   } catch (error) {
     console.error("Error generating Google Pay URL:", error);
     return "#";
