@@ -31,16 +31,10 @@ async function getEvent(id: string) {
         },
         _count: {
           select: {
-            tickets: true,
             orders: true,
           },
         },
         ticketTypes: {
-          include: {
-            _count: {
-              select: { tickets: true },
-            },
-          },
           orderBy: {
             price: "asc",
           },

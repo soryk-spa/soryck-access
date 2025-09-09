@@ -10,9 +10,7 @@ import { calculateTotalPrice } from "@/lib/commission";
 
 
 
-export interface TicketTypeWithCount extends BaseTicketType {
-  _count: { tickets: number };
-}
+export type TicketTypeWithCount = BaseTicketType;
 
 export interface PromoCodeData {
   id: string;
@@ -68,20 +66,13 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
 
   
   const selectedType = ticketTypes.find((t) => t.id === formData.selectedTicketType);
-  const isEventFull = ticketTypes.every(
-    (type) => type._count.tickets >= type.capacity
-  );
   const isEventPast = new Date(event.startDate) < new Date();
   
-  const maxQuantityAllowed = selectedType
-    ? Math.min(10, selectedType.capacity - selectedType._count.tickets)
-    : 0;
+  const maxQuantityAllowed = 10; // Sin límite por capacidad
 
   
   useEffect(() => {
-    const firstAvailable = ticketTypes.find(
-      (type) => type._count.tickets < type.capacity
-    );
+    const firstAvailable = ticketTypes[0];
     if (firstAvailable && !formData.selectedTicketType) {
       setFormData(prev => ({ ...prev, selectedTicketType: firstAvailable.id }));
     }
@@ -216,7 +207,6 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     formData.quantity > 0 &&
     formData.quantity <= maxQuantityAllowed &&
     formData.agreeToTerms &&
-    !isEventFull &&
     !isEventPast;
 
   return {
@@ -244,7 +234,6 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
     
     
     canPurchase,
-    isEventFull,
     isEventPast,
   };
 }
@@ -290,55 +279,31 @@ export function usePromoCodeDisplay() {
 
 
 
-export function useTicketAvailability(ticketTypes: TicketTypeWithCount[]) {
-  const getTicketAvailability = useCallback((ticketType: TicketTypeWithCount) => {
-    const sold = ticketType._count.tickets;
-    const capacity = ticketType.capacity;
-    const available = capacity - sold;
-    const percentage = capacity > 0 ? (sold / capacity) * 100 : 0;
-
-    let status: "available" | "limited" | "sold-out" = "available";
-    let badgeText = "";
-    let badgeColor = "";
-
-    if (available === 0) {
-      status = "sold-out";
-      badgeText = "Agotado";
-      badgeColor = "bg-red-100 text-red-800";
-    } else if (percentage >= 90) {
-      status = "limited";
-      badgeText = `Solo ${available} disponibles`;
-      badgeColor = "bg-orange-100 text-orange-800";
-    } else {
-      status = "available";
-      badgeText = `${available} disponibles`;
-      badgeColor = "bg-green-100 text-green-800";
-    }
+export function useTicketAvailability() {
+  const getTicketAvailability = useCallback(() => {
+    // Sin mostrar información de capacidad o disponibilidad
+    const status = "available";
+    const badgeText = "";
+    const badgeColor = "";
 
     return {
-      sold,
-      capacity,
-      available,
-      percentage,
       status,
       badgeText,
       badgeColor,
+      percentage: 0,
+      available: 999, // Sin límite visible
+      sold: 0, // Sin información de vendidos
     };
   }, []);
 
   const getAvailabilityStats = useCallback(() => {
-    const totalCapacity = ticketTypes.reduce((sum, type) => sum + type.capacity, 0);
-    const totalSold = ticketTypes.reduce((sum, type) => sum + type._count.tickets, 0);
-    const totalAvailable = totalCapacity - totalSold;
-    const overallPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
-
     return {
-      totalCapacity,
-      totalSold,
-      totalAvailable,
-      overallPercentage,
+      totalCapacity: 0,
+      totalSold: 0,
+      totalAvailable: 999,
+      overallPercentage: 0,
     };
-  }, [ticketTypes]);
+  }, []);
 
   return {
     getTicketAvailability,

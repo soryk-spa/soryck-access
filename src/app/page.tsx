@@ -111,7 +111,6 @@ const EventCard = ({ event }: { event: Event }) => {
   };
 
   const { day, month, time } = formatDate(event.startDate);
-  const soldOutPercentage = (event._count.tickets / event.capacity) * 100;
   
   const getPriceDisplay = () => {
     // Si el evento está marcado como gratis, mostrar "Gratis"
@@ -195,14 +194,6 @@ const EventCard = ({ event }: { event: Event }) => {
             </div>
           </div>
         </div>
-        
-        {soldOutPercentage > 80 && (
-          <div className="flex justify-end">
-            <Badge variant="destructive" className="text-xs">
-              ¡Últimas entradas!
-            </Badge>
-          </div>
-        )}
         
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="space-y-1">

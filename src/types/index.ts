@@ -62,7 +62,7 @@ export interface Event {
   organizer: User;
   ticketTypes: TicketType[];
   _count: {
-    tickets: number;
+    orders: number;
   };
 }
 

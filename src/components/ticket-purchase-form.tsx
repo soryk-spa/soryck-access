@@ -204,7 +204,7 @@ export default function TicketPurchaseFormOptimized({
 }: TicketPurchaseFormProps) {
   
   const ticketPurchase = useTicketPurchase(event, ticketTypes);
-  const availability = useTicketAvailability(ticketTypes);
+  const availability = useTicketAvailability();
   const { processPayment, loading: paymentLoading, error: paymentError } = usePayment();
 
   
@@ -233,22 +233,6 @@ export default function TicketPurchaseFormOptimized({
           </h3>
           <p className="text-red-600 dark:text-red-400">
             Este evento ya ha terminado y ya no se pueden comprar tickets.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (ticketPurchase.isEventFull) {
-    return (
-      <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
-        <CardContent className="p-6 text-center">
-          <Ticket className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">
-            Evento Agotado
-          </h3>
-          <p className="text-orange-600 dark:text-orange-400">
-            Lo sentimos, todos los tickets para este evento se han agotado.
           </p>
         </CardContent>
       </Card>
@@ -316,7 +300,7 @@ export default function TicketPurchaseFormOptimized({
                       onSelect={() =>
                         ticketPurchase.updateFormData("selectedTicketType", ticketType.id)
                       }
-                      availability={availability.getTicketAvailability(ticketType)}
+                      availability={availability.getTicketAvailability()}
                     />
                   ))}
                 </RadioGroup>

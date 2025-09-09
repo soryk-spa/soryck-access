@@ -30,7 +30,6 @@ import {
   Clock,
   DollarSign,
   CheckCircle2,
-  Activity,
   ArrowLeft,
   Gift,
 } from "lucide-react";
@@ -194,13 +193,6 @@ export default function EditEventForm({
           value={formatCurrency(stats.averagePrice)}
           description="Por entrada"
           color="purple"
-        />
-        <StatCard
-          icon={<Activity />}
-          title="Vendidos"
-          value={event._count?.tickets || 0}
-          description="Entradas vendidas"
-          color="orange"
         />
       </div>
 
@@ -634,12 +626,6 @@ export default function EditEventForm({
                     <span className="font-semibold text-green-600">{formatCurrency(stats.totalCapacity * stats.averagePrice)}</span>
                   </div>
 
-                  {event._count?.tickets > 0 && (
-                    <div className="flex justify-between items-center text-sm pt-2 border-t">
-                      <span className="text-gray-600">Vendidas:</span>
-                      <Badge variant="default">{event._count.tickets}</Badge>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
