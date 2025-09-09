@@ -316,7 +316,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.websiteUrl}
                   onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
-                  placeholder="https:
+                  placeholder="https://www.ejemplo.com"
                   className="mt-2 h-12"
                 />
               </div>
@@ -331,7 +331,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.twitterUrl}
                   onChange={(e) => handleInputChange("twitterUrl", e.target.value)}
-                  placeholder="https:
+                  placeholder="https://twitter.com/usuario"
                   className="mt-2 h-12"
                 />
               </div>
@@ -346,7 +346,7 @@ export default function OrganizerProfileForm({ user }: OrganizerProfileFormProps
                   type="url"
                   value={formData.instagramUrl}
                   onChange={(e) => handleInputChange("instagramUrl", e.target.value)}
-                  placeholder="https:
+                  placeholder="https://instagram.com/usuario"
                   className="mt-2 h-12"
                 />
               </div>

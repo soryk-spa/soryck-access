@@ -297,9 +297,9 @@ export default function CookiesPage() {
                       Herramientas de Terceros
                     </h4>
                     <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-                      <li>• <a href="https:
-                      <li>• <a href="https:
-                      <li>• <a href="https:
+                      <li>• <a href="https://example.com/tool1">Herramienta 1</a></li>
+                      <li>• <a href="https://example.com/tool2">Herramienta 2</a></li>
+                      <li>• <a href="https://example.com/tool3">Herramienta 3</a></li>
                     </ul>
                   </div>
                 </div>
@@ -369,7 +369,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Análisis de uso y comportamiento del sitio web.
                     </p>
-                    <a href="https:
+                    <a href="https://example.com/privacy" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
                       Ver política de privacidad →
                     </a>
                   </div>
@@ -382,7 +382,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Procesamiento seguro de pagos y prevención de fraude.
                     </p>
-                    <a href="https:
+                    <a href="https://example.com/transbank-privacy" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
                       Ver política de privacidad →
                     </a>
                   </div>
@@ -395,7 +395,7 @@ export default function CookiesPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       Gestión de sesiones de usuario y autenticación segura.
                     </p>
-                    <a href="https:
+                    <a href="https://example.com/clerk-privacy" className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
                       Ver política de privacidad →
                     </a>
                   </div>

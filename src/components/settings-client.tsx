@@ -277,7 +277,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.websiteUrl || ''}
                     onChange={(e) => setUserData({...userData, websiteUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://www.ejemplo.com"
                   />
                 </div>
                 <div className="space-y-2">
@@ -287,7 +287,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.twitterUrl || ''}
                     onChange={(e) => setUserData({...userData, twitterUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://twitter.com/usuario"
                   />
                 </div>
                 <div className="space-y-2">
@@ -297,7 +297,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.instagramUrl || ''}
                     onChange={(e) => setUserData({...userData, instagramUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://instagram.com/usuario"
                   />
                 </div>
               </div>
