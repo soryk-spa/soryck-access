@@ -54,6 +54,8 @@ interface Event {
   startDate: string;
   endDate?: string;
   isPublished: boolean;
+  price: number;
+  isFree: boolean;
   category: {
     id: string;
     name: string;
@@ -145,21 +147,35 @@ const EventCardAceternity = ({
   };
 
   const getPriceDisplay = () => {
-    if (!event.ticketTypes?.length) return "Gratis";
+    // Si el evento está marcado como gratis, mostrar "Gratis"
+    if (event.isFree) return "Gratis";
     
-    const prices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+    // Recopilar todos los precios disponibles
+    const allPrices: number[] = [];
     
-    if (prices.length === 0) return "Gratis";
+    // Agregar el precio base del evento si existe
+    if (event.price && event.price > 0) {
+      allPrices.push(event.price);
+    }
     
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+    // Agregar precios de tipos de tickets si existen
+    if (event.ticketTypes?.length) {
+      const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+      allPrices.push(...ticketPrices);
+    }
     
+    // Si no hay precios, mostrar como gratis
+    if (allPrices.length === 0) return "Gratis";
     
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    
+    // Si todos los precios son iguales, mostrar precio único
     if (minPrice === maxPrice) {
       return formatPrice(minPrice);
     }
     
-    
+    // Si hay diferentes precios, mostrar rango
     return `Desde ${formatPrice(minPrice)}`;
   };
 
