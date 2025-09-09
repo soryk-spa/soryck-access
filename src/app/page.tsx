@@ -147,12 +147,12 @@ const EventCard = ({ event }: { event: Event }) => {
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-900 shadow-sm">
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
         <Image
           src={event.imageUrl || "/sorykpass_1.jpg"}
           alt={event.title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-contain group-hover:scale-105 transition-transform duration-300"
         />
         
         <div className="absolute top-3 left-3">
