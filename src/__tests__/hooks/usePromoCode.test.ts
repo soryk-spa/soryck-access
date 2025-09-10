@@ -296,11 +296,18 @@ describe('usePromoCodeSharing', () => {
       setAttribute: jest.fn(),
       click: jest.fn(),
       style: { visibility: '' },
+      href: '',
+      download: '',
     };
+    
+    // Mock global de URL.createObjectURL si no existe
+    global.URL = global.URL || {};
+    global.URL.createObjectURL = global.URL.createObjectURL || jest.fn(() => 'blob:mock-url');
+    global.URL.revokeObjectURL = global.URL.revokeObjectURL || jest.fn();
+    
     const mockCreateElement = jest.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
     const mockAppendChild = jest.spyOn(document.body, 'appendChild').mockImplementation();
     const mockRemoveChild = jest.spyOn(document.body, 'removeChild').mockImplementation();
-    const mockCreateObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
 
     act(() => {
       result.current.exportPromoCodes(mockPromoCodes);
@@ -315,6 +322,5 @@ describe('usePromoCodeSharing', () => {
     mockCreateElement.mockRestore();
     mockAppendChild.mockRestore();
     mockRemoveChild.mockRestore();
-    mockCreateObjectURL.mockRestore();
   });
 });

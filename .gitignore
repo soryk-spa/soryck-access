@@ -45,3 +45,13 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# experimental/development files (exclude from main)
+/src/experimental/
+/src/playground/
+/src/sandbox/
+*.experimental.*
+*.draft.*
+*.temp.*
+*-backup.*
+*-old.*
