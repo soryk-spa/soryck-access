@@ -39,6 +39,20 @@ export interface TicketType {
   createdAt?: string;
   updatedAt?: string;
   ticketsGenerated?: number;
+  priceTiers?: PriceTier[];
+}
+
+export interface PriceTier {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
+  ticketTypeId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Event {

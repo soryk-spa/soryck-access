@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import type { Event, TicketType as BaseTicketType } from "@/types";
 import { calculateTotalPrice } from "@/lib/commission";
+import { getCurrentPrice, type TicketTypeWithPricing } from "@/lib/pricing";
 
 
 
@@ -70,6 +71,28 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
   
   const maxQuantityAllowed = 10; // Sin límite por capacidad
 
+  // Función para obtener el precio dinámico actual
+  const getCurrentDynamicPrice = useCallback((ticketType: BaseTicketType): number => {
+    if (!ticketType.priceTiers || ticketType.priceTiers.length === 0) {
+      return ticketType.price;
+    }
+
+    const ticketTypeWithPricing: TicketTypeWithPricing = {
+      id: ticketType.id,
+      name: ticketType.name,
+      price: ticketType.price,
+      currency: ticketType.currency,
+      priceTiers: ticketType.priceTiers.map(tier => ({
+        ...tier,
+        startDate: new Date(tier.startDate),
+        endDate: tier.endDate ? new Date(tier.endDate) : null,
+      })),
+    };
+
+    const currentPriceInfo = getCurrentPrice(ticketTypeWithPricing);
+    return currentPriceInfo.price;
+  }, []);
+
   
   useEffect(() => {
     const firstAvailable = ticketTypes[0];
@@ -90,7 +113,8 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
       };
     }
 
-    const subtotal = selectedType.price * formData.quantity;
+    const currentPrice = getCurrentDynamicPrice(selectedType);
+    const subtotal = currentPrice * formData.quantity;
     let discountAmount = 0;
 
     if (appliedPromoCode) {
@@ -109,7 +133,7 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
       totalPrice,
       savings,
     };
-  }, [selectedType, formData.quantity, appliedPromoCode])();
+  }, [selectedType, formData.quantity, appliedPromoCode, getCurrentDynamicPrice])();
 
   
   const validatePromoCode = useCallback(async (code: string) => {

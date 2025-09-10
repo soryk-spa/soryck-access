@@ -1,0 +1,1 @@
+{"version":3,"names":["global","TextEncoder","TextDecoder"],"sources":["jest.setup.js"],"sourcesContent":["// Jest setup file - configuración básica\r\nglobal.TextEncoder = TextEncoder;\r\nglobal.TextDecoder = TextDecoder;"],"mappings":"AAAA;AACAA,MAAM,CAACC,WAAW,GAAGA,WAAW;AAChCD,MAAM,CAACE,WAAW,GAAGA,WAAW","ignoreList":[]}

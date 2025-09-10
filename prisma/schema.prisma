@@ -169,7 +169,7 @@ model TicketType {
   id               String           @id @default(cuid())
   name             String
   description      String?
-  price            Float
+  price            Float            // Precio base/por defecto
   currency         String           @default("CLP")
   capacity         Int
   ticketsGenerated Int              @default(1)
@@ -178,10 +178,27 @@ model TicketType {
   event            Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets          Ticket[]
   promoCodes       PromoCode[]
+  priceTiers       PriceTier[]      // Nuevos niveles de precio dinámico
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@map("ticket_types")
+}
+
+model PriceTier {
+  id           String     @id @default(cuid())
+  name         String     // Ej: "Early Bird", "Regular", "Last Minute"
+  price        Float      // Precio para este nivel
+  currency     String     @default("CLP")
+  startDate    DateTime   // Cuándo empieza este precio
+  endDate      DateTime?  // Cuándo termina (null = hasta el final del evento)
+  isActive     Boolean    @default(true)
+  ticketTypeId String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("price_tiers")
 }
 
 model PromoCode {

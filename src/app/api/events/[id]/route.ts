@@ -5,6 +5,14 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 
+const priceTierEditSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "El nombre es requerido"),
+  price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+  startDate: z.string().transform((str) => new Date(str)),
+  endDate: z.string().optional().nullable().transform((str) => str ? new Date(str) : null),
+});
+
 const ticketTypeEditSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'El nombre del tipo de entrada es requerido').max(100),
@@ -12,6 +20,7 @@ const ticketTypeEditSchema = z.object({
   price: z.number().min(0, 'El precio no puede ser negativo'),
   capacity: z.number().min(1, 'La capacidad debe ser al menos 1'),
   ticketsGenerated: z.number().min(1, 'Debe generar al menos 1 ticket').default(1),
+  priceTiers: z.array(priceTierEditSchema).optional(),
 });
 
 const updateEventSchema = z.object({
@@ -98,7 +107,8 @@ export async function GET(
               select: {
                 tickets: true
               }
-            }
+            },
+            priceTiers: true
           }
         },
         _count: {
@@ -276,9 +286,39 @@ export async function PUT(
                   ...(typeTicketsSold === 0 && { ticketsGenerated: ticketType.ticketsGenerated }),
                 }
               });
+
+              // Update price tiers
+              if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
+                console.log(`🎟️ Actualizando ${ticketType.priceTiers.length} price tiers para ticket type ${ticketType.id}`);
+                
+                // Delete existing price tiers for this ticket type
+                await tx.priceTier.deleteMany({
+                  where: { ticketTypeId: ticketType.id }
+                });
+
+                // Create new price tiers
+                for (const priceTier of ticketType.priceTiers) {
+                  console.log(`💰 Creando price tier: ${priceTier.name} - $${priceTier.price}`);
+                  await tx.priceTier.create({
+                    data: {
+                      ticketTypeId: ticketType.id,
+                      name: priceTier.name,
+                      price: priceTier.price,
+                      currency: 'CLP',
+                      startDate: new Date(priceTier.startDate),
+                      endDate: priceTier.endDate ? new Date(priceTier.endDate) : null,
+                      isActive: true,
+                    }
+                  });
+                }
+                console.log(`✅ Price tiers actualizados para ticket type ${ticketType.id}`);
+              } else {
+                console.log(`⚠️ No hay price tiers para actualizar en ticket type ${ticketType.id}`);
+              }
             }
           } else {
-            await tx.ticketType.create({
+            // Create new ticket type
+            const newTicketType = await tx.ticketType.create({
               data: {
                 eventId: id,
                 name: ticketType.name,
@@ -289,6 +329,26 @@ export async function PUT(
                 currency: 'CLP',
               }
             });
+
+            // Create price tiers for new ticket type
+            if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
+              console.log(`🆕 Creando ${ticketType.priceTiers.length} price tiers para nuevo ticket type ${newTicketType.id}`);
+              for (const priceTier of ticketType.priceTiers) {
+                console.log(`💰 Creando price tier: ${priceTier.name} - $${priceTier.price}`);
+                await tx.priceTier.create({
+                  data: {
+                    ticketTypeId: newTicketType.id,
+                    name: priceTier.name,
+                    price: priceTier.price,
+                    currency: 'CLP',
+                    startDate: new Date(priceTier.startDate),
+                    endDate: priceTier.endDate ? new Date(priceTier.endDate) : null,
+                    isActive: true,
+                  }
+                });
+              }
+              console.log(`✅ Price tiers creados para nuevo ticket type ${newTicketType.id}`);
+            }
           }
         }
 
@@ -328,7 +388,7 @@ export async function PUT(
       include: {
         category: true,
         organizer: true,
-        ticketTypes: { include: { _count: { select: { tickets: true } } } }
+        ticketTypes: { include: { _count: { select: { tickets: true } }, priceTiers: true } }
       }
     });
 

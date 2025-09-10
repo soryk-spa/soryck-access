@@ -30,6 +30,7 @@ import {
   Award,
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
+import { getCurrentPrice, type TicketTypeWithPricing } from "@/lib/pricing";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
 import PurchaseFlow from "@/components/purchase-flow";
 import { formatFullDateTime } from "@/lib/date";
@@ -62,6 +63,15 @@ type EventDetailViewProps = {
       price: number;
       currency: string;
       capacity: number;
+      priceTiers?: Array<{
+        id: string;
+        name: string;
+        price: number;
+        currency: string;
+        startDate: string;
+        endDate?: string;
+        isActive: boolean;
+      }>;
     }>;
     sections?: Array<{
       id: string;
@@ -120,10 +130,33 @@ export default function EventDetailView({
     ticketTypes: EventDetailViewProps["event"]["ticketTypes"]
   ) {
     if (!ticketTypes.length) return "No disponible";
-    const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
+    
+    // Calcular precios dinámicos para cada ticket type
+    const dynamicPrices = ticketTypes.map((t) => {
+      if (!t.priceTiers || t.priceTiers.length === 0) {
+        return calculateTotalPrice(t.price);
+      }
+
+      const ticketTypeWithPricing: TicketTypeWithPricing = {
+        id: t.id,
+        name: t.name,
+        price: t.price,
+        currency: t.currency,
+        priceTiers: t.priceTiers.map(tier => ({
+          ...tier,
+          startDate: new Date(tier.startDate),
+          endDate: tier.endDate ? new Date(tier.endDate) : null,
+        })),
+      };
+
+      const currentPriceInfo = getCurrentPrice(ticketTypeWithPricing);
+      return calculateTotalPrice(currentPriceInfo.price);
+    });
+
+    const min = Math.min(...dynamicPrices);
+    const max = Math.max(...dynamicPrices);
     const currency = ticketTypes[0].currency;
+    
     if (min === 0 && max === 0) return "Gratis";
     if (min === max) return formatPrice(min, currency);
     return `Desde ${formatPrice(min, currency)}`;

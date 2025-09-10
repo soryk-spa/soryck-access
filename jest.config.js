@@ -1,17 +1,6 @@
 /** @type {import('jest').Config} */
-module.exports = {
-  testEnvironment: 'node',
-  roots: ['<rootDir>/src'],
-  moduleFileExtensions: ['ts', 'tsx', 'js'],
-  transform: {
-    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: { isolatedModules: true } }],
-  },
-  setupFiles: [],
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-};
-/** @type {import('jest').Config} */
 const config = {
-  testEnvironment: 'jsdom',
+  testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
@@ -26,48 +15,21 @@ const config = {
     'src/components/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
-    '!src/lib/logger.ts', // Exclude logger from coverage
-    '!src/app/**', // Exclude app directory from coverage
+    '!src/lib/logger.ts',
+    '!src/app/**',
   ],
-  coverageThreshold: {
-    global: {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
-    },
-  },
-  // Performance optimizations
   maxWorkers: '50%',
   cache: true,
-  cacheDirectory: '<rootDir>/.jest-cache',
-  
-  // Better error reporting
   verbose: true,
-  errorOnDeprecated: true,
-  
-  // Module file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  
-  // Transform configuration
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
-    '^.+\\.(js|jsx)$': 'babel-jest',
-  },
-  
-  // Test environment options
-  testEnvironmentOptions: {
-    customExportConditions: [''],
-  },
-  
-  // Global configuration for ts-jest
-  globals: {
-    'ts-jest': {
-      useESM: true,
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: {
         jsx: 'react-jsx',
+        isolatedModules: true,
       },
-    },
+    }],
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
 };
 

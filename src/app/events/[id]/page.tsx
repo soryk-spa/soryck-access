@@ -35,6 +35,9 @@ async function getEvent(id: string) {
           },
         },
         ticketTypes: {
+          include: {
+            priceTiers: true
+          },
           orderBy: {
             price: "asc",
           },
@@ -62,6 +65,7 @@ async function getEvent(id: string) {
     if (!event) {
       return null;
     }
+    
     const user = await getCurrentUser();
     const isPublic = event.isPublished;
     const isOwner = user && event.organizerId === user.id;
@@ -140,6 +144,15 @@ export default async function EventPage({ params }: EventPageProps) {
       description: tt.description ?? undefined,
       createdAt: tt.createdAt.toISOString(),
       updatedAt: tt.updatedAt.toISOString(),
+      priceTiers: tt.priceTiers?.map((tier) => ({
+        id: tier.id,
+        name: tier.name,
+        price: tier.price,
+        currency: tier.currency,
+        startDate: tier.startDate.toISOString(),
+        endDate: tier.endDate ? tier.endDate.toISOString() : undefined,
+        isActive: tier.isActive,
+      })) || [],
     })),
     sections: event.sections.map((section) => ({
       id: section.id,

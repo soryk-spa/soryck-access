@@ -35,8 +35,9 @@ import {
 } from "lucide-react";
 
 
-import type { Category, Event, User } from "@/types";
+import type { Category, Event, User, PriceTier } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import PriceTierManager from "@/components/price-tier-manager";
 import {
   useEventForm,
   useTicketTypes,
@@ -114,10 +115,12 @@ export default function EditEventForm({
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
     ticketTypes: event.ticketTypes.map(ticket => ({
+      id: ticket.id,
       name: ticket.name,
       price: ticket.price,
       capacity: ticket.capacity,
       ticketsGenerated: ticket.ticketsGenerated || 1,
+      priceTiers: ticket.priceTiers || [],
     })),
   };
 
@@ -412,6 +415,22 @@ export default function EditEventForm({
                           className="mt-1"
                         />
                       </div>
+                    </div>
+
+                    {/* Price Tier Manager */}
+                    <div className="mt-4 border-t pt-4">
+                      <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4" />
+                        Precios Dinámicos (Opcional)
+                      </Label>
+                      <PriceTierManager
+                        ticketTypeName={ticket.name || `Tipo ${index + 1}`}
+                        priceTiers={ticket.priceTiers}
+                        onPriceTiersChange={(priceTiers: PriceTier[]) => ticketTypesHook.handlePriceTiersChange(index, priceTiers)}
+                        eventStartDate={eventForm.formData.startDate ? new Date(eventForm.formData.startDate) : new Date()}
+                        basePrice={ticket.price}
+                        currency="CLP"
+                      />
                     </div>
 
                     <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import type { PriceTier } from "@/types";
 import { 
   parseChileDatetime, 
   toChileISOString, 
@@ -15,10 +16,12 @@ import {
 
 
 export interface TicketTypeForm {
+  id?: string;
   name: string;
   price: number;
   capacity: number;
   ticketsGenerated: number;
+  priceTiers: PriceTier[];
 }
 
 export interface EventFormData {
@@ -230,9 +233,18 @@ export function useEventForm(
         courtesyValidUntil: formData.allowCourtesy ? formData.courtesyValidUntil : null,
         courtesyPriceAfter: formData.allowCourtesy && formData.courtesyValidUntil ? formData.courtesyPriceAfter : null,
         ticketTypes: ticketTypes.map(ticket => ({
+          id: ticket.id,
           name: ticket.name.trim(),
           price: ticket.price,
           capacity: ticket.capacity,
+          ticketsGenerated: ticket.ticketsGenerated,
+          priceTiers: ticket.priceTiers?.map(pt => ({
+            id: pt.id,
+            name: pt.name,
+            price: pt.price,
+            startDate: pt.startDate,
+            endDate: pt.endDate || null,
+          })) || [],
         })),
       };
 
@@ -301,7 +313,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>(
     initialTicketTypes.length > 0 
       ? initialTicketTypes 
-      : [{ name: "", price: 0, capacity: 100, ticketsGenerated: 0 }]
+      : [{ name: "", price: 0, capacity: 100, ticketsGenerated: 0, priceTiers: [] }]
   );
 
   const handleTicketTypeChange = useCallback((
@@ -319,7 +331,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   const addTicketType = useCallback(() => {
     setTicketTypes(prev => [
       ...prev,
-      { name: "", price: 0, capacity: 100, ticketsGenerated: 0 }
+      { name: "", price: 0, capacity: 100, ticketsGenerated: 0, priceTiers: [] }
     ]);
   }, []);
 
@@ -329,6 +341,13 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
     }
   }, [ticketTypes.length]);
 
+  const handlePriceTiersChange = useCallback((index: number, priceTiers: PriceTier[]) => {
+    setTicketTypes(prev => 
+      prev.map((ticket, i) => 
+        i === index ? { ...ticket, priceTiers } : ticket
+      )
+    );
+  }, []);
   
   const totalCapacity = ticketTypes.reduce((sum, ticket) => sum + ticket.capacity, 0);
   const averagePrice = ticketTypes.length > 0 
@@ -339,6 +358,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   return {
     ticketTypes,
     handleTicketTypeChange,
+    handlePriceTiersChange,
     addTicketType,
     removeTicketType,
     totalCapacity,

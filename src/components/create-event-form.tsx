@@ -38,8 +38,9 @@ import {
 } from "lucide-react";
 
 
-import type { Category } from "@/types";
+import type { Category, PriceTier } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import PriceTierManager from "@/components/price-tier-manager";
 import {
   useEventForm,
   useTicketTypes,
@@ -417,6 +418,9 @@ export default function CreateEventForm({
                               className="pl-10"
                             />
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Precio base (se puede configurar precios dinámicos abajo)
+                          </p>
                         </div>
 
                         <div>
@@ -435,6 +439,22 @@ export default function CreateEventForm({
                             />
                           </div>
                         </div>
+                      </div>
+
+                      {/* Price Tier Manager */}
+                      <div className="mt-4 border-t pt-4">
+                        <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                          <Clock className="h-4 w-4" />
+                          Precios Dinámicos (Opcional)
+                        </Label>
+                        <PriceTierManager
+                          ticketTypeName={ticket.name || `Tipo ${index + 1}`}
+                          priceTiers={ticket.priceTiers}
+                          onPriceTiersChange={(priceTiers: PriceTier[]) => ticketTypesHook.handlePriceTiersChange(index, priceTiers)}
+                          eventStartDate={eventForm.formData.startDate ? new Date(eventForm.formData.startDate) : new Date()}
+                          basePrice={ticket.price}
+                          currency="CLP"
+                        />
                       </div>
 
                       {ticket.price > 0 && (

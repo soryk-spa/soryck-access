@@ -25,7 +25,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-
 import type { Event } from "@/types";
 import { formatCurrency, formatDisplayDateTime } from "@/lib/utils";
 import { usePayment } from "@/hooks/use-payment";
@@ -36,6 +35,7 @@ import {
   type TicketTypeWithCount,
   type PromoCodeData,
 } from "@/hooks/useTicketPurchase";
+import { TicketTypePriceDisplay } from "@/components/ticket-type-price-display";
 
 
 
@@ -89,13 +89,11 @@ const TicketTypeCard = ({
               )}
             </div>
             <div className="text-right">
-              <p className="font-semibold">
-                {ticketType.price === 0 ? (
-                  <span className="text-green-600">Gratis</span>
-                ) : (
-                  formatCurrency(ticketType.price)
-                )}
-              </p>
+              <TicketTypePriceDisplay 
+                ticketType={ticketType}
+                showEarlyBirdBadge={false}
+                showNextPriceChange={false}
+              />
               <Badge className={`text-xs mt-1 ${availability.badgeColor}`}>
                 {availability.badgeText}
               </Badge>
@@ -390,7 +388,12 @@ export default function TicketPurchaseFormOptimized({
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span>{ticketPurchase.selectedType.name}</span>
-                      <span>{formatCurrency(ticketPurchase.selectedType.price)}</span>
+                      <TicketTypePriceDisplay 
+                        ticketType={ticketPurchase.selectedType}
+                        showEarlyBirdBadge={false}
+                        showNextPriceChange={false}
+                        className="text-sm"
+                      />
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Cantidad</span>
