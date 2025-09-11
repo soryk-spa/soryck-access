@@ -114,6 +114,10 @@ export default function EditEventForm({
     endDate: event.endDate || "",
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
+    allowCourtesy: event.allowCourtesy || false,
+    courtesyLimit: event.courtesyLimit || null,
+    courtesyValidUntil: event.courtesyValidUntil || null,
+    courtesyPriceAfter: event.courtesyPriceAfter || null,
     ticketTypes: event.ticketTypes.map(ticket => ({
       id: ticket.id,
       name: ticket.name,

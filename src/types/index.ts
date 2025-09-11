@@ -70,6 +70,10 @@ export interface Event {
   isPublished: boolean;
   categoryId: string;
   organizerId: string;
+  allowCourtesy?: boolean;
+  courtesyLimit?: number | null;
+  courtesyValidUntil?: string | null;
+  courtesyPriceAfter?: number | null;
   createdAt?: string;
   updatedAt?: string;
   category: Category;
