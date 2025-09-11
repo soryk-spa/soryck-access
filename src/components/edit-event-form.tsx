@@ -386,7 +386,7 @@ export default function EditEventForm({
                           type="number"
                           min="0"
                           value={ticket.price}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "price", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "price", Number(e.target.value))}
                           placeholder="0"
                           className="mt-1"
                         />
@@ -398,7 +398,7 @@ export default function EditEventForm({
                           type="number"
                           min="1"
                           value={ticket.capacity}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "capacity", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "capacity", Number(e.target.value))}
                           placeholder="50"
                           className="mt-1"
                         />
@@ -410,7 +410,7 @@ export default function EditEventForm({
                           type="number"
                           min="1"
                           value={ticket.ticketsGenerated || 1}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "ticketsGenerated", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "ticketsGenerated", Number(e.target.value))}
                           placeholder="1"
                           className="mt-1"
                         />
