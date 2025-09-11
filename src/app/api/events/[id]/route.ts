@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent, getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { CacheInvalidation } from '@/lib/cache-invalidation'
 
 
 const priceTierEditSchema = z.object({
@@ -394,6 +395,9 @@ export async function PUT(
 
     console.log('✅ Evento actualizado exitosamente');
 
+    // Invalidar caché de eventos para mostrar datos actualizados
+    await CacheInvalidation.invalidateEventsCache();
+
     return NextResponse.json({
       message: 'Evento actualizado exitosamente',
       event: finalEvent
@@ -437,6 +441,9 @@ export async function DELETE(
     await prisma.event.delete({
       where: { id }
     })
+
+    // Invalidar caché de eventos después de eliminar
+    await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({
       message: 'Evento eliminado exitosamente'

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireOrganizer, getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { CacheInvalidation } from '@/lib/cache-invalidation'
 
 const priceTierSchema = z.object({
   name: z.string().min(1, 'El nombre del nivel de precio es requerido').max(100),
@@ -346,6 +347,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('📤 [EVENT CREATE] Enviando respuesta exitosa')
+    
+    // Invalidar caché de eventos para mostrar el nuevo evento
+    await CacheInvalidation.invalidateEventsCache();
+    
     return NextResponse.json({
       message: 'Evento creado exitosamente',
       event: serializedEvent
