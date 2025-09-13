@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
+
+// Ensure this API route runs dynamically so server-side auth can access the request
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { webpayPlus } from "@/lib/transbank";
 import { generateUniqueQRCode } from "@/lib/qr";

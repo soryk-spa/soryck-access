@@ -1,6 +1,9 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { requireAuth } from "@/lib/auth";
 
+// Ensure uploadthing middleware runs dynamically so auth() can access request
+export const dynamic = 'force-dynamic'
+
 const f = createUploadthing();
 
 export const ourFileRouter = {

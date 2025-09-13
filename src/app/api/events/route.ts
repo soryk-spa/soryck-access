@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireOrganizer, getCurrentUser } from '@/lib/auth'
+
+// Ensure this API route runs dynamically so server-side auth can access the request
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { CacheInvalidation } from '@/lib/cache-invalidation'
