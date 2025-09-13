@@ -7,12 +7,19 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const updatePromoCodeSchema = z.object({
+  // Fields always allowed to change when usages > 0
   name: z.string().min(1, "Nombre requerido").max(100).optional(),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
+  // Fields that are only editable when usedCount === 0
+  code: z.string().min(3).max(100).optional(),
+  type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
+  value: z.number().min(0).optional(),
+  eventId: z.string().optional(),
+  ticketTypeId: z.string().optional(),
 });
 
 export async function GET(
@@ -111,6 +118,9 @@ export async function PATCH(
         id,
         createdBy: user.id,
       },
+      include: {
+        _count: { select: { usages: true } },
+      },
     });
 
     if (!promoCode) {
@@ -121,18 +131,49 @@ export async function PATCH(
     }
 
     const { validUntil, ...restData } = validation.data;
-    
+
+    // If the promo code has been used, restrict editable fields
+    const usedCount = promoCode._count?.usages ?? 0;
+
+    // Disallowed fields when usedCount > 0
+    const protectedFields = ["code", "type", "value", "eventId", "ticketTypeId"];
+
+    if (usedCount > 0) {
+      // If request tries to change any protected field, reject
+      for (const field of protectedFields) {
+        if (field in restData) {
+          return NextResponse.json(
+            { error: `No se puede modificar '${field}' porque el código ya ha sido usado` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const updateData: Partial<{
+      code?: string;
       name?: string;
-      description?: string;
+      description?: string | null;
+      type?: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
+      value?: number;
       status?: "ACTIVE" | "INACTIVE";
-      usageLimit?: number;
-      usageLimitPerUser?: number;
-      validUntil?: Date;
+      usageLimit?: number | null;
+      usageLimitPerUser?: number | null;
+      validUntil?: Date | null;
+      eventId?: string | null;
+      ticketTypeId?: string | null;
     }> = {
       ...restData,
       ...(validUntil && { validUntil: new Date(validUntil) }),
     };
+
+    // If code is being updated (only allowed when usedCount === 0), ensure uniqueness
+    if (restData.code) {
+      const existing = await prisma.promoCode.findUnique({ where: { code: restData.code } });
+      if (existing && existing.id !== id) {
+        return NextResponse.json({ error: "El código ya existe" }, { status: 400 });
+      }
+    }
 
     const updatedPromoCode = await prisma.promoCode.update({
       where: { id },

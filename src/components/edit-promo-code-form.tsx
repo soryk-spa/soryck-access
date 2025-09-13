@@ -37,6 +37,9 @@ import {
 import { toast } from "sonner";
 
 const editPromoCodeSchema = z.object({
+  code: z.string().min(3).max(100).optional(),
+  type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
+  value: z.number().min(0).optional(),
   name: z.string().min(1, "Nombre requerido").max(100),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
@@ -89,6 +92,7 @@ export default function EditPromoCodeForm({
   } = useForm<EditFormData>({
     resolver: zodResolver(editPromoCodeSchema),
     defaultValues: {
+      code: promoCode.code,
       name: promoCode.name,
       description: promoCode.description || "",
       status:
@@ -99,6 +103,8 @@ export default function EditPromoCodeForm({
       usageLimitPerUser: promoCode.usageLimitPerUser,
       validUntil: promoCode.validUntil || "",
       eventId: promoCode.eventId || "all",
+      type: promoCode.type,
+      value: promoCode.value,
     },
   });
 
@@ -244,33 +250,71 @@ export default function EditPromoCodeForm({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">
-                    Código
-                  </Label>
+                  <Label className="text-sm text-muted-foreground">Código</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="bg-muted px-3 py-2 rounded font-mono text-lg font-semibold">
-                      {promoCode.code}
-                    </code>
-                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    {canEdit ? (
+                      <Input
+                        id="code"
+                        {...register("code")}
+                        className="mt-0"
+                      />
+                    ) : (
+                      <>
+                        <code className="bg-muted px-3 py-2 rounded font-mono text-lg font-semibold">
+                          {promoCode.code}
+                        </code>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    El código no se puede modificar
+                    {canEdit
+                      ? "Puedes modificar el código porque no ha sido usado."
+                      : "El código no se puede modificar después del primer uso."}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-sm text-muted-foreground">
-                    Tipo de descuento
-                  </Label>
+                  <Label className="text-sm text-muted-foreground">Tipo de descuento</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    {getTypeIcon(promoCode.type)}
-                    <span className="font-semibold">
-                      {formatDiscount(promoCode.type, promoCode.value)}
-                    </span>
-                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    {canEdit ? (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={watch("type")}
+                          onValueChange={(val) => setValue("type", val as "PERCENTAGE" | "FIXED_AMOUNT" | "FREE")}
+                        >
+                          <SelectTrigger className="mt-0 w-44">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PERCENTAGE">Porcentaje</SelectItem>
+                            <SelectItem value="FIXED_AMOUNT">Monto fijo</SelectItem>
+                            <SelectItem value="FREE">Gratis</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {watch("type") !== "FREE" && (
+                          <Input
+                            id="value"
+                            type="number"
+                            {...register("value", { valueAsNumber: true })}
+                            className="w-32"
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {getTypeIcon(promoCode.type)}
+                        <span className="font-semibold">
+                          {formatDiscount(promoCode.type, promoCode.value)}
+                        </span>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    El tipo y valor no se pueden modificar
+                    {canEdit
+                      ? "Puedes modificar tipo y valor porque no ha sido usado."
+                      : "El tipo y valor no se pueden modificar después del primer uso."}
                   </p>
                 </div>
               </div>
