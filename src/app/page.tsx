@@ -314,7 +314,7 @@ export default function HomePage() {
         
         {/* Contenido del banner */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white max-w-4xl mx-auto px-4">
+          <div className="text-center text-white max-w-7xl mx-auto px-4">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
               Vive la Experiencia
             </h1>

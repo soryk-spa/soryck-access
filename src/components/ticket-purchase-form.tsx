@@ -238,7 +238,7 @@ export default function TicketPurchaseFormOptimized({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+  <div className="max-w-7xl mx-auto p-6 space-y-6">
       {}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
         <CardContent className="p-6">
