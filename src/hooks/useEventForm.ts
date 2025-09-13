@@ -313,7 +313,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>(
     initialTicketTypes.length > 0 
       ? initialTicketTypes 
-      : [{ name: "", price: 0, capacity: 100, ticketsGenerated: 0, priceTiers: [] }]
+      : [{ name: "", price: 0, capacity: 100, ticketsGenerated: 1, priceTiers: [] }]
   );
 
   const handleTicketTypeChange = useCallback((
@@ -331,7 +331,7 @@ export function useTicketTypes(initialTicketTypes: TicketTypeForm[] = []) {
   const addTicketType = useCallback(() => {
     setTicketTypes(prev => [
       ...prev,
-      { name: "", price: 0, capacity: 100, ticketsGenerated: 0, priceTiers: [] }
+      { name: "", price: 0, capacity: 100, ticketsGenerated: 1, priceTiers: [] }
     ]);
   }, []);
 
