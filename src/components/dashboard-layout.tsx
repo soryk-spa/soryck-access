@@ -58,6 +58,10 @@ function DashboardLayoutContent({
           collapsed ? 'lg:ml-0' : 'lg:ml-0'
         }`}>
           <div className="container mx-auto p-4 lg:p-6 max-w-full">
+            {/* Optional place for page-level breadcrumbs: pages can render their own, or we show a placeholder container here */}
+            <div className="mb-4">
+              {/* pages should pass breadcrumbs explicitly when needed */}
+            </div>
             {children}
           </div>
         </main>

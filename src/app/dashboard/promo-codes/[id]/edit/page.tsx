@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Breadcrumbs from "@/components/breadcrumbs";
 
 export default async function EditPromoCodePage({
   params,
@@ -70,6 +71,14 @@ export default async function EditPromoCodePage({
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="space-y-6">
         {}
+        <Breadcrumbs
+          items={[
+            { label: "Dashboard", href: "/dashboard" },
+            { label: "Códigos promocionales", href: "/dashboard/promo-codes" },
+            { label: `Editar: ${promoCode.code}` },
+          ]}
+        />
+
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>
             <Link href="/dashboard/promo-codes">
