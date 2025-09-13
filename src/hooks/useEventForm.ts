@@ -99,11 +99,14 @@ export function useEventForm(
 
   
   const validateForm = useCallback((data: EventFormData, tickets: TicketTypeForm[]): EventFormErrors => {
+    console.log('🔍 [VALIDATION] Iniciando validación...');
     const newErrors: EventFormErrors = {};
 
     if (!data.title.trim()) {
+      console.log('❌ [VALIDATION] Error: título vacío');
       newErrors.title = "El título es requerido";
     } else if (data.title.length < 3) {
+      console.log('❌ [VALIDATION] Error: título muy corto:', data.title.length);
       newErrors.title = "El título debe tener al menos 3 caracteres";
     }
 
@@ -206,13 +209,22 @@ export function useEventForm(
   ) => {
     e.preventDefault();
     
+    console.log('🔍 [FORM DEBUG] Iniciando validación de formulario...');
+    console.log('📝 [FORM DEBUG] Form data:', formData);
+    console.log('🎫 [FORM DEBUG] Ticket types:', ticketTypes);
+    
     const formErrors = validateForm(formData, ticketTypes);
+    console.log('❌ [FORM DEBUG] Errores encontrados:', formErrors);
+    console.log('🔢 [FORM DEBUG] Número de errores:', Object.keys(formErrors).length);
+    
     if (Object.keys(formErrors).length > 0) {
+      console.log('❌ [FORM DEBUG] Formulario inválido, mostrando errores');
       setErrors(formErrors);
       toast.error("Por favor, corrige los errores en el formulario");
       return;
     }
 
+    console.log('✅ [FORM DEBUG] Formulario válido, enviando...');
     setLoading(true);
     setErrors({});
 
