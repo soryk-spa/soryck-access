@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
+
+// Ensure this route runs as dynamic so server-side auth can read the incoming request
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
