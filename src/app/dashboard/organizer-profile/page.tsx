@@ -1,4 +1,7 @@
 import { requireOrganizer } from "@/lib/auth";
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
 import OrganizerProfileForm from "@/components/organizer-profile-form";
 
 export default async function OrganizerProfilePage() {

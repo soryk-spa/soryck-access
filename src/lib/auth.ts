@@ -6,82 +6,64 @@ import { syncUserFromClerk } from '@/lib/sync-user'
 import { CacheService } from '@/lib/redis'
 
 export async function getCurrentUser() {
+  const { userId } = await auth()
+  
+  if (!userId) {
+    return null
+  }
+
   try {
-    console.log('🔵 [AUTH] Iniciando getCurrentUser...')
-    const { userId } = await auth()
-    console.log('🔵 [AUTH] UserId obtenido de Clerk:', userId)
-    
-    if (!userId) {
-      console.log('❌ [AUTH] No userId encontrado en Clerk auth()')
-      return null
-    }
+    const cache = CacheService.getInstance()
 
-    try {
-      const cache = CacheService.getInstance()
-      console.log('🔵 [AUTH] Cache service obtenido')
-
-      // Try to get user from cache first
-      const cachedUser = await cache.getUserFullData(userId)
-      if (cachedUser) {
-        console.log('✅ [AUTH] Usuario encontrado en cache')
-        // Double check if user still exists in database
-        const user = await prisma.user.findUnique({
-          where: {
-            clerkId: userId
-          }
-        })
-        
-        if (user) {
-          console.log('✅ [AUTH] Usuario verificado en BD:', { id: user.id, email: user.email, role: user.role })
-          return user
-        }
-        console.log('⚠️ [AUTH] Usuario en cache pero no en BD, continuando con flujo normal')
-      }
-
-      console.log('🔵 [AUTH] Buscando usuario en BD con clerkId:', userId)
-      let user = await prisma.user.findUnique({
+    // Try to get user from cache first
+    const cachedUser = await cache.getUserFullData(userId)
+    if (cachedUser) {
+      // Double check if user still exists in database
+      const user = await prisma.user.findUnique({
         where: {
           clerkId: userId
         }
       })
-
-      if (!user) {
-        console.log(`⚠️ [AUTH] Usuario ${userId} no encontrado en BD, sincronizando desde Clerk...`)
-        try {
-          user = await syncUserFromClerk(userId)
-          console.log('✅ [AUTH] Usuario sincronizado desde Clerk:', user ? { id: user.id, email: user.email } : 'null')
-        } catch (syncError) {
-          console.error('❌ [AUTH] Error al sincronizar usuario desde Clerk:', syncError)
-          return null
-        }
-      } else {
-        console.log('✅ [AUTH] Usuario encontrado en BD:', { id: user.id, email: user.email, role: user.role })
-      }
-
-      // Cache user data if found
+      
       if (user) {
-        const userData = {
-          id: user.id,
-          clerkId: user.clerkId,
-          email: user.email,
-          firstName: user.firstName || undefined,
-          lastName: user.lastName || undefined,
-          role: user.role,
-        }
-        
-        // Set user data in cache
-        await cache.setUserBatch(userId, userData)
-        console.log('✅ [AUTH] Datos de usuario guardados en cache')
+        return user
       }
-
-      console.log('🔵 [AUTH] getCurrentUser completado, retornando:', user ? 'Usuario válido' : 'null')
-      return user
-    } catch (error) {
-      console.error('❌ [AUTH] Error fetching user:', error)
-      return null
     }
-  } catch (outerError) {
-    console.error('❌ [AUTH] Error en getCurrentUser (outer):', outerError)
+
+    let user = await prisma.user.findUnique({
+      where: {
+        clerkId: userId
+      }
+    })
+
+    if (!user) {
+      console.log(`Usuario ${userId} no encontrado en BD, sincronizando desde Clerk...`)
+      try {
+        user = await syncUserFromClerk(userId)
+      } catch (syncError) {
+        console.error('Error al sincronizar usuario desde Clerk:', syncError)
+        return null
+      }
+    }
+
+    // Cache user data if found
+    if (user) {
+      const userData = {
+        id: user.id,
+        clerkId: user.clerkId,
+        email: user.email,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        role: user.role,
+      }
+      
+      // Set user data in cache
+      await cache.setUserBatch(userId, userData)
+    }
+
+    return user
+  } catch (error) {
+    console.error('Error fetching user:', error)
     return null
   }
 }
@@ -123,16 +105,12 @@ export async function getCurrentUserRole() {
 }
 
 export async function requireAuth() {
-  console.log('🔵 [AUTH] Iniciando requireAuth...')
   const user = await getCurrentUser()
-  console.log('🔵 [AUTH] Resultado de getCurrentUser:', user ? `Usuario válido (${user.email})` : 'null')
   
   if (!user) {
-    console.log('❌ [AUTH] requireAuth fallando: Usuario no autenticado')
     throw new Error('Usuario no autenticado')
   }
 
-  console.log('✅ [AUTH] requireAuth exitoso para usuario:', { id: user.id, email: user.email, role: user.role })
   return user
 }
 

@@ -1,5 +1,8 @@
 // src/app/admin/role-requests/page.tsx
 import { requireAdmin } from "@/lib/auth";
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { RoleRequestsPageClient } from "@/components/role-requests-page-client";
 

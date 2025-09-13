@@ -5,6 +5,9 @@ import { DashboardEventNewPage } from "@/components/dashboard-event-new-page";
 import { Loader2 } from "lucide-react";
 import type { Category } from "@/types";
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 
 function LoadingSkeleton() {
   return (

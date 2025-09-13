@@ -1,4 +1,7 @@
 import { requireAdmin } from '@/lib/auth'
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import CategoriesManagement from '@/components/categories-management-modern'
 

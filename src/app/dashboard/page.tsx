@@ -5,6 +5,9 @@ import { RoleRequestForm } from "@/components/role-request-form";
 import { ROLE_LABELS, canOrganizeEvents } from "@/lib/roles";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const user = await requireAuth();
 

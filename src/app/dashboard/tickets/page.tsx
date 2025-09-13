@@ -1,4 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
