@@ -120,6 +120,8 @@ export default function EditPromoCodeForm({
         headers: {
           "Content-Type": "application/json",
         },
+        // Ensure cookies are sent so server-side auth (Clerk) can read the session
+        credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
 
