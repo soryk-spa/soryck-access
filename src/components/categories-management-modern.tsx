@@ -463,11 +463,11 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
                           >
                             {loading ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Guardando...
+                                <Loader2 key="loading" className="h-4 w-4 mr-2 animate-spin" />
+                                <span key="text">Guardando...</span>
                               </>
                             ) : (
-                              "Guardar Cambios"
+                              <span key="save-text">Guardar Cambios</span>
                             )}
                           </Button>
                         </div>
@@ -482,9 +482,9 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     {deletingId === category.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <Loader2 key="loading" className="h-3 w-3 animate-spin" />
                     ) : (
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 key="trash" className="h-3 w-3" />
                     )}
                   </Button>
                 </div>
