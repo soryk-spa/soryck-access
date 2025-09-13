@@ -294,6 +294,66 @@ export default function CreateEventForm({
                         onCheckedChange={(checked) => eventForm.handleBooleanChange('allowCourtesy', checked)}
                       />
                     </div>
+
+                    {/* Campos adicionales de cortesías */}
+                    {eventForm.formData.allowCourtesy && (
+                      <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="courtesyLimit" className="text-sm font-medium">
+                              Límite de cortesías *
+                            </Label>
+                            <Input
+                              id="courtesyLimit"
+                              type="number"
+                              min="1"
+                              value={eventForm.formData.courtesyLimit || ""}
+                              onChange={(e) => eventForm.handleNumberChange('courtesyLimit', parseInt(e.target.value) || null)}
+                              className="mt-1"
+                              placeholder="Ej: 10"
+                            />
+                            {eventForm.errors.courtesyLimit && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyLimit}</p>
+                            )}
+                          </div>
+                          <div>
+                            <Label htmlFor="courtesyValidUntil" className="text-sm font-medium">
+                              Válidas hasta (hora)
+                            </Label>
+                            <Input
+                              id="courtesyValidUntil"
+                              type="time"
+                              value={eventForm.formData.courtesyValidUntil || ""}
+                              onChange={(e) => eventForm.handleInputChange('courtesyValidUntil', e.target.value)}
+                              className="mt-1"
+                            />
+                            {eventForm.errors.courtesyValidUntil && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyValidUntil}</p>
+                            )}
+                          </div>
+                        </div>
+                        {eventForm.formData.courtesyValidUntil && (
+                          <div>
+                            <Label htmlFor="courtesyPriceAfter" className="text-sm font-medium">
+                              Precio después de la hora límite
+                            </Label>
+                            <Input
+                              id="courtesyPriceAfter"
+                              type="number"
+                              min="0"
+                              step="100"
+                              value={eventForm.formData.courtesyPriceAfter || ""}
+                              onChange={(e) => eventForm.handleNumberChange('courtesyPriceAfter', parseInt(e.target.value) || null)}
+                              className="mt-1"
+                              placeholder="Precio en CLP"
+                            />
+                            {eventForm.errors.courtesyPriceAfter && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyPriceAfter}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
