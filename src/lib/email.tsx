@@ -211,6 +211,20 @@ export async function sendCourtesyInvitationEmail({
     orderId: string;
     ticketTypeId?: string | null;
     seatId?: string | null;
+    ticketType?: {
+      id: string;
+      name: string;
+      price: number;
+      description?: string | null;
+      currency: string;
+      capacity: number;
+      status: string;
+      eventId: string;
+      ticketsGenerated: number;
+      createdAt: Date;
+      updatedAt: Date;
+      [key: string]: unknown;
+    } | null;
   };
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
@@ -254,6 +268,7 @@ export async function sendCourtesyInvitationEmail({
         eventDate,
         eventLocation: event.location,
         orderNumber: `CORTESÍA-${invitation.id.slice(-8).toUpperCase()}`,
+        ticketTypeName: ticket.ticketType?.name || undefined,
         tickets: [{
           qrCode: ticket.qrCode,
           qrCodeImage: qrCodeImage, 

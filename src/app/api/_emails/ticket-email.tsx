@@ -15,6 +15,7 @@ interface TicketEmailProps {
   eventLocation: string;
   orderNumber: string;
   tickets: Ticket[];
+  ticketTypeName?: string;
 }
 
 export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
@@ -24,6 +25,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
   eventLocation,
   orderNumber,
   tickets,
+  ticketTypeName,
 }) => (
   <html>
     <head>
@@ -189,6 +191,17 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           >
                             <strong>🗓️ Fecha:</strong> {eventDate}
                           </p>
+                          {ticketTypeName && (
+                            <p
+                              style={{
+                                margin: "4px 0",
+                                color: "#333",
+                                fontSize: "14px",
+                              }}
+                            >
+                              <strong>🎫 Tipo de ticket:</strong> {ticketTypeName}
+                            </p>
+                          )}
                           <p
                             style={{
                               margin: "4px 0",

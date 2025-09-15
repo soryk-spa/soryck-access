@@ -179,6 +179,7 @@ model TicketType {
   tickets          Ticket[]
   promoCodes       PromoCode[]
   priceTiers       PriceTier[]      // Nuevos niveles de precio dinámico
+  courtesyInvitations CourtesyInvitation[] @relation("TicketTypeCourtesyInvitations")
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -195,6 +196,7 @@ model PriceTier {
   isActive     Boolean    @default(true)
   ticketTypeId String
   ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  courtesyInvitations CourtesyInvitation[] @relation("PriceTierCourtesyInvitations")
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -328,6 +330,7 @@ model CourtesyInvitation {
   acceptedAt     DateTime?
   expiresAt      DateTime?
   ticketId       String?                    @unique
+  ticketTypeId   String?
   createdBy      String
   createdAt      DateTime                   @default(now())
   updatedAt      DateTime                   @updatedAt
@@ -335,6 +338,9 @@ model CourtesyInvitation {
   event   Event   @relation("EventCourtesyInvitations", fields: [eventId], references: [id], onDelete: Cascade)
   creator User    @relation("CreatedCourtesyInvitations", fields: [createdBy], references: [id], onDelete: Cascade)
   ticket  Ticket? @relation("CourtesyInvitationTicket", fields: [ticketId], references: [id], onDelete: SetNull)
+  ticketType TicketType? @relation("TicketTypeCourtesyInvitations", fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  priceTierId String?
+  priceTier PriceTier? @relation("PriceTierCourtesyInvitations", fields: [priceTierId], references: [id], onDelete: SetNull)
 
   @@unique([eventId, invitedEmail])
   @@index([eventId])

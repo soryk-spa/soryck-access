@@ -137,7 +137,11 @@ export async function PATCH(
             },
             include: {
               event: true,
-              ticket: true,
+              ticket: {
+                include: {
+                  ticketType: true,
+                },
+              },
             },
           });
         } else {
@@ -149,7 +153,11 @@ export async function PATCH(
             },
             include: {
               event: true,
-              ticket: true,
+              ticket: {
+                include: {
+                  ticketType: true,
+                },
+              },
             },
           });
         }
@@ -182,7 +190,11 @@ export async function PATCH(
           },
           include: {
             event: true,
-            ticket: true,
+            ticket: {
+              include: {
+                ticketType: true,
+              },
+            },
           },
         });
         break;
@@ -298,6 +310,8 @@ async function generateCourtesyTicket(invitation: {
   acceptedAt?: Date | null;
   expiresAt?: Date | null;
   ticketId?: string | null;
+  ticketTypeId?: string | null;
+  priceTierId?: string | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -355,6 +369,7 @@ async function generateCourtesyTicket(invitation: {
       userId: invitedUser.id,
       orderId: order.id,
       status: 'ACTIVE',
+      ticketTypeId: invitation.ticketTypeId,
     },
   });
 

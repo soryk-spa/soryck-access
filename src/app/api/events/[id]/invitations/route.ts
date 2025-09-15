@@ -7,6 +7,8 @@ import { z } from "zod";
 const createInvitationSchema = z.object({
   invitedEmail: z.string().email("Email inválido"),
   invitedName: z.string().min(1, "Nombre requerido").optional(),
+  ticketTypeId: z.string().optional(),
+  priceTierId: z.string().optional(),
   message: z.string().optional(),
 });
 
@@ -61,6 +63,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             isUsed: true,
             usedAt: true,
           },
+        },
+        ticketType: {
+          select: { id: true, name: true, price: true }
         },
         creator: {
           select: {
@@ -132,16 +137,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       invitedEmail: string;
       invitedName?: string;
       message?: string;
+      ticketTypeId?: string | null;
+      priceTierId?: string | null;
     }> = [];
 
     if (body.invitations) {
-      
       const validation = bulkCreateInvitationSchema.parse(body);
-      invitationsToCreate = validation.invitations;
+      invitationsToCreate = validation.invitations.map((inv) => ({
+        invitedEmail: inv.invitedEmail,
+        invitedName: inv.invitedName,
+        message: inv.message,
+        ticketTypeId: inv.ticketTypeId || null,
+        priceTierId: inv.priceTierId || null,
+      }));
     } else {
-      
       const validation = createInvitationSchema.parse(body);
-      invitationsToCreate = [validation];
+      invitationsToCreate = [{
+        invitedEmail: validation.invitedEmail,
+        invitedName: validation.invitedName,
+        message: validation.message,
+        ticketTypeId: validation.ticketTypeId || null,
+        priceTierId: validation.priceTierId || null,
+      }];
     }
 
     
@@ -167,6 +184,48 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     
+    // Validate ticketTypeIds belong to this event
+    const providedTicketTypeIds = invitationsToCreate
+      .map(i => i.ticketTypeId)
+      .filter(Boolean) as string[];
+
+    if (providedTicketTypeIds.length > 0) {
+      const validTypes = await prisma.ticketType.findMany({
+        where: { eventId, id: { in: providedTicketTypeIds } },
+        select: { id: true },
+      });
+      const validIds = new Set(validTypes.map(t => t.id));
+      const invalid = providedTicketTypeIds.filter(id => !validIds.has(id));
+      if (invalid.length > 0) {
+        return NextResponse.json({ error: 'Algunos tipos de ticket no pertenecen a este evento', invalid }, { status: 400 });
+      }
+    }
+
+    // Validate priceTierIds belong to this event and map them to ticketTypeId
+    const providedPriceTierIds = invitationsToCreate
+      .map(i => i.priceTierId)
+      .filter(Boolean) as string[];
+
+  const priceTierMap = new Map<string, { id: string; ticketTypeId: string }>();
+    if (providedPriceTierIds.length > 0) {
+      const tiers = await prisma.priceTier.findMany({
+        where: { id: { in: providedPriceTierIds }, ticketType: { eventId } },
+        select: { id: true, ticketTypeId: true },
+      });
+      const foundIds = new Set(tiers.map(t => t.id));
+      const invalidTiers = providedPriceTierIds.filter(id => !foundIds.has(id));
+      if (invalidTiers.length > 0) {
+        return NextResponse.json({ error: 'Algunos price tiers no pertenecen a este evento', invalid: invalidTiers }, { status: 400 });
+      }
+      tiers.forEach(t => priceTierMap.set(t.id, t));
+    }
+
+    // If both ticketTypeId and priceTierId provided, ensure they match
+    const mismatches = invitationsToCreate.filter(inv => inv.ticketTypeId && inv.priceTierId && priceTierMap.get(inv.priceTierId!)?.ticketTypeId !== inv.ticketTypeId).map(i => ({ invitedEmail: i.invitedEmail }));
+    if (mismatches.length > 0) {
+      return NextResponse.json({ error: 'Algunos price tiers no corresponden al tipo de entrada seleccionado', mismatches }, { status: 400 });
+    }
+
     const createdInvitations = await prisma.$transaction(
       invitationsToCreate.map((invitation) =>
         prisma.courtesyInvitation.create({
@@ -177,7 +236,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             message: invitation.message,
             createdBy: user.id,
             invitationCode: generateInvitationCode(),
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), 
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            ticketTypeId: invitation.ticketTypeId || null,
+            priceTierId: invitation.priceTierId || null,
           },
           include: {
             creator: {
@@ -187,6 +248,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 email: true,
               },
             },
+            ticketType: {
+              select: { id: true, name: true, price: true }
+            },
+            priceTier: {
+              select: { id: true, name: true, price: true }
+            }
           },
         })
       )

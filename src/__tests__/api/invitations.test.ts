@@ -32,6 +32,12 @@ const mockPrisma = {
     findMany: jest.fn(),
     create: jest.fn(),
   },
+  ticketType: {
+    findMany: jest.fn(),
+  },
+  priceTier: {
+    findMany: jest.fn(),
+  },
   $transaction: jest.fn(),
 };
 
@@ -115,6 +121,9 @@ describe('API /api/events/[id]/invitations', () => {
               isUsed: true,
               usedAt: true,
             },
+          },
+          ticketType: {
+            select: { id: true, name: true, price: true }
           },
           creator: {
             select: {
@@ -212,6 +221,124 @@ describe('API /api/events/[id]/invitations', () => {
       expect(res.body.message).toContain('1 invitación(es) creada(s) exitosamente');
       expect(res.body.invitations).toHaveLength(1);
       expect(mockPrisma.$transaction).toHaveBeenCalled();
+    });
+
+    it('debería crear una invitación individual con ticketTypeId válido', async () => {
+      const singleInvitation = {
+        invitedEmail: 'ticket@test.com',
+        invitedName: 'Con Ticket',
+        ticketTypeId: 'tt-valid',
+      };
+
+      // Mock que no hay invitaciones existentes
+      mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
+      // Mock ticketType exists for event
+      mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([{ id: 'tt-valid' }]) } as any;
+
+      const createdInvitation = {
+        id: 'inv-ticket-1',
+        ...singleInvitation,
+        invitedEmail: singleInvitation.invitedEmail.toLowerCase(),
+        eventId: mockEventId,
+        createdBy: mockUser.id,
+        invitationCode: 'code-ticket-1',
+        expiresAt: expect.any(Date),
+        creator: { firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+        ticketType: { id: 'tt-valid', name: 'VIP', price: 1000 }
+      };
+
+      mockPrisma.$transaction.mockResolvedValue([createdInvitation]);
+
+      const { POST } = await import('@/app/api/events/[id]/invitations/route');
+      const res = await POST(
+        mockRequest(singleInvitation),
+        { params: Promise.resolve({ id: mockEventId }) } as any
+      );
+
+      expect(res.status).toBe(201);
+      expect(res.body.invitations).toHaveLength(1);
+      expect(res.body.invitations[0].ticketType).toBeDefined();
+    });
+
+    it('debería rechazar una invitación con ticketTypeId inválido', async () => {
+      const singleInvitation = {
+        invitedEmail: 'badticket@test.com',
+        invitedName: 'Bad Ticket',
+        ticketTypeId: 'tt-invalid',
+      };
+
+      // Mock that ticketType lookup returns empty
+      mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([]) } as any;
+      // Ensure no existing invitations so the code proceeds to ticketType validation
+      mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
+
+      const { POST } = await import('@/app/api/events/[id]/invitations/route');
+      const res = await POST(
+        mockRequest(singleInvitation),
+        { params: Promise.resolve({ id: mockEventId }) } as any
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('Algunos tipos de ticket no pertenecen a este evento');
+    });
+
+    it('debería crear una invitación con priceTierId válido', async () => {
+      const singleInvitation = {
+        invitedEmail: 'tier@test.com',
+        invitedName: 'Tier User',
+        ticketTypeId: 'tt-valid',
+        priceTierId: 'pt-valid'
+      };
+
+      mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
+      mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([{ id: 'tt-valid' }]) } as any;
+      mockPrisma.priceTier = { findMany: jest.fn().mockResolvedValue([{ id: 'pt-valid', ticketTypeId: 'tt-valid' }]) } as any;
+
+      const createdInvitation = {
+        id: 'inv-tier-1',
+        ...singleInvitation,
+        invitedEmail: singleInvitation.invitedEmail.toLowerCase(),
+        eventId: mockEventId,
+        createdBy: mockUser.id,
+        invitationCode: 'code-tier-1',
+        expiresAt: expect.any(Date),
+        creator: { firstName: 'John', lastName: 'Doe', email: 'john@test.com' },
+        ticketType: { id: 'tt-valid', name: 'VIP', price: 1000 },
+        priceTier: { id: 'pt-valid', name: 'Early Bird', price: 800 }
+      };
+
+  mockPrisma.$transaction.mockResolvedValue([createdInvitation]);
+
+      const { POST } = await import('@/app/api/events/[id]/invitations/route');
+      const res = await POST(
+        mockRequest(singleInvitation),
+        { params: Promise.resolve({ id: mockEventId }) } as any
+      );
+
+      expect(res.status).toBe(201);
+      expect(res.body.invitations[0].priceTier).toBeDefined();
+    });
+
+    it('debería rechazar una invitación con priceTierId inválido', async () => {
+      const singleInvitation = {
+        invitedEmail: 'badpt@test.com',
+        invitedName: 'Bad PT',
+        ticketTypeId: 'tt-valid',
+        priceTierId: 'pt-invalid'
+      };
+
+      mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
+      mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([{ id: 'tt-valid' }]) } as any;
+      mockPrisma.priceTier = { findMany: jest.fn().mockResolvedValue([]) } as any;
+
+      const { POST } = await import('@/app/api/events/[id]/invitations/route');
+      const res = await POST(
+        mockRequest(singleInvitation),
+        { params: Promise.resolve({ id: mockEventId }) } as any
+      );
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toContain('Algunos price tiers no pertenecen a este evento');
     });
 
     it('debería crear múltiples invitaciones masivas exitosamente', async () => {

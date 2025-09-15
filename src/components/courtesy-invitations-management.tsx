@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { getCurrentPrice, type TicketTypeWithPricing } from '@/lib/pricing';
 import { toast } from 'sonner';
 import {
   Mail,
@@ -83,6 +84,67 @@ export default function CourtesyInvitationsManagement({
   const [singleEmail, setSingleEmail] = useState('');
   const [singleName, setSingleName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
+  // helper to centralize logging (silence in test env)
+  const logError = (...args: unknown[]) => {
+    if (process.env.NODE_ENV === 'test') return;
+    const logFn = globalThis.console?.error;
+    if (logFn) logFn(...args);
+  };
+  type PriceTierOption = { id: string; name: string; price?: number; startDate?: string; endDate?: string; isActive?: boolean };
+  type TicketTypeOption = { 
+    id: string; 
+    name: string; 
+    price?: number; 
+    currency?: string;
+    priceTiers?: PriceTierOption[] 
+  };
+
+  // Helper function to get current price info
+  const getPriceInfo = (ticketType: TicketTypeOption) => {
+    if (!ticketType.price || !ticketType.currency) {
+      return { price: 0, currency: 'CLP', tierName: undefined };
+    }
+    
+    // Convert to TicketTypeWithPricing format for pricing utility
+    const pricingTicketType: TicketTypeWithPricing = {
+      id: ticketType.id,
+      name: ticketType.name,
+      price: ticketType.price,
+      currency: ticketType.currency,
+      priceTiers: ticketType.priceTiers?.map(pt => ({
+        id: pt.id,
+        name: pt.name,
+        price: pt.price || 0,
+        currency: ticketType.currency || 'CLP',
+        startDate: pt.startDate ? new Date(pt.startDate) : new Date(),
+        endDate: pt.endDate ? new Date(pt.endDate) : null,
+        isActive: pt.isActive !== false
+      }))
+    };
+    
+    const currentPrice = getCurrentPrice(pricingTicketType);
+    return {
+      ...currentPrice,
+      currency: ticketType.currency
+    };
+  };
+
+  // Helper function to format price display
+  const formatPrice = (price: number, currency: string = 'CLP') => {
+    return new Intl.NumberFormat('es-CL', { 
+      style: 'currency', 
+      currency 
+    }).format(price);
+  };
+
+  // Types for fetched API payloads
+
+  const [ticketTypes, setTicketTypes] = useState<TicketTypeOption[]>([]);
+  const [selectedSingleTicketTypeId, setSelectedSingleTicketTypeId] = useState<string | undefined>(undefined);
+  const [selectedBulkTicketTypeId, setSelectedBulkTicketTypeId] = useState<string | undefined>(undefined);
+  const [selectedSinglePriceTierId, setSelectedSinglePriceTierId] = useState<string | undefined>(undefined);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [selectedBulkPriceTierId, _setSelectedBulkPriceTierId] = useState<string | undefined>(undefined);
 
   const fetchInvitations = useCallback(async () => {
     try {
@@ -93,17 +155,37 @@ export default function CourtesyInvitationsManagement({
         if (data.invitations && Array.isArray(data.invitations)) {
           setInvitations(data.invitations);
         } else {
-          console.error('La respuesta de la API no contiene invitaciones como array:', data);
+          logError('La respuesta de la API no contiene invitaciones como array:', data);
           setInvitations([]);
           toast.error('Error en el formato de datos de invitaciones');
         }
-      } else {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(errorData.error || 'Error al cargar invitaciones');
-      }
+        } else {
+          // Try to parse JSON error, but be resilient to non-JSON responses
+          let errorMessage = 'Error al cargar invitaciones';
+          try {
+            const contentType = response.headers.get('content-type') || '';
+            if (contentType.includes('application/json')) {
+              const errorData = await response.json();
+              logError('Error response (json):', errorData);
+              if (typeof errorData?.error === 'string') errorMessage = errorData.error;
+              else if (typeof errorData?.message === 'string') errorMessage = errorData.message;
+            } else {
+              const text = await response.text();
+              logError('Error response (text):', text);
+              if (text) errorMessage = text;
+            }
+          } catch (parseError) {
+            logError('Error parsing error response body:', parseError);
+          }
+
+          // Surface a user-friendly toast and return (the outer catch also handles unexpected errors)
+          toast.error(errorMessage);
+          setInvitations([]);
+          setLoading(false);
+          return;
+        }
     } catch (error) {
-      console.error('Error fetching invitations:', error);
+      logError('Error fetching invitations:', error);
       toast.error('Error al cargar las invitaciones');
       setInvitations([]); 
     } finally {
@@ -113,7 +195,31 @@ export default function CourtesyInvitationsManagement({
 
   useEffect(() => {
     fetchInvitations();
-  }, [fetchInvitations]);
+    // Fetch event to get ticket types for selection
+    (async () => {
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        if (res.ok) {
+          const data = await res.json();
+          const tts = (data.event?.ticketTypes || []) as unknown[];
+          const mapped = tts.map((t) => {
+            const tt = t as { id: string; name: string; price?: number; priceTiers?: unknown[] };
+            const priceTiers = (tt.priceTiers || []).map((pt) => {
+              const p = pt as { id: string; name: string; price?: number };
+              return { id: p.id, name: p.name, price: p.price };
+            });
+            return { id: tt.id, name: tt.name, price: tt.price, priceTiers };
+          });
+          setTicketTypes(mapped);
+          if (mapped.length > 0) setSelectedSingleTicketTypeId(mapped[0].id);
+        } else {
+          logError('Error fetching event ticket types');
+        }
+      } catch (err) {
+        logError('Error fetching event details:', err);
+      }
+    })();
+  }, [fetchInvitations, eventId]);
 
   const addSingleInvitation = async () => {
     if (!singleEmail.trim()) {
@@ -129,6 +235,8 @@ export default function CourtesyInvitationsManagement({
         body: JSON.stringify({
           invitedEmail: singleEmail.trim(),
           invitedName: singleName.trim() || undefined,
+          ticketTypeId: selectedSingleTicketTypeId || undefined,
+          priceTierId: selectedSinglePriceTierId || undefined,
         }),
       });
 
@@ -182,7 +290,7 @@ export default function CourtesyInvitationsManagement({
       const response = await fetch(`/api/events/${eventId}/invitations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invitations: emails }),
+        body: JSON.stringify({ invitations: emails.map(e => ({ ...e, ticketTypeId: selectedBulkTicketTypeId || undefined, priceTierId: selectedBulkPriceTierId || undefined })) }),
       });
 
       if (response.ok) {
@@ -200,7 +308,7 @@ export default function CourtesyInvitationsManagement({
         toast.error(error.error || 'Error al crear las invitaciones');
       }
     } catch (error) {
-      console.error('Error adding bulk invitations:', error);
+      logError('Error adding bulk invitations:', error);
       toast.error('Error al crear las invitaciones');
     }
   };
@@ -346,6 +454,29 @@ export default function CourtesyInvitationsManagement({
                     rows={10}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="bulk-ticket-type">Tipo de entrada por defecto para el lote (opcional)</Label>
+                  <select
+                    id="bulk-ticket-type"
+                    value={selectedBulkTicketTypeId ?? ''}
+                    onChange={(e) => setSelectedBulkTicketTypeId(e.target.value || undefined)}
+                    className="w-full rounded-md border px-3 py-2"
+                  >
+                    <option value="">Sin selección</option>
+                    {ticketTypes.map(tt => {
+                      const priceInfo = getPriceInfo(tt);
+                      const currentPriceDisplay = formatPrice(priceInfo.price, priceInfo.currency);
+                      const tierInfo = priceInfo.tierName ? ` (${priceInfo.tierName})` : '';
+                      const isEarlyBird = priceInfo.isEarlyBird ? ' 🎉' : '';
+                      
+                      return (
+                        <option key={tt.id} value={tt.id}>
+                          {tt.name} — {currentPriceDisplay}{tierInfo}{isEarlyBird}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
                 <div className="flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setIsBulkModalOpen(false)}>
                     Cancelar
@@ -383,6 +514,70 @@ export default function CourtesyInvitationsManagement({
               onChange={(e) => setSingleName(e.target.value)}
             />
           </div>
+            <div>
+              <Label htmlFor="single-ticket-type">Tipo de entrada (opcional)</Label>
+              <select
+                id="single-ticket-type"
+                value={selectedSingleTicketTypeId ?? ''}
+                onChange={(e) => {
+                  const val = e.target.value || undefined;
+                  setSelectedSingleTicketTypeId(val);
+                  // Reset price tier selection when ticket type changes
+                  setSelectedSinglePriceTierId(undefined);
+                }}
+                className="w-full rounded-md border px-3 py-2"
+              >
+                <option value="">Seleccionar (opcional)</option>
+                {ticketTypes.map(tt => {
+                  const priceInfo = getPriceInfo(tt);
+                  const currentPriceDisplay = formatPrice(priceInfo.price, priceInfo.currency);
+                  const tierInfo = priceInfo.tierName ? ` (${priceInfo.tierName})` : '';
+                  const isEarlyBird = priceInfo.isEarlyBird ? ' 🎉' : '';
+                  
+                  return (
+                    <option key={tt.id} value={tt.id}>
+                      {tt.name} — {currentPriceDisplay}{tierInfo}{isEarlyBird}
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Los precios mostrados reflejan el precio dinámico actual. 🎉 = Precio promocional
+              </p>
+
+              {/* Price tier selector (shows when selected ticket type has tiers) */}
+              {selectedSingleTicketTypeId && (
+                (() => {
+                  const tt = ticketTypes.find(t => t.id === selectedSingleTicketTypeId);
+                  if (!tt) return null;
+                  if (!tt.priceTiers || tt.priceTiers.length === 0) return null;
+                  
+                  const basePriceDisplay = formatPrice(tt.price || 0, tt.currency);
+                  
+                  return (
+                    <div className="mt-2">
+                      <Label htmlFor="single-price-tier">Precio dinámico (opcional)</Label>
+                      <select
+                        id="single-price-tier"
+                        value={selectedSinglePriceTierId ?? ''}
+                        onChange={(e) => setSelectedSinglePriceTierId(e.target.value || undefined)}
+                        className="w-full rounded-md border px-3 py-2"
+                      >
+                        <option value="">Precio base — {basePriceDisplay}</option>
+                        {tt.priceTiers.map(pt => {
+                          const tierPriceDisplay = formatPrice(pt.price || 0, tt.currency);
+                          return (
+                            <option key={pt.id} value={pt.id}>
+                              {pt.name} — {tierPriceDisplay}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
           <div className="flex items-end">
             <Button 
               onClick={addSingleInvitation}
