@@ -10,20 +10,15 @@ export function parseChileDatetime(datetimeLocal: string): Date {
   // If string is like 'YYYY-MM-DDTHH:mm' (no timezone), treat it as Chile local time.
   const tzLessPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
   if (tzLessPattern.test(datetimeLocal)) {
-    // Parse components
-    const [datePart, timePart] = datetimeLocal.split('T');
-    const [year, month, day] = datePart.split('-').map(Number);
-    const [hour, minute] = timePart.split(':').map(Number);
-
-    // Build a Date in UTC corresponding to the same local time in America/Santiago.
-    // Get the offset of America/Santiago at that local time by constructing a Date from the same components
-    // using toLocaleString trick.
-    const localString = new Date(year, month - 1, day, hour, minute).toLocaleString('en-US', { timeZone: 'America/Santiago' });
-    const localDate = new Date(localString);
-    if (isNaN(localDate.getTime())) {
+    // For timezone-less strings, append Chile timezone offset
+    // Chile is UTC-3 (sometimes UTC-4 during DST, but let's use -03:00 for now)
+    const withTimezone = `${datetimeLocal}:00-03:00`;
+    const date = new Date(withTimezone);
+    
+    if (isNaN(date.getTime())) {
       throw new Error('Fecha inválida');
     }
-    return localDate;
+    return date;
   }
 
   const date = new Date(datetimeLocal);
