@@ -7,14 +7,15 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { CacheInvalidation } from '@/lib/cache-invalidation'
+import { parseChileDatetime } from '@/lib/date-utils'
 
 
 const priceTierEditSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, "El nombre es requerido"),
   price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
-  startDate: z.string().transform((str) => new Date(str)),
-  endDate: z.string().optional().nullable().transform((str) => str ? new Date(str) : null),
+  startDate: z.string().transform((str) => parseChileDatetime(str)),
+  endDate: z.string().optional().nullable().transform((str) => str ? parseChileDatetime(str) : null),
 });
 
 const ticketTypeEditSchema = z.object({
@@ -33,7 +34,7 @@ const updateEventSchema = z.object({
   location: z.string().min(1, 'La ubicación es requerida').max(200, 'La ubicación es demasiado larga'),
   startDate: z.string().refine((dateStr) => {
     try {
-      const date = new Date(dateStr);
+      const date = parseChileDatetime(dateStr);
       return !isNaN(date.getTime()) && date > new Date();
     } catch {
       return false;
@@ -50,8 +51,8 @@ const updateEventSchema = z.object({
 }).refine((data) => {
   if (data.endDate) {
     try {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
+      const startDate = parseChileDatetime(data.startDate);
+      const endDate = parseChileDatetime(data.endDate);
       return endDate > startDate;
     } catch {
       return false;
@@ -202,8 +203,8 @@ export async function PUT(
 
     
     
-    const startDate = new Date(eventData.startDate);
-    const endDate = eventData.endDate ? new Date(eventData.endDate) : null;
+    const startDate = parseChileDatetime(eventData.startDate);
+    const endDate = eventData.endDate ? parseChileDatetime(eventData.endDate) : null;
     
     console.log('📅 Fechas procesadas:', {
       startDate: startDate.toISOString(),

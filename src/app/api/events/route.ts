@@ -6,20 +6,21 @@ export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { CacheInvalidation } from '@/lib/cache-invalidation'
+import { parseChileDatetime } from '@/lib/date-utils'
 
 const priceTierSchema = z.object({
   name: z.string().min(1, 'El nombre del nivel de precio es requerido').max(100),
   price: z.number().min(0, 'El precio no puede ser negativo'),
   startDate: z.string().refine((date) => {
     try {
-      return new Date(date);
+      return parseChileDatetime(date);
     } catch {
       return false;
     }
   }, 'Fecha de inicio inválida'),
   endDate: z.string().refine((date) => {
     try {
-      return new Date(date);
+      return parseChileDatetime(date);
     } catch {
       return false;
     }
@@ -42,7 +43,7 @@ const createEventSchema = z.object({
   location: z.string().min(1, 'La ubicación es requerida').max(200, 'La ubicación es demasiado larga'),
   startDate: z.string().refine((date) => {
     try {
-      return new Date(date) > new Date();
+      return parseChileDatetime(date) > new Date();
     } catch {
       return false;
     }
@@ -59,7 +60,7 @@ const updateEventSchema = z.object({
   description: z.string().optional().nullable(),
   location: z.string().min(1, 'La ubicación es requerida').max(200),
   startDate: z.string().refine((date) => {
-    const eventDate = new Date(date)
+    const eventDate = parseChileDatetime(date)
     const now = new Date()
     return eventDate > now
   }, 'La fecha debe ser en el futuro'),
@@ -214,8 +215,8 @@ export async function POST(request: NextRequest) {
     console.log('✅ [EVENT CREATE] Categoría encontrada:', category.name)
 
     if (eventData.endDate) {
-      const start = new Date(eventData.startDate)
-      const end = new Date(eventData.endDate)
+      const start = parseChileDatetime(eventData.startDate)
+      const end = parseChileDatetime(eventData.endDate)
       console.log('📅 [EVENT CREATE] Validando fechas - Inicio:', start, 'Fin:', end)
       
       if (end <= start) {
@@ -237,8 +238,8 @@ export async function POST(request: NextRequest) {
       const event = await tx.event.create({
         data: {
           ...eventData,
-          startDate: new Date(eventData.startDate),
-          endDate: eventData.endDate ? new Date(eventData.endDate) : null,
+          startDate: parseChileDatetime(eventData.startDate),
+          endDate: eventData.endDate ? parseChileDatetime(eventData.endDate) : null,
           organizerId: user.id,
           isPublished: false,
           capacity: totalCapacity,
@@ -279,8 +280,8 @@ export async function POST(request: NextRequest) {
                   ticketTypeId: ticketType.id,
                   name: tier.name,
                   price: tier.price,
-                  startDate: new Date(tier.startDate),
-                  endDate: new Date(tier.endDate),
+                  startDate: parseChileDatetime(tier.startDate),
+                  endDate: parseChileDatetime(tier.endDate),
                 }))
               })
               console.log(`✅ [EVENT CREATE] Price tiers creados para ticket type:`, ticketType.id)
@@ -461,8 +462,8 @@ export async function PUT(request: NextRequest) {
         where: { id: eventId },
         data: {
           ...eventData,
-          startDate: new Date(eventData.startDate),
-          endDate: eventData.endDate ? new Date(eventData.endDate) : null,
+          startDate: parseChileDatetime(eventData.startDate),
+          endDate: eventData.endDate ? parseChileDatetime(eventData.endDate) : null,
           capacity: totalCapacity,
           isFree: ticketTypes.every(tt => tt.price === 0),
         }
@@ -497,8 +498,8 @@ export async function PUT(request: NextRequest) {
               ticketTypeId: ticketType.id,
               name: tier.name,
               price: tier.price,
-              startDate: new Date(tier.startDate),
-              endDate: new Date(tier.endDate),
+              startDate: parseChileDatetime(tier.startDate),
+              endDate: parseChileDatetime(tier.endDate),
             }))
           })
         }
