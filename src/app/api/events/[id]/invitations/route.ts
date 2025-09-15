@@ -206,18 +206,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .map(i => i.priceTierId)
       .filter(Boolean) as string[];
 
-  const priceTierMap = new Map<string, { id: string; ticketTypeId: string }>();
+  type PriceTierMapValue = { id: string; ticketTypeId: string; endDate?: Date | null };
+  const priceTierMap = new Map<string, PriceTierMapValue>();
     if (providedPriceTierIds.length > 0) {
       const tiers = await prisma.priceTier.findMany({
         where: { id: { in: providedPriceTierIds }, ticketType: { eventId } },
-        select: { id: true, ticketTypeId: true },
+        select: { id: true, ticketTypeId: true, endDate: true },
       });
       const foundIds = new Set(tiers.map(t => t.id));
       const invalidTiers = providedPriceTierIds.filter(id => !foundIds.has(id));
       if (invalidTiers.length > 0) {
         return NextResponse.json({ error: 'Algunos price tiers no pertenecen a este evento', invalid: invalidTiers }, { status: 400 });
       }
-      tiers.forEach(t => priceTierMap.set(t.id, t));
+      tiers.forEach(t => priceTierMap.set(t.id, { id: t.id, ticketTypeId: t.ticketTypeId, endDate: t.endDate }));
     }
 
     // If both ticketTypeId and priceTierId provided, ensure they match
@@ -227,8 +228,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const createdInvitations = await prisma.$transaction(
-      invitationsToCreate.map((invitation) =>
-        prisma.courtesyInvitation.create({
+      invitationsToCreate.map((invitation) => {
+        const tier = invitation.priceTierId ? priceTierMap.get(invitation.priceTierId) : undefined;
+        const expires = tier && tier.endDate ? tier.endDate : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        return prisma.courtesyInvitation.create({
           data: {
             eventId,
             invitedEmail: invitation.invitedEmail.toLowerCase(),
@@ -236,7 +239,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             message: invitation.message,
             createdBy: user.id,
             invitationCode: generateInvitationCode(),
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            expiresAt: expires,
             ticketTypeId: invitation.ticketTypeId || null,
             priceTierId: invitation.priceTierId || null,
           },
@@ -255,8 +258,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               select: { id: true, name: true, price: true }
             }
           },
-        })
-      )
+        });
+      })
     );
 
     return NextResponse.json({

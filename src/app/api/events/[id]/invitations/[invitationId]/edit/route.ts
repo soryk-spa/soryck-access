@@ -129,6 +129,15 @@ export async function PUT(
       }
 
       // 3. Crear nueva invitación con los datos actualizados
+      let newExpiresAt = originalInvitation.expiresAt;
+      const chosenPriceTierId = validatedData.priceTierId ?? originalInvitation.priceTierId;
+      if (chosenPriceTierId) {
+        const chosenTier = await tx.priceTier.findUnique({ where: { id: chosenPriceTierId } });
+        if (chosenTier && chosenTier.endDate) {
+          newExpiresAt = chosenTier.endDate;
+        }
+      }
+
       const newInvitation = await tx.courtesyInvitation.create({
         data: {
           eventId: originalInvitation.eventId,
@@ -139,7 +148,7 @@ export async function PUT(
           ticketTypeId: validatedData.ticketTypeId ?? originalInvitation.ticketTypeId,
           priceTierId: validatedData.priceTierId ?? originalInvitation.priceTierId,
           createdBy: user.id,
-          expiresAt: originalInvitation.expiresAt, // Mantener la misma fecha de expiración
+          expiresAt: newExpiresAt,
         },
         include: {
           event: true,
