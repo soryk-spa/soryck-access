@@ -213,12 +213,14 @@ export default function CourtesyInvitationsManagement({
           const data = await res.json();
           const tts = (data.event?.ticketTypes || []) as unknown[];
           const mapped = tts.map((t) => {
-            const tt = t as { id: string; name: string; price?: number; priceTiers?: unknown[] };
+            const tt = t as { id: string; name: string; price?: number; currency?: string; priceTiers?: unknown[] };
             const priceTiers = (tt.priceTiers || []).map((pt) => {
-              const p = pt as { id: string; name: string; price?: number };
-              return { id: p.id, name: p.name, price: p.price };
+              const p = pt as { id: string; name: string; price?: number; startDate?: string; endDate?: string; isActive?: boolean; currency?: string };
+              return { id: p.id, name: p.name, price: p.price, startDate: p.startDate, endDate: p.endDate, isActive: p.isActive, currency: p.currency };
             });
-            return { id: tt.id, name: tt.name, price: tt.price, priceTiers };
+            // prefer ticket-type currency, fall back to event.currency, then CLP
+            const currency = tt.currency || data.event?.currency || 'CLP';
+            return { id: tt.id, name: tt.name, price: tt.price, currency, priceTiers };
           });
           setTicketTypes(mapped);
           if (mapped.length > 0) setSelectedSingleTicketTypeId(mapped[0].id);
