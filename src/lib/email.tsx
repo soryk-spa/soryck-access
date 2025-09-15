@@ -137,7 +137,16 @@ export async function sendCourtesyEmail({
 
     const userName = user.firstName || user.email.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    const expiresAt = formatFullDateTime(courtesyRequest.expiresAt!);
+    // Use raw date from database without any formatting/parsing to avoid timezone issues
+    const expiresAt = courtesyRequest.expiresAt!.toLocaleString('es-CL', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'America/Santiago'
+    });
 
     const emailHtml = await render(
       React.createElement(CourtesyEmail, {
@@ -248,7 +257,16 @@ export async function sendCourtesyInvitationEmail({
 
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    const freeUntil = invitation.expiresAt ? formatFullDateTime(invitation.expiresAt) : undefined;
+    // Use raw date from database without any formatting/parsing to avoid timezone issues
+    const freeUntil = invitation.expiresAt ? invitation.expiresAt.toLocaleString('es-CL', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      timeZone: 'America/Santiago'
+    }) : undefined;
     let afterPrice: string | undefined = undefined;
     // Prefer price from invitation.priceTier when available, otherwise fall back to ticket.ticketType
     const { formatCurrency } = await import('@/lib/utils');
