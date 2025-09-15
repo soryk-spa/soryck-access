@@ -51,7 +51,7 @@ async function getEventForEdit(id: string) {
         },
         _count: { select: { tickets: true, orders: true } },
         ticketTypes: {
-          include: { _count: { select: { tickets: true } } },
+          include: { _count: { select: { tickets: true } }, priceTiers: true },
           orderBy: { createdAt: "asc" },
         },
       },
@@ -101,6 +101,16 @@ export default async function EditEventPage({
       description: tt.description === null ? undefined : tt.description,
       createdAt: tt.createdAt.toISOString(),
       updatedAt: tt.updatedAt.toISOString(),
+      priceTiers: tt.priceTiers?.map((tier) => ({
+        id: tier.id,
+        name: tier.name,
+        price: tier.price,
+        currency: tier.currency,
+        startDate: tier.startDate.toISOString(),
+        endDate: tier.endDate ? tier.endDate.toISOString() : undefined,
+        isActive: tier.isActive,
+        ticketTypeId: tier.ticketTypeId,
+      })) || [],
     })),
     imageUrl: event.imageUrl === null ? undefined : event.imageUrl,
   };
