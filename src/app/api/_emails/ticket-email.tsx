@@ -16,6 +16,8 @@ interface TicketEmailProps {
   orderNumber: string;
   tickets: Ticket[];
   ticketTypeName?: string;
+  freeUntil?: string;
+  afterPrice?: string;
 }
 
 export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
@@ -26,6 +28,8 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
   orderNumber,
   tickets,
   ticketTypeName,
+  freeUntil,
+  afterPrice,
 }) => (
   <html>
     <head>
@@ -414,6 +418,23 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             >
                               ✅ Instrucciones de Uso
                             </div>
+                            {freeUntil && (
+                              <div
+                                style={{
+                                  backgroundColor: '#fffef6',
+                                  border: '1px solid #fff0b3',
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  color: '#856404'
+                                }}
+                              >
+                                ⏰ <strong>Gratis hasta:</strong> {freeUntil}
+                                {afterPrice && (
+                                  <div style={{ marginTop: '6px' }}>A partir de esa hora, el precio será {afterPrice}</div>
+                                )}
+                              </div>
+                            )}
                             <ul
                               style={{
                                 fontSize: "13px",

@@ -196,6 +196,7 @@ export async function sendCourtesyInvitationEmail({
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
+    priceTier?: { price: number; currency?: string } | null;
   };
   event: FullEvent;
   ticket: {
@@ -247,7 +248,16 @@ export async function sendCourtesyInvitationEmail({
 
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    
+    const freeUntil = invitation.expiresAt ? formatFullDateTime(invitation.expiresAt) : undefined;
+    let afterPrice: string | undefined = undefined;
+    // Prefer price from invitation.priceTier when available, otherwise fall back to ticket.ticketType
+    const { formatCurrency } = await import('@/lib/utils');
+    // invitation may include priceTier when updatedInvitation was returned from the API
+    if (invitation.priceTier && typeof invitation.priceTier.price === 'number') {
+      afterPrice = formatCurrency(invitation.priceTier.price, invitation.priceTier.currency || event.currency || 'CLP');
+    } else if (ticket.ticketType && typeof ticket.ticketType.price === 'number') {
+      afterPrice = formatCurrency(ticket.ticketType.price, ticket.ticketType.currency || event.currency || 'CLP');
+    }
     
     const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
     const qrCodeImage = await generateQRCodeBase64(ticket.qrCode, verificationUrl);
@@ -274,6 +284,8 @@ export async function sendCourtesyInvitationEmail({
           qrCodeImage: qrCodeImage, 
           backupCode: ticket.qrCode
         }],
+        freeUntil,
+        afterPrice,
       })
     );
 

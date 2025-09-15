@@ -142,6 +142,7 @@ export async function PATCH(
                   ticketType: true,
                 },
               },
+              priceTier: true,
             },
           });
         } else {
@@ -158,6 +159,7 @@ export async function PATCH(
                   ticketType: true,
                 },
               },
+              priceTier: true,
             },
           });
         }
