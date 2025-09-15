@@ -137,16 +137,26 @@ export async function sendCourtesyEmail({
 
     const userName = user.firstName || user.email.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    // Use raw date from database without any formatting/parsing to avoid timezone issues
-    const expiresAt = courtesyRequest.expiresAt!.toLocaleString('es-CL', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit',
-      timeZone: 'America/Santiago'
-    });
+    
+    // Helper function to treat UTC date as Chile local time
+    const formatDateAsChileLocal = (date: Date) => {
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      const hour = date.getUTCHours();
+      const minute = date.getUTCMinutes();
+      const chileLocalDate = new Date(year, month, day, hour, minute);
+      return chileLocalDate.toLocaleString('es-CL', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    };
+    
+    const expiresAt = formatDateAsChileLocal(courtesyRequest.expiresAt!);
 
     const emailHtml = await render(
       React.createElement(CourtesyEmail, {
@@ -257,16 +267,26 @@ export async function sendCourtesyInvitationEmail({
 
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    // Use raw date from database without any formatting/parsing to avoid timezone issues
-    const freeUntil = invitation.expiresAt ? invitation.expiresAt.toLocaleString('es-CL', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit',
-      timeZone: 'America/Santiago'
-    }) : undefined;
+    
+    // Helper function to treat UTC date as Chile local time
+    const formatDateAsChileLocal = (date: Date) => {
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      const hour = date.getUTCHours();
+      const minute = date.getUTCMinutes();
+      const chileLocalDate = new Date(year, month, day, hour, minute);
+      return chileLocalDate.toLocaleString('es-CL', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    };
+    
+    const freeUntil = invitation.expiresAt ? formatDateAsChileLocal(invitation.expiresAt) : undefined;
     let afterPrice: string | undefined = undefined;
     // Prefer price from invitation.priceTier when available, otherwise fall back to ticket.ticketType
     const { formatCurrency } = await import('@/lib/utils');
