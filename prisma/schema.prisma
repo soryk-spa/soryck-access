@@ -319,21 +319,23 @@ enum CourtesyCodeType {
 }
 
 model CourtesyInvitation {
-  id             String                     @id @default(cuid())
-  eventId        String
-  invitedEmail   String
-  invitedName    String?
-  message        String?
-  status         CourtesyInvitationStatus   @default(PENDING)
-  invitationCode String?                    @unique
-  sentAt         DateTime?
-  acceptedAt     DateTime?
-  expiresAt      DateTime?
-  ticketId       String?                    @unique
-  ticketTypeId   String?
-  createdBy      String
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  id              String                     @id @default(cuid())
+  eventId         String
+  invitedEmail    String
+  invitedName     String?
+  message         String?
+  status          CourtesyInvitationStatus   @default(PENDING)
+  invitationCode  String?                    @unique
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+  expiresAt       DateTime?
+  ticketId        String?                    @unique
+  ticketTypeId    String?
+  supersededById  String?                    @unique // ID de la invitación que reemplazó a esta
+  supersededAt    DateTime?                  // Cuándo fue reemplazada
+  createdBy       String
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
 
   event   Event   @relation("EventCourtesyInvitations", fields: [eventId], references: [id], onDelete: Cascade)
   creator User    @relation("CreatedCourtesyInvitations", fields: [createdBy], references: [id], onDelete: Cascade)
@@ -341,6 +343,10 @@ model CourtesyInvitation {
   ticketType TicketType? @relation("TicketTypeCourtesyInvitations", fields: [ticketTypeId], references: [id], onDelete: SetNull)
   priceTierId String?
   priceTier PriceTier? @relation("PriceTierCourtesyInvitations", fields: [priceTierId], references: [id], onDelete: SetNull)
+  
+  // Relación para trackear invitaciones supersedidas
+  supersededBy CourtesyInvitation? @relation("SupersededInvitation", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes   CourtesyInvitation? @relation("SupersededInvitation")
 
   @@unique([eventId, invitedEmail])
   @@index([eventId])
@@ -351,10 +357,11 @@ model CourtesyInvitation {
 }
 
 enum CourtesyInvitationStatus {
-  PENDING  // Invitación pendiente de envío
-  SENT     // Invitación enviada
-  ACCEPTED // Invitación aceptada (ticket generado)
-  EXPIRED  // Invitación expirada
+  PENDING    // Invitación pendiente de envío
+  SENT       // Invitación enviada
+  ACCEPTED   // Invitación aceptada (ticket generado)
+  EXPIRED    // Invitación expirada
+  SUPERSEDED // Invitación reemplazada por una nueva versión editada
 }
 
 model Payment {

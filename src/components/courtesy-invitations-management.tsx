@@ -41,6 +41,7 @@ import {
   CheckCircle,
   XCircle,
   Download,
+  Edit,
 } from 'lucide-react';
 import { formatFullDateTime } from '@/lib/date-utils';
 
@@ -48,7 +49,7 @@ interface CourtesyInvitation {
   id: string;
   invitedEmail: string;
   invitedName?: string;
-  status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED';
+  status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'EXPIRED' | 'SUPERSEDED';
   sentAt?: string;
   acceptedAt?: string;
   expiresAt?: string;
@@ -79,6 +80,15 @@ export default function CourtesyInvitationsManagement({
   const [loading, setLoading] = useState(true);
   const [isAddingInvitation, setIsAddingInvitation] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  
+  // Estados para edición
+  const [editingInvitation, setEditingInvitation] = useState<CourtesyInvitation | null>(null);
+  const [editForm, setEditForm] = useState({
+    invitedName: '',
+    message: '',
+    ticketTypeId: '',
+    priceTierId: '',
+  });
 
   
   const [singleEmail, setSingleEmail] = useState('');
@@ -366,6 +376,66 @@ export default function CourtesyInvitationsManagement({
     }
   };
 
+  // Handlers para edición
+  const openEditDialog = (invitation: CourtesyInvitation) => {
+    setEditingInvitation(invitation);
+    setEditForm({
+      invitedName: invitation.invitedName || '',
+      message: '',
+      ticketTypeId: '',
+      priceTierId: '',
+    });
+  };
+
+  const handleEditSubmit = async () => {
+    if (!editingInvitation) return;
+
+    try {
+      const response = await fetch(`/api/events/${eventId}/invitations/${editingInvitation.id}/edit`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invitedName: editForm.invitedName,
+          message: editForm.message || undefined,
+          ticketTypeId: editForm.ticketTypeId || undefined,
+          priceTierId: editForm.priceTierId || undefined,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        
+        // Actualizar la lista: marcar la original como supersedida y añadir la nueva
+        setInvitations(prev => 
+          prev.map(inv => 
+            inv.id === editingInvitation.id 
+              ? { ...inv, status: 'SUPERSEDED' as const }
+              : inv
+          ).concat([result.newInvitation])
+        );
+        
+        setEditingInvitation(null);
+        toast.success('Invitación editada exitosamente. Se ha creado una nueva invitación.');
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Error al editar la invitación');
+      }
+    } catch (error) {
+      console.error('Error editing invitation:', error);
+      toast.error('Error al editar la invitación');
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingInvitation(null);
+    setEditForm({
+      invitedName: '',
+      message: '',
+      ticketTypeId: '',
+      priceTierId: '',
+    });
+  };
+
   const getStatusBadge = (invitation: CourtesyInvitation) => {
     switch (invitation.status) {
       case 'PENDING':
@@ -376,6 +446,8 @@ export default function CourtesyInvitationsManagement({
         return <Badge variant="default"><CheckCircle className="w-3 h-3 mr-1" />Aceptada</Badge>;
       case 'EXPIRED':
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Expirada</Badge>;
+      case 'SUPERSEDED':
+        return <Badge variant="outline"><XCircle className="w-3 h-3 mr-1" />Reemplazada</Badge>;
       default:
         return <Badge variant="secondary">Desconocido</Badge>;
     }
@@ -687,6 +759,14 @@ export default function CourtesyInvitationsManagement({
                             Reenviar
                           </DropdownMenuItem>
                         )}
+                        {(['SENT', 'ACCEPTED'].includes(invitation.status)) && (
+                          <DropdownMenuItem
+                            onClick={() => openEditDialog(invitation)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                        )}
                         {!invitation.ticket && (
                           <DropdownMenuItem
                             onClick={() => handleInvitationAction(invitation.id, 'GENERATE_TICKET')}
@@ -720,6 +800,104 @@ export default function CourtesyInvitationsManagement({
           </Table>
         )}
       </div>
+
+      {/* Diálogo de Edición */}
+      {editingInvitation && (
+        <Dialog open={!!editingInvitation} onOpenChange={(open) => !open && cancelEdit()}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Editar Invitación de Cortesía</DialogTitle>
+              <DialogDescription>
+                Editar la invitación para {editingInvitation.invitedEmail}. Se creará una nueva invitación y la anterior será marcada como reemplazada.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Nombre del Invitado</Label>
+                <Input
+                  id="edit-name"
+                  value={editForm.invitedName}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, invitedName: e.target.value }))}
+                  placeholder="Nombre opcional"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="edit-message">Mensaje Personal (Opcional)</Label>
+                <Textarea
+                  id="edit-message"
+                  value={editForm.message}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, message: e.target.value }))}
+                  placeholder="Mensaje personal para el invitado"
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              {ticketTypes.length > 0 && (
+                <div>
+                  <Label htmlFor="edit-ticket-type">Tipo de Ticket (Opcional)</Label>
+                  <select
+                    id="edit-ticket-type"
+                    value={editForm.ticketTypeId}
+                    onChange={(e) => {
+                      setEditForm(prev => ({ 
+                        ...prev, 
+                        ticketTypeId: e.target.value,
+                        priceTierId: '' // Reset price tier when ticket type changes
+                      }));
+                    }}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="">Seleccionar tipo de ticket...</option>
+                    {ticketTypes.map((ticketType) => {
+                      const priceInfo = getPriceInfo(ticketType);
+                      return (
+                        <option key={ticketType.id} value={ticketType.id}>
+                          {ticketType.name} - {formatPrice(priceInfo.price, priceInfo.currency)}
+                          {priceInfo.tierName && ` (${priceInfo.tierName})`}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+
+              {editForm.ticketTypeId && (
+                <div>
+                  <Label htmlFor="edit-price-tier">Nivel de Precio (Opcional)</Label>
+                  <select
+                    id="edit-price-tier"
+                    value={editForm.priceTierId}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, priceTierId: e.target.value }))}
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="">Usar precio general</option>
+                    {ticketTypes
+                      .find(tt => tt.id === editForm.ticketTypeId)
+                      ?.priceTiers
+                      ?.filter(pt => pt.isActive !== false)
+                      ?.map((priceTier) => (
+                        <option key={priceTier.id} value={priceTier.id}>
+                          {priceTier.name} - {formatPrice(priceTier.price || 0, 'CLP')}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={cancelEdit}>
+                Cancelar
+              </Button>
+              <Button onClick={handleEditSubmit}>
+                Actualizar Invitación
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
