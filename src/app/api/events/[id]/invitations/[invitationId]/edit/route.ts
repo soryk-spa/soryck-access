@@ -118,6 +118,16 @@ export async function PUT(
         },
       });
 
+      // Quick-fix: free unique constraint by altering the invitedEmail of the superseded record
+      // Append a suffix with timestamp so the (eventId, invitedEmail) combo is no longer duplicated
+      const suffix = `::superseded::${Date.now()}`;
+      await tx.courtesyInvitation.update({
+        where: { id: invitationId },
+        data: {
+          invitedEmail: `${originalInvitation.invitedEmail}${suffix}`,
+        },
+      });
+
       // 2. Si había un ticket, marcarlo como cancelado/inactivo
       if (originalInvitation.ticket) {
         await tx.ticket.update({
