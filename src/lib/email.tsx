@@ -330,7 +330,7 @@ export async function sendCourtesyInvitationEmail({
     const emailData = {
       from: process.env.EMAIL_FROM,
       to: invitation.invitedEmail,
-      subject: `🎉 Invitación gratuita para ${event.title}`,
+      subject: `🎉 Invitación para ${event.title}`,
       html: emailHtml,
       
       attachments: [
