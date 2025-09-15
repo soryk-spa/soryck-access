@@ -117,19 +117,24 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
 
                   <div
                     style={{
-                      backgroundColor: "#fff3cd",
-                      border: "1px solid #ffeaa7",
+                      backgroundColor: "#ffffff",
                       borderRadius: "8px",
                       padding: "16px",
                       margin: "20px 0",
-                      color: "#856404",
-                      textAlign: "center",
+                      color: "#333",
+                      textAlign: "left",
                     }}
                   >
-                    <strong>📱 Importante:</strong> Presenta el código QR en la
-                    entrada del evento.
-                    <br />
-                    Puedes mostrar este email directamente desde tu teléfono.
+                    <div style={{ fontWeight: '700', marginBottom: '8px' }}>Instrucciones de Uso</div>
+                    <div style={{ marginBottom: '8px' }}>⏰ Gratis hasta: {freeUntil || '—'}</div>
+                    <div style={{ marginBottom: '12px' }}>A partir de esa hora, el precio será {afterPrice || '—'}</div>
+
+                    <div style={{ paddingLeft: '6px' }}>
+                      <div style={{ margin: '6px 0' }}>• Llega al evento con este email en tu teléfono</div>
+                      <div style={{ margin: '6px 0' }}>• Muestra el código QR al personal de entrada</div>
+                      <div style={{ margin: '6px 0' }}>• Si hay problemas, usa el código de respaldo</div>
+                      <div style={{ margin: '6px 0' }}>• Ten tu identificación lista para verificar</div>
+                    </div>
                   </div>
 
                   {}
