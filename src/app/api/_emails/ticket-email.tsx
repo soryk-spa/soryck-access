@@ -103,18 +103,6 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                     <strong>Hola {userName},</strong>
                   </p>
 
-                  <p
-                    style={{
-                      color: "#333",
-                      fontSize: "16px",
-                      lineHeight: "1.6",
-                      margin: "0 0 20px 0",
-                    }}
-                  >
-                    ¡Gracias por tu compra! Aquí están tus tickets para{" "}
-                    <strong>{eventName}</strong>.
-                  </p>
-
                   <div
                     style={{
                       backgroundColor: "#ffffff",
