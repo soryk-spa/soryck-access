@@ -7,10 +7,26 @@ export function parseChileDatetime(datetimeLocal: string): Date {
     throw new Error('Fecha requerida');
   }
 
-  
+  // If string is like 'YYYY-MM-DDTHH:mm' (no timezone), treat it as Chile local time.
+  const tzLessPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+  if (tzLessPattern.test(datetimeLocal)) {
+    // Parse components
+    const [datePart, timePart] = datetimeLocal.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+
+    // Build a Date in UTC corresponding to the same local time in America/Santiago.
+    // Get the offset of America/Santiago at that local time by constructing a Date from the same components
+    // using toLocaleString trick.
+    const localString = new Date(year, month - 1, day, hour, minute).toLocaleString('en-US', { timeZone: 'America/Santiago' });
+    const localDate = new Date(localString);
+    if (isNaN(localDate.getTime())) {
+      throw new Error('Fecha inválida');
+    }
+    return localDate;
+  }
+
   const date = new Date(datetimeLocal);
-  
-  
   if (isNaN(date.getTime())) {
     throw new Error('Fecha inválida');
   }
@@ -110,7 +126,9 @@ export function fromTimestamp(timestamp: number): Date {
 
 
 export const formatFullDateTime = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  // If the input is a string without timezone info (e.g. '2025-12-01T12:00'),
+  // parse it as Chile local time to avoid unintended UTC shifts when the server runs in UTC.
+  const dateObj = typeof date === 'string' ? parseChileDatetime(date) : date;
   
   return dateObj.toLocaleString("es-CL", {
     weekday: "long",
