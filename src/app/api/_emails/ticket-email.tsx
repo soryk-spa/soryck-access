@@ -107,22 +107,15 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                     style={{
                       backgroundColor: "#ffffff",
                       borderRadius: "8px",
-                      padding: "16px",
+                      padding: "12px 16px",
                       margin: "20px 0",
                       color: "#333",
                       textAlign: "left",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
                     }}
                   >
-                    <div style={{ fontWeight: '700', marginBottom: '8px' }}>Instrucciones de Uso</div>
-                    <div style={{ marginBottom: '8px' }}>⏰ Gratis hasta: {freeUntil || '—'}</div>
-                    <div style={{ marginBottom: '12px' }}>A partir de esa hora, el precio será {afterPrice || '—'}</div>
-
-                    <div style={{ paddingLeft: '6px' }}>
-                      <div style={{ margin: '6px 0' }}>• Llega al evento con este email en tu teléfono</div>
-                      <div style={{ margin: '6px 0' }}>• Muestra el código QR al personal de entrada</div>
-                      <div style={{ margin: '6px 0' }}>• Si hay problemas, usa el código de respaldo</div>
-                      <div style={{ margin: '6px 0' }}>• Ten tu identificación lista para verificar</div>
-                    </div>
+                    <strong>Instrucciones de Uso —</strong> ⏰ Gratis hasta: {freeUntil || '—'}. A partir de esa hora, el precio será {afterPrice || '—'}. Llega al evento con este email en tu teléfono; muestra el código QR al personal de entrada; si hay problemas, usa el código de respaldo; ten tu identificación lista para verificar.
                   </div>
 
                   {}
