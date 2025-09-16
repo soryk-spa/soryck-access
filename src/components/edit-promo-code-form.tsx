@@ -33,6 +33,7 @@ import {
   Lock,
   Save,
   Activity,
+  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -46,6 +47,7 @@ const editPromoCodeSchema = z.object({
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
+  priceAfter: z.number().min(0).optional(),
   eventId: z.string().optional(),
 });
 
@@ -64,6 +66,7 @@ interface PromoCode {
   usedCount: number;
   validFrom: string;
   validUntil: string;
+  priceAfter?: number;
   eventId: string;
   event?: { id: string; title: string };
   _count: { usages: number };
@@ -102,6 +105,7 @@ export default function EditPromoCodeForm({
       usageLimit: promoCode.usageLimit,
       usageLimitPerUser: promoCode.usageLimitPerUser,
       validUntil: promoCode.validUntil || "",
+      priceAfter: promoCode.priceAfter,
       eventId: promoCode.eventId || "all",
       type: promoCode.type,
       value: promoCode.value,
@@ -547,6 +551,44 @@ export default function EditPromoCodeForm({
                 <p className="text-xs text-muted-foreground mt-1">
                   Deja vacío para que no expire automáticamente
                 </p>
+              </div>
+
+              {/* Dynamic Pricing Section */}
+              <Separator />
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium">Precios Dinámicos (Opcional)</h3>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      <p className="font-medium mb-1">Sistema de precios dinámicos</p>
+                      <p>El código aplicará el descuento configurado hasta la fecha de vencimiento. Después de esa fecha, se cobrará un precio fijo por ticket.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="priceAfter">Precio después del vencimiento (CLP)</Label>
+                  <Input
+                    id="priceAfter"
+                    type="number"
+                    {...register("priceAfter", {
+                      setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                    })}
+                    placeholder="Opcional - Precio fijo después del vencimiento"
+                    min="0"
+                    className="mt-1"
+                    disabled={!canEdit}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Si se establece, requiere fecha de vencimiento. Ejemplo: Gratis hasta el 31/12, luego $5.000
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

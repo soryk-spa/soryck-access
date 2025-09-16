@@ -19,6 +19,7 @@ const createPromoCodeSchema = z.object({
   usageLimitPerUser: z.number().min(1).optional(),
   validFrom: z.string().min(1, "Fecha de inicio requerida"),
   validUntil: z.string().optional(),
+  priceAfter: z.number().min(0).optional(),
   eventId: z.string().optional(),
   ticketTypeId: z.string().optional(),
   generateCode: z.boolean().default(true),
@@ -50,6 +51,18 @@ const createPromoCodeSchema = z.object({
   {
     message: "Datos inválidos",
     path: ["value"], 
+  }
+).refine(
+  (data) => {
+    // Dynamic pricing validation: if priceAfter is set, validUntil must also be set
+    if (data.priceAfter && data.priceAfter > 0 && !data.validUntil) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Fecha de vencimiento requerida para precios dinámicos",
+    path: ["validUntil"],
   }
 );
 
@@ -90,6 +103,7 @@ export async function GET(request: NextRequest) {
       ...code,
       description: code.description ?? undefined,
       usageLimit: code.usageLimit ?? undefined,
+      priceAfter: code.priceAfter ?? undefined,
       validFrom: code.validFrom.toISOString(),
       validUntil: code.validUntil?.toISOString() || undefined,
       createdAt: code.createdAt.toISOString(),
@@ -211,6 +225,7 @@ export async function POST(request: NextRequest) {
         value: promoData.type === "FREE" ? 0 : (promoData.value || 0),
         validFrom: validFromDate,
         validUntil: validUntilDate,
+        priceAfter: promoData.priceAfter || null,
         eventId: eventId || null,
         ticketTypeId: ticketTypeId || null,
         createdBy: user.id,
@@ -230,6 +245,7 @@ export async function POST(request: NextRequest) {
       ...promoCode,
       description: promoCode.description ?? undefined,
       usageLimit: promoCode.usageLimit ?? undefined,
+      priceAfter: promoCode.priceAfter ?? undefined,
       validFrom: promoCode.validFrom.toISOString(),
       validUntil: promoCode.validUntil?.toISOString() || undefined,
       createdAt: promoCode.createdAt.toISOString(),

@@ -219,6 +219,7 @@ model PromoCode {
   usageLimitPerUser Int?
   validFrom         DateTime
   validUntil        DateTime?
+  priceAfter        Float?          // Precio fijo después de validUntil (para pricing dinámico)
 
   eventId      String?
   event        Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)

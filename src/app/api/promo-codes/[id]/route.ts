@@ -14,6 +14,7 @@ const updatePromoCodeSchema = z.object({
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
+  priceAfter: z.number().min(0).optional(),
   // Fields that are only editable when usedCount === 0
   code: z.string().min(3).max(100).optional(),
   type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
@@ -67,6 +68,7 @@ export async function GET(
       ...promoCode,
       description: promoCode.description ?? undefined,
       usageLimit: promoCode.usageLimit ?? undefined,
+      priceAfter: promoCode.priceAfter ?? undefined,
       validFrom: promoCode.validFrom.toISOString(),
       validUntil: promoCode.validUntil?.toISOString() || undefined,
       createdAt: promoCode.createdAt.toISOString(),
@@ -160,6 +162,7 @@ export async function PATCH(
       usageLimit?: number | null;
       usageLimitPerUser?: number | null;
       validUntil?: Date | null;
+      priceAfter?: number | null;
       eventId?: string | null;
       ticketTypeId?: string | null;
     }> = {
@@ -192,6 +195,7 @@ export async function PATCH(
       ...updatedPromoCode,
       description: updatedPromoCode.description ?? undefined,
       usageLimit: updatedPromoCode.usageLimit ?? undefined,
+      priceAfter: updatedPromoCode.priceAfter ?? undefined,
       validFrom: updatedPromoCode.validFrom.toISOString(),
       validUntil: updatedPromoCode.validUntil?.toISOString() || undefined,
       createdAt: updatedPromoCode.createdAt.toISOString(),

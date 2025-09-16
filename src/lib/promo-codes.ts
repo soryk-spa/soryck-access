@@ -2,6 +2,66 @@
 import { prisma } from '@/lib/prisma';
 import { PromoCodeType, PromoCodeStatus } from '@prisma/client';
 
+/**
+ * Dynamic pricing for promo codes - similar to courtesy system
+ */
+export interface PromoCodeDynamicConfig {
+  enabled: boolean;
+  validUntil?: Date | null;
+  priceAfter?: number | null;
+}
+
+/**
+ * Calculate dynamic pricing for promo codes
+ * Returns 'free', fixed price, or null based on current time and promo config
+ */
+export function getPromoCodeDynamicPrice(
+  promoCode: import('@prisma/client').PromoCode,
+  currentDate: Date = new Date()
+): number | 'free' | null {
+  // If no priceAfter is set, use original discount logic
+  if (!promoCode.priceAfter || !promoCode.validUntil) {
+    return null; // Not using dynamic pricing
+  }
+
+  // Check if still within free/discount period
+  if (currentDate <= promoCode.validUntil) {
+    return 'free'; // Apply original discount/free
+  }
+
+  // After validUntil, use fixed price
+  return promoCode.priceAfter;
+}
+
+/**
+ * Check if promo code is using dynamic pricing
+ */
+export function isPromoCodeDynamic(promoCode: import('@prisma/client').PromoCode): boolean {
+  return !!(promoCode.priceAfter && promoCode.validUntil);
+}
+
+/**
+ * Get the current effective price type for a dynamic promo code
+ */
+export function getPromoCodeCurrentState(
+  promoCode: import('@prisma/client').PromoCode,
+  currentDate: Date = new Date()
+): 'discount' | 'fixed-price' | 'expired' {
+  if (!isPromoCodeDynamic(promoCode)) {
+    return 'discount'; // Regular promo code behavior
+  }
+
+  if (!promoCode.validUntil) {
+    return 'expired';
+  }
+
+  if (currentDate <= promoCode.validUntil) {
+    return 'discount'; // Still in discount period
+  }
+
+  return 'fixed-price'; // Now using fixed price
+}
+
 export interface PromoCodeValidationResult {
   isValid: boolean;
   error?: string;
@@ -125,7 +185,7 @@ export class PromoCodeService {
       }
 
       
-      const discountPerTicket = this.calculateDiscountPerTicket(pricePerTicket, promoCode);
+      const discountPerTicket = this.calculateDiscountPerTicket(pricePerTicket, promoCode, now);
       const totalDiscountAmount = discountPerTicket.discountAmount * totalQuantity;
       const finalAmountPerTicket = discountPerTicket.finalAmount;
       const totalFinalAmount = finalAmountPerTicket * totalQuantity;
@@ -147,8 +207,35 @@ export class PromoCodeService {
   
   static calculateDiscountPerTicket(
     ticketPrice: number, 
+    promoCode: import('@prisma/client').PromoCode,
+    currentDate: Date = new Date()
+  ): { discountAmount: number; finalAmount: number; isDynamic?: boolean; isFixedPrice?: boolean } {
+    // Check if this is a dynamic promo code
+    const dynamicPrice = getPromoCodeDynamicPrice(promoCode, currentDate);
+    
+    if (dynamicPrice === 'free') {
+      // Still in discount period - apply original discount logic
+      return this.calculateOriginalDiscount(ticketPrice, promoCode);
+    } else if (typeof dynamicPrice === 'number') {
+      // After validUntil - use fixed price
+      const fixedPrice = dynamicPrice;
+      const discountAmount = Math.max(0, ticketPrice - fixedPrice);
+      return {
+        discountAmount: Math.round(discountAmount),
+        finalAmount: Math.round(fixedPrice),
+        isDynamic: true,
+        isFixedPrice: true
+      };
+    }
+    
+    // Not using dynamic pricing - use original logic
+    return this.calculateOriginalDiscount(ticketPrice, promoCode);
+  }
+
+  private static calculateOriginalDiscount(
+    ticketPrice: number, 
     promoCode: import('@prisma/client').PromoCode
-  ): { discountAmount: number; finalAmount: number } {
+  ): { discountAmount: number; finalAmount: number; isDynamic?: boolean } {
     let discountAmount = 0;
 
     switch (promoCode.type) {
