@@ -45,7 +45,7 @@ const createPromoCodeSchema = z
     usageLimitPerUser: z.number().min(1).optional(),
     validFrom: z.string().min(1, "Fecha de inicio requerida"),
     validUntil: z.string().optional(),
-    priceAfter: z.number().min(0).optional(),
+    priceAfter: z.number().min(0).nullable().optional(),
     eventId: z.string().optional(),
     ticketTypeId: z.string().optional(),
     codeOption: z.enum(["generate", "custom"]),

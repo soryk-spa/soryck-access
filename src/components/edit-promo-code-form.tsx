@@ -47,7 +47,7 @@ const editPromoCodeSchema = z.object({
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
-  priceAfter: z.number().min(0).optional(),
+  priceAfter: z.number().min(0).nullable().optional(),
   eventId: z.string().optional(),
 });
 
@@ -66,7 +66,7 @@ interface PromoCode {
   usedCount: number;
   validFrom: string;
   validUntil: string;
-  priceAfter?: number;
+  priceAfter?: number | null;
   eventId: string;
   event?: { id: string; title: string };
   _count: { usages: number };
@@ -105,7 +105,7 @@ export default function EditPromoCodeForm({
       usageLimit: promoCode.usageLimit,
       usageLimitPerUser: promoCode.usageLimitPerUser,
       validUntil: promoCode.validUntil || "",
-      priceAfter: promoCode.priceAfter,
+      priceAfter: promoCode.priceAfter ?? undefined,
       eventId: promoCode.eventId || "all",
       type: promoCode.type,
       value: promoCode.value,
