@@ -12,14 +12,22 @@ export async function POST(req: Request) {
 
   const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
   console.log(`[webhook:${requestId}] incoming webhook headers: svix-id=${svix_id} svix-timestamp=${svix_timestamp}`);
+  
+  // Log webhook secret status (but not the actual value)
+  const hasWebhookSecret = !!process.env.CLERK_WEBHOOK_SECRET;
+  console.log(`[webhook:${requestId}] webhook secret configured: ${hasWebhookSecret}`);
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
+    console.error(`[webhook:${requestId}] Missing svix headers - id:${!!svix_id} timestamp:${!!svix_timestamp} signature:${!!svix_signature}`);
     return new Response('Error occured -- no svix headers', {
       status: 400
     })
   }
 
   const payload = await req.text()
+  const payloadLength = payload.length;
+  console.log(`[webhook:${requestId}] payload received, length: ${payloadLength}`);
+  
   const wh = new Webhook(process.env.CLERK_WEBHOOK_SECRET || '');
 
   let evt: WebhookEvent
@@ -30,8 +38,10 @@ export async function POST(req: Request) {
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     }) as WebhookEvent
+    console.log(`[webhook:${requestId}] webhook verification successful`);
   } catch (err) {
     console.error(`[webhook:${requestId}] Error verifying webhook:`, err);
+    console.error(`[webhook:${requestId}] Headers - ID: ${svix_id}, Timestamp: ${svix_timestamp}, Signature: ${svix_signature?.substring(0, 10)}...`);
     return new Response('Error occured', {
       status: 400
     })
