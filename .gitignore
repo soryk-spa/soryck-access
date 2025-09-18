@@ -55,3 +55,6 @@ next-env.d.ts
 *.temp.*
 *-backup.*
 *-old.*
+
+# Local backups created by scripts
+backups/
