@@ -64,9 +64,10 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   
   
   if (process.env.NODE_ENV === "production") {
+    // More permissive CSP for debugging Clerk authentication issues
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.dev https://*.clerk.accounts.dev https://*.clerk.dev https://sorykpass.com https://js.stripe.com https://checkout.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https: blob:; font-src 'self' https: data:; connect-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://api.clerk.dev https://sorykpass.com wss://*.clerk.accounts.dev wss://*.clerk.dev https://api.stripe.com https://checkout.stripe.com; frame-src 'self' https://js.stripe.com https://checkout.stripe.com https://*.clerk.dev;"
+      "default-src 'self' https:; script-src 'self' 'unsafe-eval' 'unsafe-inline' https: blob:; style-src 'self' 'unsafe-inline' https: blob:; img-src 'self' data: https: blob:; font-src 'self' https: data: blob:; connect-src 'self' https: wss: blob:; frame-src 'self' https: blob:; worker-src 'self' blob:;"
     );
   }
 
