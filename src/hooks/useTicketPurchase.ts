@@ -69,9 +69,9 @@ export function useTicketPurchase(event: Event, ticketTypes: TicketTypeWithCount
   const selectedType = ticketTypes.find((t) => t.id === formData.selectedTicketType);
   const isEventPast = new Date(event.startDate) < new Date();
   
-  const maxQuantityAllowed = 10; // Sin límite por capacidad
+  const maxQuantityAllowed = 10; 
 
-  // Función para obtener el precio dinámico actual
+  
   const getCurrentDynamicPrice = useCallback((ticketType: BaseTicketType): number => {
     if (!ticketType.priceTiers || ticketType.priceTiers.length === 0) {
       return ticketType.price;
@@ -305,7 +305,7 @@ export function usePromoCodeDisplay() {
 
 export function useTicketAvailability() {
   const getTicketAvailability = useCallback(() => {
-    // Sin mostrar información de capacidad o disponibilidad
+    
     const status = "available";
     const badgeText = "";
     const badgeColor = "";
@@ -315,8 +315,8 @@ export function useTicketAvailability() {
       badgeText,
       badgeColor,
       percentage: 0,
-      available: 999, // Sin límite visible
-      sold: 0, // Sin información de vendidos
+      available: 999, 
+      sold: 0, 
     };
   }, []);
 

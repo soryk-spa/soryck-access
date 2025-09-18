@@ -50,14 +50,14 @@ export default function PriceTierManager({
     if (!newTier.name || !newTier.startDate) return;
 
     const tier: PriceTier = {
-      id: `temp-${Date.now()}`, // ID temporal para nuevos tiers
+      id: `temp-${Date.now()}`, 
       name: newTier.name,
       price: newTier.price,
       currency,
       startDate: newTier.startDate,
       endDate: newTier.endDate || undefined,
       isActive: true,
-      ticketTypeId: "", // Se asignará al guardar
+      ticketTypeId: "", 
     };
 
     onPriceTiersChange([...priceTiers, tier]);
@@ -81,7 +81,7 @@ export default function PriceTierManager({
     onPriceTiersChange(tiersWithIds);
   };
 
-  // Simular ticket type para preview
+  
   const simulatedTicketType = {
     id: "",
     name: ticketTypeName,
@@ -97,7 +97,7 @@ export default function PriceTierManager({
   const currentPricing = getCurrentPrice(simulatedTicketType);
   const nextChange = getNextPriceChange(simulatedTicketType);
 
-  // Ordenar tiers por fecha de inicio
+  
   const sortedTiers = [...priceTiers].sort((a, b) => 
     new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
   );
@@ -112,7 +112,7 @@ export default function PriceTierManager({
       </CardHeader>
       <CardContent className="space-y-6">
         
-        {/* Vista previa del precio actual */}
+        {}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 p-4 rounded-lg">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600 dark:text-gray-400">Precio Actual</span>
@@ -139,7 +139,7 @@ export default function PriceTierManager({
           )}
         </div>
 
-        {/* Próximo cambio de precio */}
+        {}
         {nextChange?.nextTier && (
           <Alert>
             <Zap className="h-4 w-4" />
@@ -152,7 +152,7 @@ export default function PriceTierManager({
 
         <Separator />
 
-        {/* Lista de price tiers existentes */}
+        {}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-medium">Niveles de Precio Configurados</h4>
@@ -216,7 +216,7 @@ export default function PriceTierManager({
 
         <Separator />
 
-        {/* Formulario para agregar nuevo tier */}
+        {}
         {!showAddForm ? (
           <Button onClick={() => setShowAddForm(true)} variant="outline" className="w-full">
             <Plus className="h-4 w-4 mr-2" />
@@ -279,7 +279,7 @@ export default function PriceTierManager({
           </div>
         )}
 
-        {/* Información adicional */}
+        {}
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription className="text-sm">

@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 jest.mock('next/server', () => ({ NextResponse: { json: (body: any, opts?: any) => ({ status: opts?.status || 200, body }) } }))
 
-// Mocks
+
 const mockUser = { id: 'user_1', email: 'u@u.com', firstName: 'U' }
 jest.mock('@/lib/auth', () => ({ requireAuth: jest.fn().mockResolvedValue(mockUser) }))
 
@@ -38,7 +38,7 @@ jest.mock('@/lib/email', () => ({ sendTicketEmail: jest.fn() }))
 import { requireAuth } from '@/lib/auth'
 import type { NextRequest } from 'next/server'
 
-// Minimal response shape used by the mocked NextResponse in tests
+
 type ResponseLike = { status: number; body: any }
 
 describe('POST /api/payments/create', () => {
@@ -47,7 +47,7 @@ describe('POST /api/payments/create', () => {
   })
 
   it('returns 400 when body is invalid', async () => {
-    // requireAuth will resolve to mockUser
+    
     const req = { json: async () => ({ quantity: 2 }) }
   const { POST } = await import('../../../src/app/api/payments/create/route')
   const res = (await POST(req as unknown as NextRequest)) as unknown as ResponseLike
@@ -56,7 +56,7 @@ describe('POST /api/payments/create', () => {
   })
 
   it('creates a payment and returns transbank url and token for paid order', async () => {
-    // Setup ticket type and event
+    
     const ticketType = {
       id: 'tt1',
       price: 5000,
@@ -67,17 +67,17 @@ describe('POST /api/payments/create', () => {
     mockPrisma.ticketType.findUnique.mockResolvedValue(ticketType)
     mockPrisma.ticket.count.mockResolvedValue(0)
 
-    // Price breakdown
+    
     mockCalculate.calculatePriceBreakdown.mockReturnValue({ basePrice: 5000, commission: 0, totalPrice: 5000, originalAmount: 5000, discountAmount: 0 })
 
-    // Order creation
+    
     const createdOrder = { id: 'order_1', orderNumber: 'SP123', quantity: 1 }
     mockPrisma.order.create.mockResolvedValue(createdOrder)
 
-    // Webpay responds
+    
     mockWebpay.create.mockResolvedValue({ url: 'https://webpay.test/checkout', token: 'tok_123' })
 
-    // Payment create
+    
     mockPrisma.payment.create.mockResolvedValue({ id: 'pay_1' })
 
     const reqBody = { ticketTypeId: 'tt1', quantity: 1 }
@@ -105,7 +105,7 @@ describe('POST /api/payments/create', () => {
     mockPrisma.ticketType.findUnique.mockResolvedValueOnce(ticketType)
     mockPrisma.ticket.count.mockResolvedValueOnce(0)
 
-    // promo gives 1000 CLP off
+    
     const discountAmount = 1000
     mockDiscount.DiscountCodeService.validateDiscountCode.mockResolvedValueOnce({ isValid: true, discountAmount, code: 'PROMO1', type: 'FIXED' })
     mockCalculate.calculatePriceBreakdownWithDiscount.mockReturnValueOnce({ basePrice: 4000, commission: 0, totalPrice: 4000, originalAmount: 5000, discountAmount })
@@ -141,14 +141,14 @@ describe('POST /api/payments/create', () => {
     mockPrisma.ticket.count.mockResolvedValueOnce(0)
 
     const baseTotal = 5000
-    // promo gives full discount so final total 0
+    
     mockDiscount.DiscountCodeService.validateDiscountCode.mockResolvedValueOnce({ isValid: true, discountAmount: baseTotal, code: 'FREE100', type: 'FIXED' })
     mockCalculate.calculatePriceBreakdownWithDiscount.mockReturnValueOnce({ basePrice: 0, commission: 0, totalPrice: 0, originalAmount: baseTotal, discountAmount: baseTotal })
 
     const createdOrder = { id: 'order_free', orderNumber: 'SPFREE', quantity: 1 }
     mockPrisma.order.create.mockResolvedValueOnce(createdOrder)
 
-    // $transaction returns [resultOfCreateMany, updatedOrder]
+    
     const updatedOrder = { id: createdOrder.id, tickets: [{ qrCode: 'QR1' }] }
     mockPrisma.$transaction.mockResolvedValueOnce([null, updatedOrder])
 
@@ -158,7 +158,7 @@ describe('POST /api/payments/create', () => {
     const { POST } = await import('../../../src/app/api/payments/create/route')
   const res = (await POST(req as unknown as NextRequest)) as unknown as ResponseLike
 
-    // Mock event lookup used in handleAndGenerateTickets
+    
     const eventWithOrganizer = {
       id: ticketType.event.id,
       title: 'Free Event',
@@ -166,7 +166,7 @@ describe('POST /api/payments/create', () => {
       location: 'Online',
       organizer: { id: 'org1', name: 'Org' }
     }
-    // ensure prisma.event.findUnique exists on the mock
+    
     mockPrisma.event = { findUnique: jest.fn().mockResolvedValueOnce(eventWithOrganizer) }
 
     expect(res.status).toBe(200)

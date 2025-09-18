@@ -18,7 +18,7 @@ export async function POST(
 
     const { id } = await params
 
-    // Verificar que la reserva aún sea válida
+    
     const reservation = await SeatReservationManager.getSessionReservations(sessionId)
     if (!reservation) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function POST(
       )
     }
 
-    // Obtener información del evento
+    
     const event = await prisma.event.findUnique({
       where: { id },
       include: { sections: true }
@@ -40,7 +40,7 @@ export async function POST(
       )
     }
 
-    // Verificar disponibilidad de asientos
+    
     const areAvailable = await SeatReservationManager.areSeatsAvailable(seatIds)
     if (!areAvailable) {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(
       )
     }
 
-    // Crear usuario invitado si no existe
+    
     let guestUser = await prisma.user.findUnique({
       where: { email: buyerInfo.email }
     })
@@ -66,7 +66,7 @@ export async function POST(
       })
     }
 
-    // Crear la orden
+    
     const order = await prisma.order.create({
       data: {
         id: randomUUID(),
@@ -80,7 +80,7 @@ export async function POST(
       }
     })
 
-    // Crear tickets para cada asiento
+    
     const ticketPromises = selectedSeats.map(async (seat: {
       id: string;
       sectionId: string;
@@ -104,13 +104,13 @@ export async function POST(
 
     const tickets = await Promise.all(ticketPromises)
 
-    // Marcar asientos como vendidos
+    
     await prisma.eventSeat.updateMany({
       where: { id: { in: seatIds } },
       data: { status: 'SOLD' }
     })
 
-    // Liberar la reserva
+    
     await SeatReservationManager.releaseReservation(sessionId)
 
     return NextResponse.json({

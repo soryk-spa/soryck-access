@@ -1,7 +1,7 @@
 jest.mock('@clerk/nextjs/server', () => ({ auth: jest.fn() }))
 jest.mock('@/lib/auth', () => ({ getCurrentUser: jest.fn() }))
-// Create a shared mock cache instance so both the route module and the tests
-// operate on the same mocked methods (avoids per-call fresh jest.fn()s)
+
+
 const mockCache = {
   getUserFullData: jest.fn(),
   setUserBatch: jest.fn()
@@ -11,12 +11,12 @@ jest.mock('@/lib/redis', () => ({
     getInstance: () => mockCache
   }
 }))
-// Mock next/server to avoid Request/Response global dependencies in tests
+
 jest.mock('next/server', () => ({ NextResponse: { json: (body: any, opts?: any) => ({ status: opts?.status || 200, body }) } }))
 
 import { auth } from '@clerk/nextjs/server'
 import { getCurrentUser } from '@/lib/auth'
-// Import GET dynamically inside tests after mocks
+
 
 describe('GET /api/user/profile', () => {
   beforeEach(() => jest.clearAllMocks())

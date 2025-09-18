@@ -61,7 +61,7 @@ function DashboardLayoutContent({
           collapsed ? 'lg:ml-0' : 'lg:ml-0'
         }`}>
           <div className="container mx-auto p-4 lg:p-6 max-w-full">
-            {/* Breadcrumbs provided by pages via BreadcrumbsSetter or rendered directly */}
+            {}
             <div className="mb-4">
               {items && items.length > 0 ? <Breadcrumbs items={items} /> : null}
             </div>

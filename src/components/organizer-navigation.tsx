@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-// Datos de navegación organizados por categorías
+
 export const organizerRoutes = {
   events: {
     title: "Gestión de Eventos",
@@ -148,7 +148,7 @@ interface RouteItem {
   featured?: boolean;
 }
 
-// Componente para mostrar una ruta específica
+
 export const RouteCard = ({ 
   route, 
   badge,
@@ -204,7 +204,7 @@ export const RouteCard = ({
   );
 };
 
-// Componente para mostrar una categoría completa
+
 export const CategorySection = ({ 
   category,
   badges = {},
@@ -243,7 +243,7 @@ export const CategorySection = ({
   );
 };
 
-// Componente para acciones rápidas destacadas
+
 export const QuickActions = ({ 
   badges = {} 
 }: { 
@@ -268,7 +268,7 @@ export const QuickActions = ({
   );
 };
 
-// Métricas rápidas para el header
+
 export const QuickMetrics = ({
   totalEvents,
   totalRevenue,

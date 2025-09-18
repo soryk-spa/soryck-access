@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-// Mock NextResponse (same approach as other tests)
+
 jest.mock('next/server', () => {
   class NextResponse {
     status: number;
@@ -16,7 +16,7 @@ jest.mock('next/server', () => {
   return { NextResponse };
 });
 
-// Mock Prisma and Auth following existing test patterns
+
 const mockPrisma = {
   event: { findUnique: jest.fn() },
   courtesyInvitation: { findMany: jest.fn(), create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
@@ -34,7 +34,7 @@ describe('Courtesy invitation expiry behavior', () => {
     jest.clearAllMocks();
     mockGetCurrentUser.mockResolvedValue({ id: 'org-1', role: 'ORGANIZER' });
     mockPrisma.event.findUnique.mockResolvedValue({ id: 'e1', organizerId: 'org-1' });
-    // sensible defaults for other prisma calls used in the handlers
+    
     mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
     mockPrisma.ticketType.findMany.mockResolvedValue([{ id: 'tt-1' }]);
     mockPrisma.courtesyInvitation.create.mockResolvedValue({ id: 'created-inv' });
@@ -66,7 +66,7 @@ describe('Courtesy invitation expiry behavior', () => {
 
     mockPrisma.priceTier.findUnique.mockResolvedValue({ id: 'pt-2', ticketTypeId: 'tt-1', endDate: newTierEnd });
 
-  // Ensure ticket type validation passes when providing ticketTypeId in the PUT body
+  
   mockPrisma.ticketType.findUnique.mockResolvedValue({ id: 'tt-1', eventId: 'e1' });
 
     mockPrisma.$transaction.mockImplementation(async (fn: any) => await fn(mockPrisma));

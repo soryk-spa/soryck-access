@@ -1,6 +1,6 @@
 import { requireAuth } from "@/lib/auth";
 
-// Force dynamic rendering for this page
+
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,7 +1,4 @@
-/**
- * Tests de integración críticos para el sistema de eventos
- * @file src/__tests__/integration/event-flow.test.ts
- */
+
 
 describe('Sistema de Eventos - Flujo Crítico', () => {
   describe('Validación de Datos de Eventos', () => {
@@ -14,14 +11,14 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
         categoryId: 'cat123',
       };
 
-      // Validar que todos los campos requeridos están presentes
+      
       expect(eventData.title).toBeDefined();
       expect(eventData.title.length).toBeGreaterThan(0);
       expect(eventData.location).toBeDefined();
       expect(eventData.startDate).toBeDefined();
       expect(eventData.categoryId).toBeDefined();
       
-      // Validar formato de fecha
+      
       const startDate = new Date(eventData.startDate);
       expect(startDate.getTime()).toBeGreaterThan(Date.now());
     });
@@ -33,8 +30,8 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       expect(longTitle.length).toBeGreaterThan(100);
       expect(longLocation.length).toBeGreaterThan(200);
       
-      // Los datos exceden los límites permitidos
-      expect(true).toBe(true); // Se debería rechazar en producción
+      
+      expect(true).toBe(true); 
     });
 
     it('debería validar URLs de imágenes', () => {
@@ -55,7 +52,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
           new URL(url);
           expect(url.startsWith('https://')).toBe(true);
         } catch {
-          expect(false).toBe(true); // No debería fallar
+          expect(false).toBe(true); 
         }
       });
 
@@ -63,10 +60,10 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
         try {
           new URL(url);
           if (!url.startsWith('https://')) {
-            expect(true).toBe(true); // Debería rechazarse
+            expect(true).toBe(true); 
           }
         } catch {
-          expect(true).toBe(true); // URL inválida correctamente detectada
+          expect(true).toBe(true); 
         }
       });
     });
@@ -96,7 +93,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       };
 
       expect(purchaseData.quantity).toBeGreaterThan(0);
-      expect(purchaseData.quantity).toBeLessThanOrEqual(10); // Límite máximo
+      expect(purchaseData.quantity).toBeLessThanOrEqual(10); 
       expect(purchaseData.ticketTypeId).toBeDefined();
     });
 
@@ -135,17 +132,17 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
     it('debería calcular descuentos correctamente', () => {
       const originalPrice = 10000;
       
-      // Descuento porcentual
+      
       const percentageDiscount = 20;
       const percentageDiscountedPrice = originalPrice - (originalPrice * percentageDiscount / 100);
       expect(percentageDiscountedPrice).toBe(8000);
       
-      // Descuento fijo
+      
       const fixedDiscount = 2000;
       const fixedDiscountedPrice = originalPrice - fixedDiscount;
       expect(fixedDiscountedPrice).toBe(8000);
       
-      // No puede ser negativo
+      
       const largeDiscount = 15000;
       const protectedPrice = Math.max(0, originalPrice - largeDiscount);
       expect(protectedPrice).toBe(0);
@@ -183,7 +180,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       
       expect(emails.length).toBeGreaterThan(50);
       
-      // Debería rechazarse por exceder el límite
+      
       const isWithinLimit = emails.length <= 50;
       expect(isWithinLimit).toBe(false);
     });
@@ -217,7 +214,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       for (let i = 0; i < 100; i++) {
         const code = generateTicketCode('eventabc123', 'ticketdef456', i);
         expect(code).toMatch(/^[A-Z0-9]{8}-[A-Z0-9]{8}-\d{3}-[A-Z0-9]{6}$/);
-        expect(codes.has(code)).toBe(false); // Debe ser único
+        expect(codes.has(code)).toBe(false); 
         codes.add(code);
       }
       
@@ -236,7 +233,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
     });
 
     it('debería calcular tiempo restante correctamente', () => {
-      const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 días
+      const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); 
       const now = new Date();
       const diffMs = futureDate.getTime() - now.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -269,20 +266,20 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       ];
 
       dangerousInputs.forEach(input => {
-        // En producción, estos se deberían limpiar o rechazar
+        
         const hasScript = input.includes('<script>');
         const hasJavascript = input.includes('javascript:');
         const hasSQLInjection = input.includes('DROP TABLE');
         
         const isDangerous = hasScript || hasJavascript || hasSQLInjection;
         expect(isDangerous).toBe(true);
-        // Se debería rechazar o limpiar
+        
       });
     });
 
     it('debería validar límites de rate limiting', () => {
       const requests = Array.from({ length: 60 }, (_, i) => ({ timestamp: Date.now() + i * 100 }));
-      const timeWindow = 60 * 1000; // 1 minuto
+      const timeWindow = 60 * 1000; 
       const maxRequests = 50;
       
       const recentRequests = requests.filter(req => 
@@ -290,7 +287,7 @@ describe('Sistema de Eventos - Flujo Crítico', () => {
       );
       
       expect(recentRequests.length).toBeGreaterThan(maxRequests);
-      // En producción se debería rechazar
+      
     });
   });
 });

@@ -1,4 +1,4 @@
-// Provide a mock NextResponse that can be constructed (used by the QR route)
+
 jest.mock('next/server', () => {
   class NextResponse {
     status: number
@@ -15,7 +15,7 @@ jest.mock('next/server', () => {
   }
   return { NextResponse }
 })
-// Mock QRCode.toBuffer used by the QR route
+
 const mockToBuffer = jest.fn()
 jest.mock('qrcode', () => ({ toBuffer: (...args: any[]) => mockToBuffer(...args) }))
 
@@ -36,11 +36,11 @@ describe('GET /api/qr/[code]', () => {
     mockToBuffer.mockResolvedValueOnce(fakeBuffer)
 
   const { GET } = await import('../../../src/app/api/qr/[code]/route')
-  // Use a code matching the project's QR regex: 8-8-...-...-digits
+  
   const res = await GET(undefined as any, { params: Promise.resolve({ code: 'EVENT123-USER5678-ABC-DEF-0' }) } as any)
 
     expect(res.status).toBe(200)
-    // NextResponse in tests returns body as-is
+    
     expect(res.body).toBeInstanceOf(Uint8Array)
     expect((res.body as Uint8Array).length).toBe(fakeBuffer.length)
     expect(mockToBuffer).toHaveBeenCalled()

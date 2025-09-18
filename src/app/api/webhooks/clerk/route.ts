@@ -10,6 +10,9 @@ export async function POST(req: Request) {
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  console.log(`[webhook:${requestId}] incoming webhook headers: svix-id=${svix_id} svix-timestamp=${svix_timestamp}`);
+
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response('Error occured -- no svix headers', {
       status: 400
@@ -28,13 +31,15 @@ export async function POST(req: Request) {
       "svix-signature": svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    console.error('Error verifying webhook:', err);
+    console.error(`[webhook:${requestId}] Error verifying webhook:`, err);
     return new Response('Error occured', {
       status: 400
     })
   }
   
   const eventType = evt.type;
+
+  console.log(`[webhook:${requestId}] verified event type=${eventType}`);
 
   if (eventType === 'user.created') {
     const { id, email_addresses, first_name, last_name, image_url, public_metadata } = evt.data;
@@ -75,10 +80,9 @@ export async function POST(req: Request) {
           role: userRole,
         },
       });
-
-      console.log(`User created in database: ${id} with role: ${userRole}`);
+      console.log(`[webhook:${requestId}] User created in database: ${id} with role: ${userRole}`);
     } catch (error) {
-      console.error('Error creating user in database:', error);
+      console.error(`[webhook:${requestId}] Error creating user in database:`, error);
       return new Response('Error creating user', { status: 500 });
     }
   }
@@ -113,10 +117,9 @@ export async function POST(req: Request) {
         where: { clerkId: id },
         data: updateData,
       });
-
-      console.log('User updated in database:', id);
+      console.log(`[webhook:${requestId}] User updated in database: ${id}`);
     } catch (error) {
-      console.error('Error updating user in database:', error);
+      console.error(`[webhook:${requestId}] Error updating user in database:`, error);
       return new Response('Error updating user', { status: 500 });
     }
   }
@@ -128,10 +131,9 @@ export async function POST(req: Request) {
       await prisma.user.delete({
         where: { clerkId: id! },
       });
-
-      console.log('User deleted from database:', id);
+      console.log(`[webhook:${requestId}] User deleted from database: ${id}`);
     } catch (error) {
-      console.error('Error deleting user from database:', error);
+      console.error(`[webhook:${requestId}] Error deleting user from database:`, error);
       return new Response('Error deleting user', { status: 500 });
     }
   }

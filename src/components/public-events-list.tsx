@@ -147,35 +147,35 @@ const EventCardAceternity = ({
   };
 
   const getPriceDisplay = () => {
-    // Si el evento está marcado como gratis, mostrar "Gratis"
+    
     if (event.isFree) return "Gratis";
     
-    // Recopilar todos los precios disponibles
+    
     const allPrices: number[] = [];
     
-    // Agregar el precio base del evento si existe
+    
     if (event.price && event.price > 0) {
       allPrices.push(event.price);
     }
     
-    // Agregar precios de tipos de tickets si existen
+    
     if (event.ticketTypes?.length) {
       const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
       allPrices.push(...ticketPrices);
     }
     
-    // Si no hay precios, mostrar como gratis
+    
     if (allPrices.length === 0) return "Gratis";
     
     const minPrice = Math.min(...allPrices);
     const maxPrice = Math.max(...allPrices);
     
-    // Si todos los precios son iguales, mostrar precio único
+    
     if (minPrice === maxPrice) {
       return formatPrice(minPrice);
     }
     
-    // Si hay diferentes precios, mostrar rango
+    
     return `Desde ${formatPrice(minPrice)}`;
   };
 

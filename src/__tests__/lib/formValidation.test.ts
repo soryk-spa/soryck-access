@@ -1,13 +1,10 @@
-/**
- * Tests para validación de formularios
- * Validaciones para eventos, códigos promocionales y usuarios
- */
+
 
 import type { CreateEventData, CreatePromoCodeData, UpdateUserProfileData } from '@/types';
 
-// ============================================================================
-// VALIDADORES DE EVENTOS
-// ============================================================================
+
+
+
 
 interface EventValidationResult {
   isValid: boolean;
@@ -17,7 +14,7 @@ interface EventValidationResult {
 function validateEventForm(data: Partial<CreateEventData>): EventValidationResult {
   const errors: Record<string, string> = {};
 
-  // Validar título
+  
   if (!data.title?.trim()) {
     errors.title = 'El título es requerido';
   } else if (data.title.length < 5) {
@@ -26,7 +23,7 @@ function validateEventForm(data: Partial<CreateEventData>): EventValidationResul
     errors.title = 'El título no puede exceder 100 caracteres';
   }
 
-  // Validar descripción
+  
   if (!data.description?.trim()) {
     errors.description = 'La descripción es requerida';
   } else if (data.description.length < 20) {
@@ -35,7 +32,7 @@ function validateEventForm(data: Partial<CreateEventData>): EventValidationResul
     errors.description = 'La descripción no puede exceder 2000 caracteres';
   }
 
-  // Validar fecha de inicio
+  
   if (!data.startDate) {
     errors.startDate = 'La fecha de inicio es requerida';
   } else {
@@ -46,7 +43,7 @@ function validateEventForm(data: Partial<CreateEventData>): EventValidationResul
     }
   }
 
-  // Validar fecha de fin (si existe)
+  
   if (data.endDate) {
     const startDate = new Date(data.startDate || '');
     const endDate = new Date(data.endDate);
@@ -55,19 +52,19 @@ function validateEventForm(data: Partial<CreateEventData>): EventValidationResul
     }
   }
 
-  // Validar ubicación
+  
   if (!data.location?.trim()) {
     errors.location = 'La ubicación es requerida';
   } else if (data.location.length < 5) {
     errors.location = 'La ubicación debe tener al menos 5 caracteres';
   }
 
-  // Validar categoría
+  
   if (!data.categoryId) {
     errors.categoryId = 'La categoría es requerida';
   }
 
-  // Validar tipos de ticket
+  
   if (!data.ticketTypes || data.ticketTypes.length === 0) {
     errors.ticketTypes = 'Debe agregar al menos un tipo de ticket';
   } else {
@@ -90,14 +87,14 @@ function validateEventForm(data: Partial<CreateEventData>): EventValidationResul
   };
 }
 
-// ============================================================================
-// VALIDADORES DE CÓDIGOS PROMOCIONALES
-// ============================================================================
+
+
+
 
 function validatePromoCodeForm(data: Partial<CreatePromoCodeData>): EventValidationResult {
   const errors: Record<string, string> = {};
 
-  // Validar código
+  
   if (!data.code?.trim()) {
     errors.code = 'El código es requerido';
   } else if (data.code.length < 3) {
@@ -108,14 +105,14 @@ function validatePromoCodeForm(data: Partial<CreatePromoCodeData>): EventValidat
     errors.code = 'El código solo puede contener letras mayúsculas y números';
   }
 
-  // Validar nombre
+  
   if (!data.name?.trim()) {
     errors.name = 'El nombre es requerido';
   } else if (data.name.length < 5) {
     errors.name = 'El nombre debe tener al menos 5 caracteres';
   }
 
-  // Validar tipo y valor
+  
   if (!data.type) {
     errors.type = 'El tipo de descuento es requerido';
   } else {
@@ -130,7 +127,7 @@ function validatePromoCodeForm(data: Partial<CreatePromoCodeData>): EventValidat
     }
   }
 
-  // Validar fechas
+  
   if (!data.validFrom) {
     errors.validFrom = 'La fecha de inicio es requerida';
   }
@@ -143,7 +140,7 @@ function validatePromoCodeForm(data: Partial<CreatePromoCodeData>): EventValidat
     }
   }
 
-  // Validar límite de uso
+  
   if (data.usageLimit !== undefined && data.usageLimit <= 0) {
     errors.usageLimit = 'El límite de uso debe ser mayor a 0';
   }
@@ -154,14 +151,14 @@ function validatePromoCodeForm(data: Partial<CreatePromoCodeData>): EventValidat
   };
 }
 
-// ============================================================================
-// VALIDADORES DE PERFIL DE USUARIO
-// ============================================================================
+
+
+
 
 function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventValidationResult {
   const errors: Record<string, string> = {};
 
-  // Validar nombre
+  
   if (data.firstName !== undefined) {
     if (!data.firstName?.trim()) {
       errors.firstName = 'El nombre es requerido';
@@ -172,7 +169,7 @@ function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventVal
     }
   }
 
-  // Validar apellido
+  
   if (data.lastName !== undefined) {
     if (!data.lastName?.trim()) {
       errors.lastName = 'El apellido es requerido';
@@ -183,12 +180,12 @@ function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventVal
     }
   }
 
-  // Validar biografía
+  
   if (data.bio !== undefined && data.bio.length > 500) {
     errors.bio = 'La biografía no puede exceder 500 caracteres';
   }
 
-  // Validar website
+  
   if (data.website !== undefined && data.website) {
     const urlRegex = /^https?:\/\/.+\..+/;
     if (!urlRegex.test(data.website)) {
@@ -196,7 +193,7 @@ function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventVal
     }
   }
 
-  // Validar teléfono
+  
   if (data.phone !== undefined && data.phone) {
     const phoneRegex = /^\+?[\d\s-()]{8,15}$/;
     if (!phoneRegex.test(data.phone)) {
@@ -204,7 +201,7 @@ function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventVal
     }
   }
 
-  // Validar redes sociales
+  
   if (data.socialLinks) {
     const urlRegex = /^https?:\/\/.+/;
     
@@ -231,9 +228,9 @@ function validateUserProfileForm(data: Partial<UpdateUserProfileData>): EventVal
   };
 }
 
-// ============================================================================
-// TESTS
-// ============================================================================
+
+
+
 
 describe('Validación de Formularios de Eventos', () => {
   const validEventData: CreateEventData = {

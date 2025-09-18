@@ -71,7 +71,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     textAlign: "center",
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {}
                   <img
                     src="https://example.com/sorykpass-logo.png"
                     alt="SorykPass"

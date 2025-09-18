@@ -35,7 +35,7 @@ export function generateSeatLayout(
 
 export function generateRowLabel(rowIndex: number): string {
   if (rowIndex < 26) {
-    return String.fromCharCode(65 + rowIndex) // A-Z
+    return String.fromCharCode(65 + rowIndex) 
   } else {
     const firstLetter = Math.floor(rowIndex / 26) - 1
     const secondLetter = rowIndex % 26

@@ -184,7 +184,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     
-    // Validate ticketTypeIds belong to this event
+    
     const providedTicketTypeIds = invitationsToCreate
       .map(i => i.ticketTypeId)
       .filter(Boolean) as string[];
@@ -201,7 +201,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // Validate priceTierIds belong to this event and map them to ticketTypeId
+    
     const providedPriceTierIds = invitationsToCreate
       .map(i => i.priceTierId)
       .filter(Boolean) as string[];
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       tiers.forEach(t => priceTierMap.set(t.id, { id: t.id, ticketTypeId: t.ticketTypeId, endDate: t.endDate }));
     }
 
-    // If both ticketTypeId and priceTierId provided, ensure they match
+    
     const mismatches = invitationsToCreate.filter(inv => inv.ticketTypeId && inv.priceTierId && priceTierMap.get(inv.priceTierId!)?.ticketTypeId !== inv.ticketTypeId).map(i => ({ invitedEmail: i.invitedEmail }));
     if (mismatches.length > 0) {
       return NextResponse.json({ error: 'Algunos price tiers no corresponden al tipo de entrada seleccionado', mismatches }, { status: 400 });

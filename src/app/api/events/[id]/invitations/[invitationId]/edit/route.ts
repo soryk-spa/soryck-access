@@ -32,7 +32,7 @@ export async function PUT(
     const body = await request.json();
     const validatedData = editInvitationSchema.parse(body);
 
-    // Verificar que la cortesía existe y pertenece al evento
+    
     const originalInvitation = await prisma.courtesyInvitation.findUnique({
       where: { id: invitationId },
       include: {
@@ -51,19 +51,19 @@ export async function PUT(
       return NextResponse.json({ error: 'La invitación no pertenece a este evento' }, { status: 400 });
     }
 
-    // Verificar que el usuario es el organizador del evento
+    
     if (originalInvitation.event.organizerId !== user.id) {
       return NextResponse.json({ error: 'Solo el organizador puede editar invitaciones' }, { status: 403 });
     }
 
-    // Solo se pueden editar cortesías que han sido enviadas o aceptadas
+    
     if (!['SENT', 'ACCEPTED'].includes(originalInvitation.status)) {
       return NextResponse.json({ 
         error: 'Solo se pueden editar cortesías que han sido enviadas o aceptadas' 
       }, { status: 400 });
     }
 
-    // Validar ticket type si se proporciona
+    
     if (validatedData.ticketTypeId) {
       const ticketType = await prisma.ticketType.findUnique({
         where: { id: validatedData.ticketTypeId },
@@ -75,7 +75,7 @@ export async function PUT(
         }, { status: 400 });
       }
 
-      // Validar price tier si se proporciona
+      
       if (validatedData.priceTierId) {
         const priceTier = await prisma.priceTier.findUnique({
           where: { id: validatedData.priceTierId },
@@ -93,7 +93,7 @@ export async function PUT(
       }, { status: 400 });
     }
 
-    // Verificar si hay cambios reales
+    
     const hasChanges = (
       validatedData.invitedName !== originalInvitation.invitedName ||
       validatedData.message !== originalInvitation.message ||
@@ -107,9 +107,9 @@ export async function PUT(
       }, { status: 400 });
     }
 
-    // Usar transacción para asegurar consistencia
+    
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Marcar la invitación original como supersedida
+      
       await tx.courtesyInvitation.update({
         where: { id: invitationId },
         data: {
@@ -118,8 +118,8 @@ export async function PUT(
         },
       });
 
-      // Quick-fix: free unique constraint by altering the invitedEmail of the superseded record
-      // Append a suffix with timestamp so the (eventId, invitedEmail) combo is no longer duplicated
+      
+      
       const suffix = `::superseded::${Date.now()}`;
       await tx.courtesyInvitation.update({
         where: { id: invitationId },
@@ -128,7 +128,7 @@ export async function PUT(
         },
       });
 
-      // 2. Si había un ticket, marcarlo como cancelado/inactivo
+      
       if (originalInvitation.ticket) {
         await tx.ticket.update({
           where: { id: originalInvitation.ticket.id },
@@ -138,7 +138,7 @@ export async function PUT(
         });
       }
 
-      // 3. Crear nueva invitación con los datos actualizados
+      
       let newExpiresAt = originalInvitation.expiresAt;
       const chosenPriceTierId = validatedData.priceTierId ?? originalInvitation.priceTierId;
       if (chosenPriceTierId) {
@@ -154,7 +154,7 @@ export async function PUT(
           invitedEmail: originalInvitation.invitedEmail,
           invitedName: validatedData.invitedName ?? originalInvitation.invitedName,
           message: validatedData.message ?? originalInvitation.message,
-          status: 'PENDING', // Empezar como pendiente
+          status: 'PENDING', 
           ticketTypeId: validatedData.ticketTypeId ?? originalInvitation.ticketTypeId,
           priceTierId: validatedData.priceTierId ?? originalInvitation.priceTierId,
           createdBy: user.id,
@@ -167,7 +167,7 @@ export async function PUT(
         },
       });
 
-      // 4. Actualizar la invitación original para referenciar la nueva
+      
       await tx.courtesyInvitation.update({
         where: { id: invitationId },
         data: {

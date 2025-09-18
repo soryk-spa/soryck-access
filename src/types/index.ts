@@ -1,13 +1,10 @@
-/**
- * Tipos centralizados para SorykAccess
- * Elimina duplicaciones y proporciona consistencia en toda la aplicación
- */
+
 
 import { UserRole } from "@prisma/client";
 
-// ============================================================================
-// INTERFACES PRINCIPALES
-// ============================================================================
+
+
+
 
 export interface User {
   id: string;
@@ -145,9 +142,9 @@ export interface Order {
   tickets: Ticket[];
 }
 
-// ============================================================================
-// INTERFACES EXTENDIDAS PARA COMPONENTES ESPECÍFICOS
-// ============================================================================
+
+
+
 
 export interface EventWithStats extends Event {
   revenue: number;
@@ -173,9 +170,9 @@ export interface PromoCodeWithDetails extends PromoCode {
   conversionRate: number;
 }
 
-// ============================================================================
-// TIPOS PARA FORMULARIOS
-// ============================================================================
+
+
+
 
 export interface CreateEventData {
   title: string;
@@ -210,9 +207,9 @@ export interface UpdateUserProfileData {
   socialLinks?: UserProfile["socialLinks"];
 }
 
-// ============================================================================
-// TIPOS PARA APIS Y RESPONSES
-// ============================================================================
+
+
+
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -251,9 +248,9 @@ export interface PromoCodeFilters {
   eventId?: string;
 }
 
-// ============================================================================
-// TIPOS PARA ESTADÍSTICAS Y DASHBOARDS
-// ============================================================================
+
+
+
 
 export interface EventStats {
   totalEvents: number;
@@ -302,9 +299,9 @@ export interface CommissionStats {
   }>;
 }
 
-// ============================================================================
-// TIPOS PARA UI Y COMPONENTES
-// ============================================================================
+
+
+
 
 export interface TableColumn<T> {
   key: keyof T;
@@ -333,9 +330,9 @@ export interface Availability {
   available: number;
 }
 
-// ============================================================================
-// TIPOS PARA PAGOS Y COMISIONES
-// ============================================================================
+
+
+
 
 export interface PriceBreakdown {
   basePrice: number;
@@ -355,9 +352,9 @@ export interface PaymentData {
   totalAmount: number;
 }
 
-// ============================================================================
-// EXPORTS PARA CONVENIENCE
-// ============================================================================
+
+
+
 
 export type EventStatus = "draft" | "published" | "completed" | "cancelled";
 export type TicketStatus = Ticket["status"];

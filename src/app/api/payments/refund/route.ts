@@ -3,7 +3,7 @@ import { webpayPlus } from '@/lib/transbank';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 
-// Ensure this API route runs dynamically so server-side auth can access the request
+
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {

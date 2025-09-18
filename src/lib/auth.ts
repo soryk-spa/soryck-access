@@ -6,19 +6,20 @@ import { syncUserFromClerk } from '@/lib/sync-user'
 import { CacheService } from '@/lib/redis'
 
 export async function getCurrentUser() {
+  const requestId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
   const { userId } = await auth()
-  
+
   if (!userId) {
+    console.warn(`[auth:${requestId}] auth() returned no userId`)
     return null
   }
 
   try {
     const cache = CacheService.getInstance()
 
-    // Try to get user from cache first
     const cachedUser = await cache.getUserFullData(userId)
     if (cachedUser) {
-      // Double check if user still exists in database
+      console.log(`[auth:${requestId}] found cached user for ${userId}`)
       const user = await prisma.user.findUnique({
         where: {
           clerkId: userId
@@ -37,16 +38,17 @@ export async function getCurrentUser() {
     })
 
     if (!user) {
-      console.log(`Usuario ${userId} no encontrado en BD, sincronizando desde Clerk...`)
+      console.log(`[auth:${requestId}] Usuario ${userId} no encontrado en BD, sincronizando desde Clerk...`)
       try {
         user = await syncUserFromClerk(userId)
+        console.log(`[auth:${requestId}] syncUserFromClerk succeeded for ${userId}`)
       } catch (syncError) {
-        console.error('Error al sincronizar usuario desde Clerk:', syncError)
+        console.error(`[auth:${requestId}] Error al sincronizar usuario desde Clerk:`, syncError)
         return null
       }
     }
 
-    // Cache user data if found
+    
     if (user) {
       const userData = {
         id: user.id,
@@ -57,8 +59,9 @@ export async function getCurrentUser() {
         role: user.role,
       }
       
-      // Set user data in cache
+      
       await cache.setUserBatch(userId, userData)
+      console.log(`[auth:${requestId}] cached user data for ${userId}`)
     }
 
     return user

@@ -47,7 +47,7 @@ const editPromoCodeSchema = z.object({
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
-  priceAfter: z.number().min(0).nullable().optional(),
+  priceAfter: z.number().min(0).optional(),
   eventId: z.string().optional(),
 });
 
@@ -66,7 +66,7 @@ interface PromoCode {
   usedCount: number;
   validFrom: string;
   validUntil: string;
-  priceAfter?: number | null;
+  priceAfter?: number;
   eventId: string;
   event?: { id: string; title: string };
   _count: { usages: number };
@@ -105,7 +105,7 @@ export default function EditPromoCodeForm({
       usageLimit: promoCode.usageLimit,
       usageLimitPerUser: promoCode.usageLimitPerUser,
       validUntil: promoCode.validUntil || "",
-      priceAfter: promoCode.priceAfter ?? undefined,
+      priceAfter: promoCode.priceAfter,
       eventId: promoCode.eventId || "all",
       type: promoCode.type,
       value: promoCode.value,
@@ -130,7 +130,7 @@ export default function EditPromoCodeForm({
         headers: {
           "Content-Type": "application/json",
         },
-        // Ensure cookies are sent so server-side auth (Clerk) can read the session
+        
         credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
@@ -553,7 +553,7 @@ export default function EditPromoCodeForm({
                 </p>
               </div>
 
-              {/* Dynamic Pricing Section */}
+              {}
               <Separator />
               
               <div className="space-y-4">

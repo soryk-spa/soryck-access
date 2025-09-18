@@ -81,7 +81,7 @@ export default function CourtesyInvitationsManagement({
   const [isAddingInvitation, setIsAddingInvitation] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   
-  // Estados para edición
+  
   const [editingInvitation, setEditingInvitation] = useState<CourtesyInvitation | null>(null);
   const [editForm, setEditForm] = useState({
     invitedName: '',
@@ -94,7 +94,7 @@ export default function CourtesyInvitationsManagement({
   const [singleEmail, setSingleEmail] = useState('');
   const [singleName, setSingleName] = useState('');
   const [bulkEmails, setBulkEmails] = useState('');
-  // helper to centralize logging (silence in test env)
+  
   const logError = (...args: unknown[]) => {
     if (process.env.NODE_ENV === 'test') return;
     const logFn = globalThis.console?.error;
@@ -109,13 +109,13 @@ export default function CourtesyInvitationsManagement({
     priceTiers?: PriceTierOption[] 
   };
 
-  // Helper function to get current price info
+  
   const getPriceInfo = (ticketType: TicketTypeOption) => {
     if (!ticketType.price || !ticketType.currency) {
       return { price: 0, currency: 'CLP', tierName: undefined };
     }
     
-    // Convert to TicketTypeWithPricing format for pricing utility
+    
     const pricingTicketType: TicketTypeWithPricing = {
       id: ticketType.id,
       name: ticketType.name,
@@ -139,7 +139,7 @@ export default function CourtesyInvitationsManagement({
     };
   };
 
-  // Helper function to format price display
+  
   const formatPrice = (price: number, currency: string = 'CLP') => {
     return new Intl.NumberFormat('es-CL', { 
       style: 'currency', 
@@ -147,13 +147,13 @@ export default function CourtesyInvitationsManagement({
     }).format(price);
   };
 
-  // Types for fetched API payloads
+  
 
   const [ticketTypes, setTicketTypes] = useState<TicketTypeOption[]>([]);
   const [selectedSingleTicketTypeId, setSelectedSingleTicketTypeId] = useState<string | undefined>(undefined);
   const [selectedBulkTicketTypeId, setSelectedBulkTicketTypeId] = useState<string | undefined>(undefined);
   const [selectedSinglePriceTierId, setSelectedSinglePriceTierId] = useState<string | undefined>(undefined);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   const [selectedBulkPriceTierId, _setSelectedBulkPriceTierId] = useState<string | undefined>(undefined);
 
   const fetchInvitations = useCallback(async () => {
@@ -170,7 +170,7 @@ export default function CourtesyInvitationsManagement({
           toast.error('Error en el formato de datos de invitaciones');
         }
         } else {
-          // Try to parse JSON error, but be resilient to non-JSON responses
+          
           let errorMessage = 'Error al cargar invitaciones';
           try {
             const contentType = response.headers.get('content-type') || '';
@@ -188,7 +188,7 @@ export default function CourtesyInvitationsManagement({
             logError('Error parsing error response body:', parseError);
           }
 
-          // Surface a user-friendly toast and return (the outer catch also handles unexpected errors)
+          
           toast.error(errorMessage);
           setInvitations([]);
           setLoading(false);
@@ -205,7 +205,7 @@ export default function CourtesyInvitationsManagement({
 
   useEffect(() => {
     fetchInvitations();
-    // Fetch event to get ticket types for selection
+    
     (async () => {
       try {
         const res = await fetch(`/api/events/${eventId}`);
@@ -218,7 +218,7 @@ export default function CourtesyInvitationsManagement({
               const p = pt as { id: string; name: string; price?: number; startDate?: string; endDate?: string; isActive?: boolean; currency?: string };
               return { id: p.id, name: p.name, price: p.price, startDate: p.startDate, endDate: p.endDate, isActive: p.isActive, currency: p.currency };
             });
-            // prefer ticket-type currency, fall back to event.currency, then CLP
+            
             const currency = tt.currency || data.event?.currency || 'CLP';
             return { id: tt.id, name: tt.name, price: tt.price, currency, priceTiers };
           });
@@ -378,7 +378,7 @@ export default function CourtesyInvitationsManagement({
     }
   };
 
-  // Handlers para edición
+  
   const openEditDialog = (invitation: CourtesyInvitation) => {
     setEditingInvitation(invitation);
     setEditForm({
@@ -407,7 +407,7 @@ export default function CourtesyInvitationsManagement({
       if (response.ok) {
         const result = await response.json();
         
-        // Actualizar la lista: marcar la original como supersedida y añadir la nueva
+        
         setInvitations(prev => 
           prev.map(inv => 
             inv.id === editingInvitation.id 
@@ -596,7 +596,7 @@ export default function CourtesyInvitationsManagement({
                 onChange={(e) => {
                   const val = e.target.value || undefined;
                   setSelectedSingleTicketTypeId(val);
-                  // Reset price tier selection when ticket type changes
+                  
                   setSelectedSinglePriceTierId(undefined);
                 }}
                 className="w-full rounded-md border px-3 py-2"
@@ -619,7 +619,7 @@ export default function CourtesyInvitationsManagement({
                 Los precios mostrados reflejan el precio dinámico actual. 🎉 = Precio promocional
               </p>
 
-              {/* Price tier selector (shows when selected ticket type has tiers) */}
+              {}
               {selectedSingleTicketTypeId && (
                 (() => {
                   const tt = ticketTypes.find(t => t.id === selectedSingleTicketTypeId);
@@ -803,7 +803,7 @@ export default function CourtesyInvitationsManagement({
         )}
       </div>
 
-      {/* Diálogo de Edición */}
+      {}
       {editingInvitation && (
         <Dialog open={!!editingInvitation} onOpenChange={(open) => !open && cancelEdit()}>
           <DialogContent className="max-w-2xl">
@@ -846,7 +846,7 @@ export default function CourtesyInvitationsManagement({
                       setEditForm(prev => ({ 
                         ...prev, 
                         ticketTypeId: e.target.value,
-                        priceTierId: '' // Reset price tier when ticket type changes
+                        priceTierId: '' 
                       }));
                     }}
                     className="w-full p-2 border rounded-md"

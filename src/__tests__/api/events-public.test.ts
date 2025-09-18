@@ -1,19 +1,16 @@
-/**
- * Tests simplificados para API de eventos públicos
- * @file src/app/api/events/public/route.ts
- */
+
 
 describe('API: /api/events/public', () => {
   describe('Configuración básica', () => {
     it('debería poder importar la función GET sin errores', async () => {
       expect(async () => {
-        // Test básico de importación sin ejecutar la función
+        
         expect(true).toBe(true);
       }).not.toThrow();
     });
 
     it('debería tener la estructura básica para manejo de eventos', () => {
-      // Test estructural básico
+      
       const mockEvents = [
         {
           id: '1',
@@ -45,7 +42,7 @@ describe('API: /api/events/public', () => {
         ticketTypes: 'array',
       };
 
-      // Verificar que la estructura esperada esté definida
+      
       expect(eventStructure.id).toBeDefined();
       expect(eventStructure.title).toBeDefined();
       expect(eventStructure.isPublished).toBeDefined();
@@ -66,7 +63,7 @@ describe('API: /api/events/public', () => {
         limit: 10,
       };
 
-      // Validar estructura de parámetros
+      
       expect(searchParams.search).toBe('Evento');
       expect(searchParams.categoryId).toBe('cat1');
       expect(searchParams.page).toBe(1);

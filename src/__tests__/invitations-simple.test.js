@@ -1,9 +1,6 @@
-/**
- * Tests simples para el sistema de invitaciones de cortesía
- * Tests básicos sin sintaxis TypeScript avanzada
- */
 
-// Mock básico de fetch
+
+
 global.fetch = jest.fn();
 
 describe('Sistema de Invitaciones de Cortesía', () => {
@@ -249,7 +246,7 @@ describe('Sistema de Invitaciones de Cortesía', () => {
         user4@example.org, User Four
       `;
 
-      // Simulamos el procesamiento que haría el componente
+      
       const lines = textInput.split('\n').filter(line => line.trim());
       const validEmails = [];
 
@@ -296,8 +293,8 @@ describe('Sistema de Invitaciones de Cortesía', () => {
 
     it('debería calcular si una invitación está expirada', () => {
       const now = new Date();
-      const futureDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // +1 día
-      const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // -1 día
+      const futureDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); 
+      const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); 
 
       const activInvitation = {
         expiresAt: futureDate.toISOString(),
@@ -316,7 +313,7 @@ describe('Sistema de Invitaciones de Cortesía', () => {
 
   describe('Generación de Códigos de Invitación', () => {
     it('debería generar códigos únicos', () => {
-      // Simulamos la generación de códigos como lo haría el backend
+      
       const generateCode = () => {
         return Math.random().toString(36).substring(2, 10).toUpperCase();
       };
@@ -328,7 +325,7 @@ describe('Sistema de Invitaciones de Cortesía', () => {
         codes.add(code);
       }
 
-      // La mayoría deberían ser únicos (permite algunas colisiones raras)
+      
       expect(codes.size).toBeGreaterThan(90);
     });
   });

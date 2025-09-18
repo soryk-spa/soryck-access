@@ -65,7 +65,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
     phone: ''
   })
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [timeLeft, setTimeLeft] = useState(300) // 5 minutos
+  const [timeLeft, setTimeLeft] = useState(300) 
   const [reservedSeats] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -82,7 +82,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
     }
   }, [sessionId, event.id])
 
-  // Timer countdown
+  
   useEffect(() => {
     if (sessionId && timeLeft > 0) {
       const timer = setInterval(() => {
@@ -100,14 +100,14 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
 
     if (seatIds.length > 0) {
       try {
-        // Liberar reserva anterior si existe
+        
         if (sessionId) {
           await fetch(`/api/events/${event.id}/reservations?sessionId=${sessionId}`, {
             method: 'DELETE'
           })
         }
 
-        // Crear nueva reserva
+        
         const response = await fetch(`/api/events/${event.id}/reservations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -117,12 +117,12 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
         if (response.ok) {
           const { sessionId: newSessionId } = await response.json()
           setSessionId(newSessionId)
-          setTimeLeft(300) // Reset timer
+          setTimeLeft(300) 
         } else {
           const error = await response.json()
           if (response.status === 400 && error.error.includes('ya están reservados')) {
             alert('⚠️ Algunos asientos ya han sido seleccionados por otro usuario. Por favor, elige otros asientos disponibles.')
-            // Limpiar la selección actual para que el usuario pueda elegir otros asientos
+            
             setSelectedSeats([])
             setSelectedSeatsDetails([])
           } else {
@@ -134,7 +134,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
         alert('Error de conexión. Por favor, intenta nuevamente.')
       }
     } else if (sessionId) {
-      // Liberar reserva si no hay asientos seleccionados
+      
       await fetch(`/api/events/${event.id}/reservations?sessionId=${sessionId}`, {
         method: 'DELETE'
       })
@@ -215,7 +215,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col">
-        {/* Header */}
+        {}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -232,7 +232,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
             </Button>
           </div>
           
-          {/* Progress Bar */}
+          {}
           <div className="space-y-3">
             <div className="flex justify-between text-sm text-blue-100">
               <span>Progreso del proceso</span>
@@ -245,7 +245,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
               />
             </div>
             
-            {/* Step indicators */}
+            {}
             <div className="flex justify-between mt-4">
               {[1, 2, 3].map((stepNum) => (
                 <div key={stepNum} className="flex items-center">
@@ -268,7 +268,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
             </div>
           </div>
 
-          {/* Timer */}
+          {}
           {sessionId && (
             <div className="mt-4 flex justify-between items-center p-3 bg-white/10 rounded-lg backdrop-blur-sm">
               <span className="text-sm font-medium">⏱️ Tiempo restante para completar:</span>
@@ -287,7 +287,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
           )}
         </div>
 
-        {/* Content */}
+        {}
         <div className="flex-1 overflow-auto">
           <div className="p-8">
             {step === 1 && (
@@ -435,7 +435,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
 
                 <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
                   <div className="grid md:grid-cols-2 gap-8">
-                    {/* Información del Evento */}
+                    {}
                     <div className="space-y-4">
                       <div className="flex items-center mb-4">
                         <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
@@ -450,7 +450,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
                       </div>
                     </div>
 
-                    {/* Información del Comprador */}
+                    {}
                     <div className="space-y-4">
                       <div className="flex items-center mb-4">
                         <div className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
@@ -468,7 +468,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
                     </div>
                   </div>
 
-                  {/* Asientos Seleccionados */}
+                  {}
                   <div className="mt-8">
                     <div className="flex items-center mb-4">
                       <div className="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3">
@@ -511,7 +511,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
           </div>
         </div>
 
-        {/* Footer with buttons */}
+        {}
         <div className="border-t bg-gray-50 p-6 flex justify-between items-center">
           {step > 1 ? (
             <Button 

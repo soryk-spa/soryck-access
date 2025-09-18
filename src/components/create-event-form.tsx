@@ -295,7 +295,7 @@ export default function CreateEventForm({
                       />
                     </div>
 
-                    {/* Campos adicionales de cortesías */}
+                    {}
                     {eventForm.formData.allowCourtesy && (
                       <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -501,7 +501,7 @@ export default function CreateEventForm({
                         </div>
                       </div>
 
-                      {/* Price Tier Manager */}
+                      {}
                       <div className="mt-4 border-t pt-4">
                         <Label className="text-sm font-medium flex items-center gap-2 mb-3">
                           <Clock className="h-4 w-4" />

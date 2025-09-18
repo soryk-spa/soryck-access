@@ -102,7 +102,7 @@ describe('Utilidades de validación', () => {
       expect(isValidUrl('https://example.com')).toBe(true);
       expect(isValidUrl('http://test.co')).toBe(true);
       expect(isValidUrl('https://sub.domain.com/path')).toBe(true);
-      expect(isValidUrl('ftp://example.com')).toBe(true); // URL constructor acepta FTP
+      expect(isValidUrl('ftp://example.com')).toBe(true); 
     });
 
     it('rechaza URLs inválidas', () => {

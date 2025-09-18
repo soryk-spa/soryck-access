@@ -7,11 +7,11 @@ export function parseChileDatetime(datetimeLocal: string): Date {
     throw new Error('Fecha requerida');
   }
 
-  // If string is like 'YYYY-MM-DDTHH:mm' (no timezone), treat it as Chile local time.
+  
   const tzLessPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
   if (tzLessPattern.test(datetimeLocal)) {
-    // For timezone-less strings, append Chile timezone offset
-    // Chile is UTC-3 (sometimes UTC-4 during DST, but let's use -03:00 for now)
+    
+    
     const withTimezone = `${datetimeLocal}:00-03:00`;
     const date = new Date(withTimezone);
     
@@ -121,8 +121,8 @@ export function fromTimestamp(timestamp: number): Date {
 
 
 export const formatFullDateTime = (date: Date | string): string => {
-  // If the input is a string without timezone info (e.g. '2025-12-01T12:00'),
-  // parse it as Chile local time to avoid unintended UTC shifts when the server runs in UTC.
+  
+  
   const dateObj = typeof date === 'string' ? parseChileDatetime(date) : date;
   
   return dateObj.toLocaleString("es-CL", {

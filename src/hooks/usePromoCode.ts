@@ -151,12 +151,12 @@ export function usePromoCodeSharing() {
 
   const exportPromoCodes = (promoCodes: PromoCode[]) => {
     const csv = generatePromoCodeCSV(promoCodes);
-    // Solo ejecutar si document existe (evita error en Node)
+    
     if (typeof document !== 'undefined') {
       downloadCSV(csv, 'codigos-promocionales.csv');
       toast.success("Códigos promocionales exportados exitosamente");
     } else {
-      // En entorno de test, simplemente retorna el CSV
+      
       return csv;
     }
   };

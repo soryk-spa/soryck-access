@@ -15,7 +15,7 @@ jest.mock('next/server', () => {
   return { NextResponse }
 })
 
-// Shared mock prisma with required methods
+
 const mockPrisma = {
   ticket: {
     findUnique: jest.fn(),
@@ -27,7 +27,7 @@ const mockPrisma = {
 }
 jest.mock('@/lib/prisma', () => ({ prisma: mockPrisma }))
 
-// Mock auth helper requireAuth used in POST
+
 const mockRequireAuth = jest.fn()
 jest.mock('@/lib/auth', () => ({ requireAuth: mockRequireAuth }))
 

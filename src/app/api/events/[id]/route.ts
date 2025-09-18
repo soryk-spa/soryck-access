@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent, getCurrentUser } from '@/lib/auth'
 
-// Ensure this API route runs dynamically so server-side auth can access the request
+
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
@@ -292,16 +292,16 @@ export async function PUT(
                 }
               });
 
-              // Update price tiers
+              
               if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
                 console.log(`🎟️ Actualizando ${ticketType.priceTiers.length} price tiers para ticket type ${ticketType.id}`);
                 
-                // Delete existing price tiers for this ticket type
+                
                 await tx.priceTier.deleteMany({
                   where: { ticketTypeId: ticketType.id }
                 });
 
-                // Create new price tiers
+                
                 for (const priceTier of ticketType.priceTiers) {
                   console.log(`💰 Creando price tier: ${priceTier.name} - $${priceTier.price}`);
                   await tx.priceTier.create({
@@ -322,7 +322,7 @@ export async function PUT(
               }
             }
           } else {
-            // Create new ticket type
+            
             const newTicketType = await tx.ticketType.create({
               data: {
                 eventId: id,
@@ -335,7 +335,7 @@ export async function PUT(
               }
             });
 
-            // Create price tiers for new ticket type
+            
             if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
               console.log(`🆕 Creando ${ticketType.priceTiers.length} price tiers para nuevo ticket type ${newTicketType.id}`);
               for (const priceTier of ticketType.priceTiers) {
@@ -399,7 +399,7 @@ export async function PUT(
 
     console.log('✅ Evento actualizado exitosamente');
 
-    // Invalidar caché de eventos para mostrar datos actualizados
+    
     await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({
@@ -446,7 +446,7 @@ export async function DELETE(
       where: { id }
     })
 
-    // Invalidar caché de eventos después de eliminar
+    
     await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({

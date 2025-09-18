@@ -82,7 +82,7 @@ export async function PATCH(
       }
     })
 
-    // Invalidar caché de eventos después de publicar/despublicar
+    
     await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({

@@ -126,11 +126,11 @@ export class CacheService {
       const cached = await this.redis.get(key);
       if (!cached) return null;
       
-      // Try to parse as JSON, if it fails, return the string directly
+      
       try {
         return JSON.parse(cached);
       } catch {
-        // If it's not valid JSON, return the value directly
+        
         return cached as T;
       }
     } catch (error) {

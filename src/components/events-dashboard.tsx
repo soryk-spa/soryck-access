@@ -74,7 +74,7 @@ interface EventsDashboardProps {
   organizerName: string;
 }
 
-// Componente para tarjetas de estadísticas modernas
+
 const ModernStatCard = ({
   title,
   value,
@@ -149,7 +149,7 @@ const ModernStatCard = ({
   );
 };
 
-// Componente para tarjeta de evento moderna
+
 const ModernEventCard = ({ event }: { event: Event }) => {
   const getEventStatus = (event: Event) => {
     const now = new Date();
@@ -186,7 +186,7 @@ const ModernEventCard = ({ event }: { event: Event }) => {
     <Card className="group hover:shadow-xl transition-all duration-300 border-0 bg-white dark:bg-gray-800 hover:scale-[1.02] cursor-pointer overflow-hidden h-full">
       <CardContent className="p-0 h-full flex flex-col">
         <div className="relative flex-1">
-          {/* Header con gradiente */}
+          {}
           <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 p-4 text-white">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">
@@ -212,9 +212,9 @@ const ModernEventCard = ({ event }: { event: Event }) => {
             </div>
           </div>
 
-          {/* Contenido principal */}
+          {}
           <div className="p-4 space-y-4 flex-1">
-            {/* Información del evento */}
+            {}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
@@ -263,7 +263,7 @@ const ModernEventCard = ({ event }: { event: Event }) => {
               </div>
             </div>
 
-            {/* Barra de progreso de ocupación */}
+            {}
             <div className="space-y-2">
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Ocupación</span>
@@ -284,7 +284,7 @@ const ModernEventCard = ({ event }: { event: Event }) => {
             </div>
           </div>
 
-          {/* Acciones rápidas */}
+          {}
           <div className="flex justify-between items-center p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
             <div className="flex gap-2">
               <Button size="sm" variant="outline" asChild className="h-8 text-xs">
@@ -325,7 +325,7 @@ const ModernEventCard = ({ event }: { event: Event }) => {
   );
 };
 
-// Componente para vista de tabla moderna
+
 const EventsTable = ({ events }: { events: Event[] }) => {
   const getEventStatus = (event: Event) => {
     const now = new Date();
@@ -448,15 +448,15 @@ const EventsTable = ({ events }: { events: Event[] }) => {
 
 export default function EventsDashboard({ initialEvents, organizerName }: EventsDashboardProps) {
   const [events] = useState<Event[]>(initialEvents);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("list"); // Cambiar default a lista/tabla
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list"); 
 
-  // Calcular estadísticas
+  
   const totalEvents = events.length;
   const publishedEvents = events.filter((e) => e.isPublished).length;
   const totalTicketsSold = events.reduce((sum, e) => sum + e._count.tickets, 0);
   const totalRevenue = events.reduce((sum, e) => sum + (e._count.tickets * e.price), 0);
 
-  // Configuración del header
+  
   const headerConfig = {
     title: "Mis Eventos",
     description: "gestiona y monitorea todos tus eventos",
@@ -500,7 +500,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
 
   return (
     <DashboardPageLayout header={headerConfig}>
-      {/* Estadísticas Mejoradas */}
+      {}
       <div className="grid gap-4 md:gap-6 grid-cols-2 lg:grid-cols-4">
         <ModernStatCard
           title="Total Eventos"
@@ -540,7 +540,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
         />
       </div>
 
-      {/* Controles de vista */}
+      {}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -576,7 +576,7 @@ export default function EventsDashboard({ initialEvents, organizerName }: Events
         </div>
       </div>
 
-      {/* Lista de eventos */}
+      {}
       {viewMode === "grid" ? (
         <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
           {events.map((event) => (

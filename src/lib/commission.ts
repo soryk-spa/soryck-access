@@ -64,7 +64,7 @@ export function calculateBasePriceFromTotal(totalPrice: number): number {
 }
 
 export function formatPrice(price: number, currency?: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  
   const _ = currency; 
   
   if (price === 0) return 'Gratis';

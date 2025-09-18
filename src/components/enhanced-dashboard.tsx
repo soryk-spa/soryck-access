@@ -65,7 +65,7 @@ interface UserDashboardClientProps {
   pendingCourtesyInvitations: number;
 }
 
-// Componente para acciones rápidas
+
 const QuickActionCard = ({ 
   icon: Icon, 
   title, 
@@ -115,7 +115,7 @@ const QuickActionCard = ({
   );
 };
 
-// Componente para métricas destacadas
+
 const HighlightMetric = ({ 
   icon: Icon, 
   label, 
@@ -174,7 +174,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
 
   return (
     <div className="space-y-8">
-      {/* Header con saludo personalizado */}
+      {}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div>
@@ -193,7 +193,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
         </div>
       </div>
 
-      {/* Métricas destacadas */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -234,9 +234,9 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
         </CardContent>
       </Card>
 
-      {/* Navegación tradicional */}
+      {}
       <div className="space-y-8">
-        {/* Gestión de Eventos */}
+        {}
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -276,7 +276,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
           </div>
         </div>
 
-        {/* Ventas y Marketing */}
+        {}
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <Target className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -315,7 +315,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
           </div>
         </div>
 
-        {/* Herramientas */}
+        {}
         <div>
           <div className="flex items-center space-x-2 mb-4">
             <Settings className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -354,7 +354,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
         </div>
       </div>
 
-      {/* Contenido con pestañas */}
+      {}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Vista General</TabsTrigger>
@@ -365,7 +365,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
 
         <TabsContent value="overview" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Estadísticas principales */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Estadísticas Principales</CardTitle>
@@ -403,7 +403,7 @@ export function EnhancedDashboard(props: UserDashboardClientProps) {
               </CardContent>
             </Card>
 
-            {/* Gráfico de ingresos */}
+            {}
             <Card>
               <CardHeader>
                 <CardTitle>Tendencia de Ingresos</CardTitle>

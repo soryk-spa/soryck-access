@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/events/[id]/sections/[sectionId]
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { id: eventId, sectionId } = await params;
 
-    // Verificar que el evento existe
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
     });
@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    // Obtener la sección con sus asientos
+    
     const section = await prisma.section.findUnique({
       where: { id: sectionId },
       include: {
@@ -42,7 +42,7 @@ export async function GET(
       );
     }
 
-    // Verificar que la sección pertenece al evento
+    
     if (section.eventId !== eventId) {
       return NextResponse.json(
         { error: 'La sección no pertenece a este evento' },
@@ -76,7 +76,7 @@ export async function GET(
   }
 }
 
-// PUT /api/events/[id]/sections/[sectionId]
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -85,7 +85,7 @@ export async function PUT(
     const user = await requireAuth();
     const { id: eventId, sectionId } = await params;
 
-    // Verificar que el evento existe y el usuario tiene permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: { organizer: true }
@@ -105,7 +105,7 @@ export async function PUT(
       );
     }
 
-    // Verificar que la sección existe
+    
     const existingSection = await prisma.section.findUnique({
       where: { id: sectionId },
     });
@@ -124,7 +124,7 @@ export async function PUT(
       );
     }
 
-    // Obtener los datos del cuerpo de la solicitud
+    
     const body = await request.json();
     const { 
       name, 
@@ -134,7 +134,7 @@ export async function PUT(
       description 
     } = body;
 
-    // Actualizar la sección
+    
     const updatedSection = await prisma.section.update({
       where: { id: sectionId },
       data: {
@@ -160,7 +160,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/events/[id]/sections/[sectionId]
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -169,7 +169,7 @@ export async function DELETE(
     const user = await requireAuth();
     const { id: eventId, sectionId } = await params;
 
-    // Verificar que el evento existe y el usuario tiene permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: { organizer: true }
@@ -189,7 +189,7 @@ export async function DELETE(
       );
     }
 
-    // Verificar que la sección existe
+    
     const existingSection = await prisma.section.findUnique({
       where: { id: sectionId },
     });
@@ -208,7 +208,7 @@ export async function DELETE(
       );
     }
 
-    // Eliminar la sección (esto también eliminará los asientos relacionados debido al onDelete: Cascade)
+    
     await prisma.section.delete({
       where: { id: sectionId }
     });

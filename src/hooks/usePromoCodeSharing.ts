@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 import type { PromoCode } from '@/types';
 
 export function usePromoCodeSharing() {
-  // Compartir código promocional usando Web Share API o portapapeles
+  
   const sharePromoCode = async (
     promoCode: PromoCode,
     formatDiscount: (type: string, value: number) => string
@@ -23,7 +23,7 @@ export function usePromoCodeSharing() {
     }
   };
 
-  // Exportar códigos promocionales a CSV
+  
   const exportPromoCodes = (promoCodes: PromoCode[]) => {
     const headers = [
       'Código', 'Nombre', 'Tipo', 'Valor', 'Estado', 'Usados', 'Límite', 'Moneda', 'Válido desde', 'Válido hasta'

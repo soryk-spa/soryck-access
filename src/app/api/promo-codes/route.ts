@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
 
-// Ensure this route runs as dynamic so server-side auth can read the incoming request
+
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { PromoCodeService } from "@/lib/promo-codes";
@@ -54,7 +54,7 @@ const createPromoCodeSchema = z.object({
   }
 ).refine(
   (data) => {
-    // Dynamic pricing validation: if priceAfter is set, validUntil must also be set
+    
     if (data.priceAfter && data.priceAfter > 0 && !data.validUntil) {
       return false;
     }

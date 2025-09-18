@@ -131,7 +131,7 @@ export default function EventDetailView({
   ) {
     if (!ticketTypes.length) return "No disponible";
     
-    // Calcular precios dinámicos para cada ticket type
+    
     const dynamicPrices = ticketTypes.map((t) => {
       if (!t.priceTiers || t.priceTiers.length === 0) {
         return calculateTotalPrice(t.price);
@@ -836,7 +836,7 @@ export default function EventDetailView({
         </div>
       )}
 
-      {/* New Purchase Flow with Seat Selection */}
+      {}
       {showPurchaseFlow && event.sections && (
         <PurchaseFlow
           event={{

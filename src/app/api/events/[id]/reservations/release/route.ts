@@ -19,7 +19,7 @@ export async function POST(
     const body = await request.json();
     const { sessionId, seatIds } = body;
 
-    // Verificar que el usuario tenga permisos para el evento
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       select: { 
@@ -36,7 +36,7 @@ export async function POST(
       );
     }
 
-    // Solo el organizador o admin pueden liberar reservas
+    
     if (event.organizerId !== currentUser.id && currentUser.role !== 'ADMIN') {
       return NextResponse.json(
         { error: "No autorizado para este evento" },
@@ -47,24 +47,24 @@ export async function POST(
     let result;
 
     if (sessionId) {
-      // Liberar todas las reservas de una sesión
+      
       result = await prisma.seatReservation.deleteMany({
         where: {
           sessionId,
           eventId,
           expiresAt: {
-            gt: new Date() // Solo liberar reservas activas
+            gt: new Date() 
           }
         }
       });
     } else if (seatIds && Array.isArray(seatIds)) {
-      // Liberar asientos específicos
+      
       result = await prisma.seatReservation.deleteMany({
         where: {
           eventId,
           seatId: { in: seatIds },
           expiresAt: {
-            gt: new Date() // Solo liberar reservas activas
+            gt: new Date() 
           }
         }
       });
@@ -105,7 +105,7 @@ export async function GET(
 
     const { id: eventId } = await params;
 
-    // Verificar permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       select: { 
@@ -129,7 +129,7 @@ export async function GET(
       );
     }
 
-    // Obtener reservas activas
+    
     const activeReservations = await prisma.seatReservation.findMany({
       where: {
         eventId,

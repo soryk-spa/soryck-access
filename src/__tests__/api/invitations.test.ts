@@ -1,11 +1,8 @@
-/**
- * Tests para la API de invitaciones masivas de cortesía
- * @file /api/events/[id]/invitations
- */
+
 
 import { NextRequest } from 'next/server';
 
-// Mock Next.js Response
+
 jest.mock('next/server', () => {
   class NextResponse {
     status: number;
@@ -23,7 +20,7 @@ jest.mock('next/server', () => {
   return { NextResponse };
 });
 
-// Mock Prisma
+
 const mockPrisma = {
   event: {
     findUnique: jest.fn(),
@@ -43,7 +40,7 @@ const mockPrisma = {
 
 jest.mock('@/lib/prisma', () => ({ prisma: mockPrisma }));
 
-// Mock Auth
+
 const mockGetCurrentUser = jest.fn();
 jest.mock('@/lib/auth', () => ({
   getCurrentUser: mockGetCurrentUser,
@@ -205,10 +202,10 @@ describe('API /api/events/[id]/invitations', () => {
         },
       };
 
-      // Mock que no hay invitaciones existentes
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
       
-      // Mock creación exitosa
+      
       mockPrisma.$transaction.mockResolvedValue([createdInvitation]);
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');
@@ -230,9 +227,9 @@ describe('API /api/events/[id]/invitations', () => {
         ticketTypeId: 'tt-valid',
       };
 
-      // Mock que no hay invitaciones existentes
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
-      // Mock ticketType exists for event
+      
       mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([{ id: 'tt-valid' }]) } as any;
 
       const createdInvitation = {
@@ -267,9 +264,9 @@ describe('API /api/events/[id]/invitations', () => {
         ticketTypeId: 'tt-invalid',
       };
 
-      // Mock that ticketType lookup returns empty
+      
       mockPrisma.ticketType = { findMany: jest.fn().mockResolvedValue([]) } as any;
-      // Ensure no existing invitations so the code proceeds to ticketType validation
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');
@@ -374,10 +371,10 @@ describe('API /api/events/[id]/invitations', () => {
         },
       }));
 
-      // Mock que no hay invitaciones existentes
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
       
-      // Mock creación exitosa
+      
       mockPrisma.$transaction.mockResolvedValue(createdInvitations);
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');
@@ -417,7 +414,7 @@ describe('API /api/events/[id]/invitations', () => {
         invitedName: 'Existing User',
       };
 
-      // Mock que ya existe una invitación con este email
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([
         { invitedEmail: 'existing@example.com' },
       ]);
@@ -470,10 +467,10 @@ describe('API /api/events/[id]/invitations', () => {
         invitedName: 'Test User',
       };
 
-      // Mock que no hay invitaciones existentes
+      
       mockPrisma.courtesyInvitation.findMany.mockResolvedValue([]);
       
-      // Mock error en transacción
+      
       mockPrisma.$transaction.mockRejectedValue(new Error('Database error'));
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');
@@ -494,7 +491,7 @@ describe('API /api/events/[id]/invitations', () => {
 
     it('debería validar campos requeridos para invitación individual', async () => {
       const incompleteInvitation = {
-        invitedName: 'Test User', // Falta email
+        invitedName: 'Test User', 
       };
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');
@@ -509,8 +506,8 @@ describe('API /api/events/[id]/invitations', () => {
 
     it('debería validar tipos de datos correctos', async () => {
       const invalidDataTypes = {
-        invitedEmail: 123, // Debería ser string
-        invitedName: ['array'], // Debería ser string
+        invitedEmail: 123, 
+        invitedName: ['array'], 
       };
 
       const { POST } = await import('@/app/api/events/[id]/invitations/route');

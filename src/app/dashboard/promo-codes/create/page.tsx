@@ -1,6 +1,6 @@
 import { requireOrganizer } from "@/lib/auth";
 
-// Force dynamic rendering for this page
+
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import CreatePromoCodeForm from "@/components/create-promo-code-form";

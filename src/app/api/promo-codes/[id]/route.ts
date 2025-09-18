@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
 
-// Ensure this route runs as dynamic so server-side auth can read the incoming request
+
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const updatePromoCodeSchema = z.object({
-  // Fields always allowed to change when usages > 0
+  
   name: z.string().min(1, "Nombre requerido").max(100).optional(),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
@@ -15,7 +15,7 @@ const updatePromoCodeSchema = z.object({
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
   priceAfter: z.number().min(0).optional(),
-  // Fields that are only editable when usedCount === 0
+  
   code: z.string().min(3).max(100).optional(),
   type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
   value: z.number().min(0).optional(),
@@ -134,14 +134,14 @@ export async function PATCH(
 
     const { validUntil, ...restData } = validation.data;
 
-    // If the promo code has been used, restrict editable fields
+    
     const usedCount = promoCode._count?.usages ?? 0;
 
-    // Disallowed fields when usedCount > 0
+    
     const protectedFields = ["code", "type", "value", "eventId", "ticketTypeId"];
 
     if (usedCount > 0) {
-      // If request tries to change any protected field, reject
+      
       for (const field of protectedFields) {
         if (field in restData) {
           return NextResponse.json(
@@ -170,7 +170,7 @@ export async function PATCH(
       ...(validUntil && { validUntil: new Date(validUntil) }),
     };
 
-    // If code is being updated (only allowed when usedCount === 0), ensure uniqueness
+    
     if (restData.code) {
       const existing = await prisma.promoCode.findUnique({ where: { code: restData.code } });
       if (existing && existing.id !== id) {

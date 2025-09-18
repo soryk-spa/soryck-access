@@ -3,7 +3,7 @@ import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { SeatStatus } from '@prisma/client';
 
-// POST /api/events/[id]/sections/[sectionId]/generate-seats
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -12,7 +12,7 @@ export async function POST(
     const user = await requireAuth();
     const { id: eventId, sectionId } = await params;
 
-    // Verificar que el evento existe y el usuario tiene permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -34,11 +34,11 @@ export async function POST(
       );
     }
 
-    // Obtener los datos del cuerpo de la solicitud
+    
     const body = await request.json();
     const { rows, seatsPerRow, sectionName } = body;
 
-    // Validar los parámetros
+    
     if (!rows || !seatsPerRow || rows < 1 || seatsPerRow < 1) {
       return NextResponse.json(
         { error: 'Parámetros inválidos. Se requieren filas y asientos por fila válidos.' },
@@ -53,7 +53,7 @@ export async function POST(
       );
     }
 
-    // Verificar que la sección existe
+    
     const section = await prisma.section.findUnique({
       where: { id: sectionId },
     });
@@ -65,7 +65,7 @@ export async function POST(
       );
     }
 
-    // Verificar que la sección pertenece al evento
+    
     if (section.eventId !== eventId) {
       return NextResponse.json(
         { error: 'La sección no pertenece a este evento' },
@@ -73,18 +73,18 @@ export async function POST(
       );
     }
 
-    // Eliminar asientos existentes si los hay
+    
     await prisma.eventSeat.deleteMany({
       where: { sectionId }
     });
 
-    // Generar los asientos
+    
     const seats = [];
     const totalSeats = rows * seatsPerRow;
 
     for (let row = 1; row <= rows; row++) {
       for (let seat = 1; seat <= seatsPerRow; seat++) {
-        const rowLetter = String.fromCharCode(64 + row); // A, B, C, etc.
+        const rowLetter = String.fromCharCode(64 + row); 
         const displayName = `${rowLetter}${seat}`;
         
         seats.push({
@@ -98,12 +98,12 @@ export async function POST(
       }
     }
 
-    // Crear los asientos en la base de datos
+    
     const createdSeats = await prisma.eventSeat.createMany({
       data: seats
     });
 
-    // Actualizar la sección con el nuevo conteo de asientos
+    
     await prisma.section.update({
       where: { id: sectionId },
       data: {
@@ -135,7 +135,7 @@ export async function POST(
   }
 }
 
-// GET /api/events/[id]/sections/[sectionId]/generate-seats
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; sectionId: string }> }
@@ -144,7 +144,7 @@ export async function GET(
     const user = await requireAuth();
     const { id: eventId, sectionId } = await params;
 
-    // Verificar que el evento existe y el usuario tiene permisos
+    
     const event = await prisma.event.findUnique({
       where: { id: eventId },
     });
@@ -163,7 +163,7 @@ export async function GET(
       );
     }
 
-    // Verificar que la sección existe y obtener sus asientos
+    
     const section = await prisma.section.findUnique({
       where: { id: sectionId },
       include: {
@@ -183,7 +183,7 @@ export async function GET(
       );
     }
 
-    // Verificar que la sección pertenece al evento
+    
     if (section.eventId !== eventId) {
       return NextResponse.json(
         { error: 'La sección no pertenece a este evento' },

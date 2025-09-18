@@ -32,10 +32,10 @@ describe('PATCH /api/promo-codes/[id]', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('allows full edit when promo has no usages', async () => {
-    // promo exists and has 0 usages
+    
     mockRequireOrganizer.mockResolvedValueOnce({ id: 'org1', role: 'ORGANIZER' })
   mockPrismaPromo.promoCode.findFirst.mockResolvedValueOnce({ id: 'p1', createdBy: 'org1', _count: { usages: 0 } })
-  mockPrismaPromo.promoCode.findUnique.mockResolvedValueOnce(null) // code uniqueness check
+  mockPrismaPromo.promoCode.findUnique.mockResolvedValueOnce(null) 
   mockPrismaPromo.promoCode.update.mockResolvedValueOnce({ id: 'p1', code: 'NEWCODE', name: 'New', _count: { usages: 0 }, validFrom: new Date(), validUntil: null, createdAt: new Date(), updatedAt: new Date(), event: null })
 
     const { PATCH } = await import('../../../src/app/api/promo-codes/[id]/route')

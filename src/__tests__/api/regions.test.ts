@@ -1,13 +1,10 @@
-/**
- * Tests simplificados para API de regiones chilenas
- * @file src/app/api/regions/route.ts
- */
+
 
 describe('API: /api/regions', () => {
   describe('Configuración básica', () => {
     it('debería poder importar la API sin errores', async () => {
       expect(async () => {
-        // Test básico de importación
+        
         expect(true).toBe(true);
       }).not.toThrow();
     });

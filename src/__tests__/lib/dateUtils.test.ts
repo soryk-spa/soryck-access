@@ -1,9 +1,6 @@
-/**
- * Tests para funciones críticas de manejo de fechas y tiempo
- * @file src/__tests__/lib/dateUtils.test.ts
- */
 
-// Funciones de utilidad para fechas (críticas para eventos)
+
+
 export const formatEventDate = (date: string | Date): string => {
   const eventDate = new Date(date);
   
@@ -63,7 +60,7 @@ export const getEventWeekday = (date: string | Date): string => {
   return eventDate.toLocaleDateString('es-CL', { weekday: 'long' });
 };
 
-// Función para calcular precio con descuento
+
 export const calculateDiscountedPrice = (
   originalPrice: number, 
   discountType: 'PERCENTAGE' | 'FIXED_AMOUNT',
@@ -74,14 +71,14 @@ export const calculateDiscountedPrice = (
   }
   
   if (discountType === 'PERCENTAGE') {
-    const discount = Math.min(discountValue, 100); // Max 100%
+    const discount = Math.min(discountValue, 100); 
     return Math.max(0, originalPrice - (originalPrice * discount / 100));
   } else {
     return Math.max(0, originalPrice - discountValue);
   }
 };
 
-// Función para generar códigos de ticket únicos
+
 export const generateTicketCode = (eventId: string, ticketTypeId: string, index: number): string => {
   const prefix = eventId.substring(0, 8).toUpperCase();
   const middle = ticketTypeId.substring(0, 8).toUpperCase();
@@ -115,12 +112,12 @@ describe('Utilidades de Fecha y Tiempo Críticas', () => {
 
   describe('isEventInFuture', () => {
     it('debería retornar true para fecha futura', () => {
-      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // Mañana
+      const futureDate = new Date(Date.now() + 24 * 60 * 60 * 1000); 
       expect(isEventInFuture(futureDate)).toBe(true);
     });
 
     it('debería retornar false para fecha pasada', () => {
-      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); // Ayer
+      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000); 
       expect(isEventInFuture(pastDate)).toBe(false);
     });
 
@@ -132,22 +129,22 @@ describe('Utilidades de Fecha y Tiempo Críticas', () => {
 
   describe('getEventTimeRemaining', () => {
     it('debería retornar días para evento distante', () => {
-      const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 días
+      const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); 
       const result = getEventTimeRemaining(futureDate);
       
       expect(result).toContain('día');
-      // compute expected days at assertion time to be robust to tiny timing differences
+      
       const now = new Date();
       const expectedDays = Math.floor((futureDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       const digitsMatch = result.match(/(\d+)/);
       expect(digitsMatch).not.toBeNull();
       const numberInResult = parseInt(digitsMatch![0], 10);
-      // allow off-by-one because of execution time between now() calls
+      
       expect(numberInResult === expectedDays || numberInResult === expectedDays - 1).toBe(true);
     });
 
     it('debería retornar horas para evento cercano', () => {
-      const futureDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 horas
+      const futureDate = new Date(Date.now() + 2 * 60 * 60 * 1000); 
       const result = getEventTimeRemaining(futureDate);
       
       expect(result).toContain('hora');
@@ -155,22 +152,22 @@ describe('Utilidades de Fecha y Tiempo Críticas', () => {
     });
 
     it('debería retornar minutos para evento muy cercano', () => {
-      const futureDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+      const futureDate = new Date(Date.now() + 30 * 60 * 1000); 
       const result = getEventTimeRemaining(futureDate);
       
       expect(result).toContain('minuto');
     });
 
     it('debería retornar "Evento finalizado" para fecha pasada', () => {
-      const pastDate = new Date(Date.now() - 60 * 1000); // 1 minuto atrás
+      const pastDate = new Date(Date.now() - 60 * 1000); 
       const result = getEventTimeRemaining(pastDate);
       
       expect(result).toBe('Evento finalizado');
     });
 
     it('debería manejar plural correctamente', () => {
-      const oneDay = new Date(Date.now() + 25 * 60 * 60 * 1000); // 25 horas = 1 día
-      const twoDays = new Date(Date.now() + 49 * 60 * 60 * 1000); // 49 horas = 2 días
+      const oneDay = new Date(Date.now() + 25 * 60 * 60 * 1000); 
+      const twoDays = new Date(Date.now() + 49 * 60 * 60 * 1000); 
       
       const result1 = getEventTimeRemaining(oneDay);
       const result2 = getEventTimeRemaining(twoDays);
@@ -199,7 +196,7 @@ describe('Utilidades de Fecha y Tiempo Críticas', () => {
 
   describe('getEventWeekday', () => {
     it('debería retornar día de la semana en español', () => {
-      // Domingo 15 de diciembre de 2024
+      
       const sunday = new Date('2024-12-15T10:00:00');
       const result = getEventWeekday(sunday);
       
@@ -219,35 +216,35 @@ describe('Utilidades de Precios y Descuentos', () => {
       const originalPrice = 10000;
       const result = calculateDiscountedPrice(originalPrice, 'PERCENTAGE', 20);
       
-      expect(result).toBe(8000); // 20% de descuento
+      expect(result).toBe(8000); 
     });
 
     it('debería calcular descuento fijo correctamente', () => {
       const originalPrice = 10000;
       const result = calculateDiscountedPrice(originalPrice, 'FIXED_AMOUNT', 2000);
       
-      expect(result).toBe(8000); // $2000 de descuento
+      expect(result).toBe(8000); 
     });
 
     it('debería manejar descuento mayor al precio (porcentual)', () => {
       const originalPrice = 1000;
       const result = calculateDiscountedPrice(originalPrice, 'PERCENTAGE', 150);
       
-      expect(result).toBe(0); // No puede ser negativo
+      expect(result).toBe(0); 
     });
 
     it('debería manejar descuento mayor al precio (fijo)', () => {
       const originalPrice = 1000;
       const result = calculateDiscountedPrice(originalPrice, 'FIXED_AMOUNT', 1500);
       
-      expect(result).toBe(0); // No puede ser negativo
+      expect(result).toBe(0); 
     });
 
     it('debería limitar descuento porcentual a 100%', () => {
       const originalPrice = 10000;
       const result = calculateDiscountedPrice(originalPrice, 'PERCENTAGE', 150);
       
-      expect(result).toBe(0); // Máximo 100% de descuento
+      expect(result).toBe(0); 
     });
 
     it('debería manejar valores negativos', () => {
@@ -290,7 +287,7 @@ describe('Utilidades de Generación de Códigos', () => {
       const code1 = generateTicketCode('event123', 'ticket123', 1);
       const code2 = generateTicketCode('event123', 'ticket123', 1);
       
-      // Los códigos deberían ser diferentes debido al componente aleatorio
+      
       expect(code1).not.toBe(code2);
     });
 

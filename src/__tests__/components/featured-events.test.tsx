@@ -13,7 +13,7 @@ describe('FeaturedEvents component', () => {
 
     render(<FeaturedEvents />)
 
-    // loading
+    
     expect(screen.getByText(/Cargando eventos destacados/i)).toBeInTheDocument()
 
     await waitFor(() => {

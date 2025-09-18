@@ -19,7 +19,7 @@ describe('CacheService basic operations', () => {
   it('setUserBatch uses pipeline and exec', async () => {
     const cache = CacheService.getInstance()
 
-    // Should not throw
+    
   const user: Partial<UserProfile> = { id: '1', clerkId: 'clerk_1', email: 'a@a.com', role: 'USER' }
   await expect(cache.setUserBatch('clerk_1', user as UserProfile)).resolves.toBeUndefined()
   })

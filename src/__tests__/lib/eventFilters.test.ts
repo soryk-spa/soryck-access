@@ -1,11 +1,8 @@
-/**
- * Tests para funcionalidades de filtrado de eventos
- * Tests unitarios que no dependen de hooks de React
- */
+
 
 import type { Event, EventFilters } from '@/types';
 
-// Mock de datos de eventos para testing
+
 const mockEvents: Event[] = [
   {
     id: '1',
@@ -93,7 +90,7 @@ const mockEvents: Event[] = [
     price: 15000,
     currency: 'CLP',
     isFree: false,
-    isPublished: false, // No publicado
+    isPublished: false, 
     categoryId: 'food',
     organizerId: 'org3',
     createdAt: '2024-01-01T00:00:00Z',
@@ -121,10 +118,10 @@ const mockEvents: Event[] = [
   },
 ];
 
-// Función de filtrado de eventos (extraída de la lógica real)
+
 function filterEvents(events: Event[], filters: EventFilters): Event[] {
   return events.filter(event => {
-    // Filtro por búsqueda (título y descripción)
+    
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       const matchesTitle = event.title.toLowerCase().includes(searchLower);
@@ -132,42 +129,42 @@ function filterEvents(events: Event[], filters: EventFilters): Event[] {
       if (!matchesTitle && !matchesDescription) return false;
     }
 
-    // Filtro por categoría
+    
     if (filters.categoryId && event.categoryId !== filters.categoryId) {
       return false;
     }
 
-    // Filtro por precio mínimo
+    
     if (filters.minPrice) {
       const minPrice = parseFloat(filters.minPrice);
       if (event.price < minPrice) return false;
     }
 
-    // Filtro por precio máximo
+    
     if (filters.maxPrice) {
       const maxPrice = parseFloat(filters.maxPrice);
       if (event.price > maxPrice) return false;
     }
 
-    // Filtro por fecha desde
+    
     if (filters.dateFrom) {
       const fromDate = new Date(filters.dateFrom);
       const eventDate = new Date(event.startDate);
       if (eventDate < fromDate) return false;
     }
 
-    // Filtro por fecha hasta
+    
     if (filters.dateTo) {
       const toDate = new Date(filters.dateTo);
       const eventDate = new Date(event.startDate);
       if (eventDate > toDate) return false;
     }
 
-    // Filtro por estado de publicación
+    
     if (filters.status === 'published' && !event.isPublished) return false;
     if (filters.status === 'draft' && event.isPublished) return false;
 
-    // Filtro por eventos gratuitos
+    
     if (filters.isFree !== undefined) {
       if (filters.isFree && !event.isFree) return false;
       if (!filters.isFree && event.isFree) return false;
@@ -177,7 +174,7 @@ function filterEvents(events: Event[], filters: EventFilters): Event[] {
   });
 }
 
-// Función para calcular estadísticas de eventos
+
 function calculateEventStats(events: Event[]) {
   const published = events.filter(e => e.isPublished);
   const draft = events.filter(e => !e.isPublished);
@@ -276,7 +273,7 @@ describe('Funcionalidades de Filtrado de Eventos', () => {
       const filters: EventFilters = { maxPrice: '20000' };
       const result = filterEvents(mockEvents, filters);
 
-      expect(result).toHaveLength(2); // Workshop gratuito + Festival (15000)
+      expect(result).toHaveLength(2); 
       expect(result.every(event => event.price <= 20000)).toBe(true);
     });
 
@@ -297,7 +294,7 @@ describe('Funcionalidades de Filtrado de Eventos', () => {
       const filters: EventFilters = { dateFrom: '2024-04-01' };
       const result = filterEvents(mockEvents, filters);
 
-      expect(result).toHaveLength(2); // Workshop y Festival
+      expect(result).toHaveLength(2); 
       expect(result.every(event => new Date(event.startDate) >= new Date('2024-04-01'))).toBe(true);
     });
 
@@ -305,7 +302,7 @@ describe('Funcionalidades de Filtrado de Eventos', () => {
       const filters: EventFilters = { dateTo: '2024-04-01' };
       const result = filterEvents(mockEvents, filters);
 
-      expect(result).toHaveLength(1); // Solo el concierto de marzo
+      expect(result).toHaveLength(1); 
       expect(result[0].title).toBe('Concierto Rock Nacional');
     });
   });
@@ -364,7 +361,7 @@ describe('Funcionalidades de Filtrado de Eventos', () => {
     it('devuelve array vacío si ningún evento cumple todos los filtros', () => {
       const filters: EventFilters = {
         categoryId: 'music',
-        isFree: true, // Contradictorio: música y gratuito
+        isFree: true, 
       };
       const result = filterEvents(mockEvents, filters);
 
@@ -387,32 +384,32 @@ describe('Cálculo de Estadísticas de Eventos', () => {
   it('calcula ingresos totales correctamente', () => {
     const stats = calculateEventStats(mockEvents);
 
-    // Concierto: 25000 * 0 = 0
-    // Workshop: 0 * 25 = 0
-    // Festival: 15000 * 150 = 2,250,000
+    
+    
+    
     expect(stats.totalRevenue).toBe(2250000);
   });
 
   it('calcula precio promedio correctamente', () => {
     const stats = calculateEventStats(mockEvents);
 
-    // (25000 + 0 + 15000) / 3 = 13333.33
+    
     expect(stats.averagePrice).toBeCloseTo(13333.33, 2);
   });
 
   it('calcula tickets vendidos totales', () => {
     const stats = calculateEventStats(mockEvents);
 
-    expect(stats.totalTicketsSold).toBe(175); // 0 + 25 + 150
+    expect(stats.totalTicketsSold).toBe(175); 
   });
 
   it('calcula ocupación promedio', () => {
     const stats = calculateEventStats(mockEvents);
 
-    // Concierto: 0/500 = 0%
-    // Workshop: 25/50 = 50%
-    // Festival: 150/1000 = 15%
-    // Promedio: (0 + 50 + 15) / 3 = 21.67%
+    
+    
+    
+    
     expect(stats.averageOccupancy).toBeCloseTo(21.67, 2);
   });
 

@@ -138,7 +138,7 @@ export async function sendCourtesyEmail({
     const userName = user.firstName || user.email.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
-    // Helper function to treat UTC date as Chile local time
+    
     const formatDateAsChileLocal = (date: Date) => {
       const year = date.getUTCFullYear();
       const month = date.getUTCMonth();
@@ -268,7 +268,7 @@ export async function sendCourtesyInvitationEmail({
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
-    // Helper function to treat UTC date as Chile local time
+    
     const formatDateAsChileLocal = (date: Date) => {
       const year = date.getUTCFullYear();
       const month = date.getUTCMonth();
@@ -288,9 +288,9 @@ export async function sendCourtesyInvitationEmail({
     
     const freeUntil = invitation.expiresAt ? formatDateAsChileLocal(invitation.expiresAt) : undefined;
     let afterPrice: string | undefined = undefined;
-    // Prefer price from invitation.priceTier when available, otherwise fall back to ticket.ticketType
+    
     const { formatCurrency } = await import('@/lib/utils');
-    // invitation may include priceTier when updatedInvitation was returned from the API
+    
     if (invitation.priceTier && typeof invitation.priceTier.price === 'number') {
       afterPrice = formatCurrency(invitation.priceTier.price, invitation.priceTier.currency || event.currency || 'CLP');
     } else if (ticket.ticketType && typeof ticket.ticketType.price === 'number') {

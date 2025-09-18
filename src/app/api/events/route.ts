@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireOrganizer, getCurrentUser } from '@/lib/auth'
 
-// Ensure this API route runs dynamically so server-side auth can access the request
+
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
       })
       console.log('✅ [EVENT CREATE] Evento principal creado:', event.id)
 
-      // Create ticket types with price tiers
+      
       console.log('🎫 [EVENT CREATE] Creando tipos de tickets...')
       const createdTicketTypes = []
       for (const [index, tt] of ticketTypes.entries()) {
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
           })
           console.log(`✅ [EVENT CREATE] Ticket type creado:`, ticketType.id)
 
-          // Create price tiers if any
+          
           if (tt.priceTiers && tt.priceTiers.length > 0) {
             console.log(`💰 [EVENT CREATE] Creando ${tt.priceTiers.length} price tiers para ticket type:`, ticketType.id)
             
@@ -302,7 +302,7 @@ export async function POST(request: NextRequest) {
 
       console.log('📊 [EVENT CREATE] Obteniendo evento completo con relaciones...')
       console.log('📊 [EVENT CREATE] Obteniendo evento completo con relaciones...')
-      // Get the complete event with relationships
+      
       const completeEvent = await tx.event.findUnique({
         where: { id: event.id },
         include: {
@@ -352,7 +352,7 @@ export async function POST(request: NextRequest) {
 
     console.log('📤 [EVENT CREATE] Enviando respuesta exitosa')
     
-    // Invalidar caché de eventos para mostrar el nuevo evento
+    
     await CacheInvalidation.invalidateEventsCache();
     
     return NextResponse.json({
@@ -363,18 +363,18 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('❌ [EVENT CREATE] Error creando evento:', error)
     
-    // Log detallado del error
+    
     if (error instanceof Error) {
       console.error('❌ [EVENT CREATE] Mensaje del error:', error.message)
       console.error('❌ [EVENT CREATE] Stack trace:', error.stack)
     }
     
-    // Log del error como objeto si no es instancia de Error
+    
     if (!(error instanceof Error)) {
       console.error('❌ [EVENT CREATE] Error no es instancia de Error:', JSON.stringify(error, null, 2))
     }
     
-    // Si es un error de Prisma, log información específica
+    
     if (error && typeof error === 'object' && 'code' in error) {
       const prismaError = error as { code?: string; meta?: unknown }
       console.error('❌ [EVENT CREATE] Código de error de Prisma:', prismaError.code)
@@ -388,7 +388,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Devolver información más específica del error en desarrollo
+    
     const isDevelopment = process.env.NODE_ENV === 'development'
     
     return NextResponse.json(
@@ -491,7 +491,7 @@ export async function PUT(request: NextRequest) {
           }
         })
 
-        // Create price tiers if any
+        
         if (tt.priceTiers && tt.priceTiers.length > 0) {
           await tx.priceTier.createMany({
             data: tt.priceTiers.map(tier => ({
@@ -505,7 +505,7 @@ export async function PUT(request: NextRequest) {
         }
       }
 
-      // Get the complete event with relationships
+      
       return await tx.event.findUnique({
         where: { id: eventId },
         include: {
@@ -526,7 +526,7 @@ export async function PUT(request: NextRequest) {
       throw new Error('Failed to update event')
     }
 
-    // Serialize the response
+    
     const serializedEvent = {
       ...updatedEvent,
       startDate: updatedEvent.startDate.toISOString(),

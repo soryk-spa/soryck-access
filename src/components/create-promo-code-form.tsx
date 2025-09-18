@@ -45,7 +45,7 @@ const createPromoCodeSchema = z
     usageLimitPerUser: z.number().min(1).optional(),
     validFrom: z.string().min(1, "Fecha de inicio requerida"),
     validUntil: z.string().optional(),
-    priceAfter: z.number().min(0).nullable().optional(),
+    priceAfter: z.number().min(0).optional(),
     eventId: z.string().optional(),
     ticketTypeId: z.string().optional(),
     codeOption: z.enum(["generate", "custom"]),
@@ -98,7 +98,7 @@ const createPromoCodeSchema = z
   )
   .refine(
     (data) => {
-      // Dynamic pricing validation: if priceAfter is set, validUntil must also be set
+      
       if (data.priceAfter && data.priceAfter > 0 && !data.validUntil) {
         return false;
       }
@@ -212,7 +212,7 @@ export default function CreatePromoCodeForm({
         headers: {
           "Content-Type": "application/json",
         },
-        // Ensure cookies are sent so server-side auth (Clerk) can read the session
+        
         credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
@@ -652,7 +652,7 @@ export default function CreatePromoCodeForm({
                 </div>
               </div>
 
-              {/* Dynamic Pricing Section */}
+              {}
               <Separator />
               
               <div className="space-y-4">

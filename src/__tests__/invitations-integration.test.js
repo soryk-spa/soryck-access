@@ -1,28 +1,25 @@
-/**
- * Tests de integración para el sistema de invitaciones de cortesía
- * Simula el comportamiento completo del sistema
- */
 
-// Mock del componente de notificaciones
+
+
 const mockToast = {
   success: jest.fn(),
   error: jest.fn(),
   warning: jest.fn(),
 };
 
-// Función para simular el procesamiento de invitaciones masivas
+
 function processInvitationText(textInput) {
   const lines = textInput.split('\n').filter(line => line.trim());
   const invitations = [];
   
   lines.forEach(line => {
-    // Mejorar el regex para capturar solo el email sin puntuación
+    
     const emailMatch = line.match(/([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
     if (emailMatch) {
       const email = emailMatch[1];
-      // Limpiar el nombre removiendo el email y puntuación
+      
       let name = line.replace(emailMatch[0], '').replace(/[,;<>]/g, '').trim();
-      // Remover angle brackets vacíos
+      
       name = name.replace(/^\s*<\s*>\s*$/, '').trim();
       invitations.push({ 
         email, 
@@ -34,9 +31,9 @@ function processInvitationText(textInput) {
   return invitations;
 }
 
-// Función para simular llamada a API
+
 async function createInvitations(eventId, invitations) {
-  // Simula validaciones del backend
+  
   if (invitations.length > 50) {
     throw new Error('Máximo 50 invitaciones por lote');
   }
@@ -44,7 +41,7 @@ async function createInvitations(eventId, invitations) {
   const created = [];
   const errors = [];
   
-  // Simula emails duplicados
+  
   const existingEmails = ['duplicate@test.com', 'existing@test.com'];
   
   invitations.forEach((invitation, index) => {
@@ -57,7 +54,7 @@ async function createInvitations(eventId, invitations) {
         invitedName: invitation.name,
         status: 'PENDING',
         invitationCode: Math.random().toString(36).substring(2, 10).toUpperCase(),
-        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 días
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), 
         createdAt: new Date().toISOString(),
       });
     }
@@ -77,19 +74,19 @@ describe('Sistema de Invitaciones - Integración', () => {
   describe('Procesamiento de texto a invitaciones', () => {
     it('debería procesar diferentes formatos de entrada', () => {
       const textInputs = [
-        // Formato email, nombre
+        
         'user1@test.com, Juan Pérez',
-        // Solo email
+        
         'user2@test.com',
-        // Email con espacios
+        
         '  user3@test.com  , María García  ',
-        // Formato con punto y coma
+        
         'user4@test.com; Carlos López',
-        // Línea vacía (debería ignorarse)
+        
         '',
-        // Texto inválido (debería ignorarse)
+        
         'esto no es un email',
-        // Email en formato angle brackets
+        
         'Ana Silva <user5@test.com>',
       ];
 
@@ -183,18 +180,18 @@ describe('Sistema de Invitaciones - Integración', () => {
         ana.silva@empresa.com, Ana Silva
       `;
 
-      // Paso 1: Procesar texto
+      
       const invitations = processInvitationText(textInput);
       expect(invitations).toHaveLength(4);
 
-      // Paso 2: Crear invitaciones
+      
       const result = await createInvitations('event-1', invitations);
 
-      // Paso 3: Verificar resultados
+      
       expect(result.created).toHaveLength(4);
       expect(result.errors).toHaveLength(0);
 
-      // Simular notificación de éxito
+      
       mockToast.success(`${result.created.length} invitaciones creadas exitosamente`);
       expect(mockToast.success).toHaveBeenCalledWith('4 invitaciones creadas exitosamente');
     });
@@ -208,18 +205,18 @@ describe('Sistema de Invitaciones - Integración', () => {
         final@empresa.com, Usuario Final
       `;
 
-      // Paso 1: Procesar texto
+      
       const invitations = processInvitationText(textInput);
       expect(invitations).toHaveLength(5);
 
-      // Paso 2: Crear invitaciones
+      
       const result = await createInvitations('event-1', invitations);
 
-      // Paso 3: Verificar resultados
+      
       expect(result.created).toHaveLength(3);
       expect(result.errors).toHaveLength(2);
 
-      // Simular notificaciones apropiadas
+      
       if (result.created.length > 0) {
         mockToast.success(`${result.created.length} invitaciones creadas exitosamente`);
       }
@@ -238,11 +235,11 @@ describe('Sistema de Invitaciones - Integración', () => {
         ni esto tampoco
       `;
 
-      // Paso 1: Procesar texto
+      
       const invitations = processInvitationText(textInput);
       expect(invitations).toHaveLength(0);
 
-      // Simular validación en frontend
+      
       if (invitations.length === 0) {
         mockToast.error('No se encontraron emails válidos');
       }
@@ -288,7 +285,7 @@ describe('Sistema de Invitaciones - Integración', () => {
 
       expect(csvContent).toContain('user1@test.com,User 1,PENDING,ABC123');
       expect(csvContent).toContain('user2@test.com,User 2,SENT,XYZ789');
-      expect(csvContent.split('\n')).toHaveLength(3); // Header + 2 rows
+      expect(csvContent.split('\n')).toHaveLength(3); 
     });
   });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SeatReservationManager } from '@/lib/seat-reservation-manager'
 
-// POST - Crear reserva de asientos
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -17,10 +17,10 @@ export async function POST(
       )
     }
 
-    // Limpiar reservas expiradas
+    
     await SeatReservationManager.cleanupExpiredReservations()
 
-    // Crear reserva
+    
     const sessionId = await SeatReservationManager.createReservation(
       id,
       seatIds
@@ -39,7 +39,7 @@ export async function POST(
   }
 }
 
-// DELETE - Liberar reserva
+
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

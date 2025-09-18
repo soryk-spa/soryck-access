@@ -16,7 +16,7 @@ type ContextShape = {
 
 const BreadcrumbsContext = createContext<ContextShape>({
   items: [],
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  
   setItems: () => {},
 });
 
@@ -34,21 +34,18 @@ export function useBreadcrumbs() {
   return useContext(BreadcrumbsContext);
 }
 
-/**
- * Client helper for server pages to set breadcrumbs declaratively.
- * Render this in a server component and it will update the layout via context.
- */
+
 export function BreadcrumbsSetter({ items }: { items: Crumb[] }) {
   const { setItems } = useBreadcrumbs();
 
   useEffect(() => {
     setItems(items || []);
     return () => setItems([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [JSON.stringify(items)]);
 
   return null;
 }
 
-/** Expose the visual Breadcrumbs component for use in places that need direct rendering */
+
 export { Breadcrumbs };

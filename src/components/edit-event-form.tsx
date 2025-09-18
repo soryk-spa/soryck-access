@@ -421,7 +421,7 @@ export default function EditEventForm({
                       </div>
                     </div>
 
-                    {/* Price Tier Manager */}
+                    {}
                     <div className="mt-4 border-t pt-4">
                       <Label className="text-sm font-medium flex items-center gap-2 mb-3">
                         <Clock className="h-4 w-4" />

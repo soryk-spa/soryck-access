@@ -1,11 +1,8 @@
-/**
- * Tests para validaciones de formularios críticas
- * @file src/lib/validations.ts  
- */
+
 
 import { z } from 'zod';
 
-// Esquemas de validación críticos del proyecto
+
 const eventValidationSchema = z.object({
   title: z.string().min(1, 'El título es requerido').max(100, 'El título es demasiado largo'),
   description: z.string().optional().nullable(),
@@ -63,7 +60,7 @@ describe('Validaciones de Formularios Críticas', () => {
       title: 'Evento de Prueba',
       description: 'Descripción del evento',
       location: 'Santiago, Chile',
-      startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Mañana
+      startDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), 
       categoryId: 'cat123',
       imageUrl: 'https://example.com/image.jpg',
     };
@@ -254,16 +251,16 @@ describe('Validaciones de Formularios Críticas', () => {
       }
     });
 
-    // it('debería rechazar tipo de descuento inválido', () => {
-    //   const invalidData = { ...validPromoData, type: 'INVALID_TYPE' as any };
-    //   const result = promoCodeValidationSchema.safeParse(invalidData);
+    
+    
+    
       
-    //   expect(result.success).toBe(false);
-    //   if (!result.success) {
-    //     expect(result.error.issues.length).toBeGreaterThan(0);
-    //     expect(result.error.issues[0].code).toBe('invalid_enum_value');
-    //   }
-    // });
+    
+    
+    
+    
+    
+    
 
     it('debería validar ambos tipos de descuento', () => {
       const percentagePromo = { ...validPromoData, type: 'PERCENTAGE' as const };

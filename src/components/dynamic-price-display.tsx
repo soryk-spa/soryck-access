@@ -24,12 +24,12 @@ export default function DynamicPriceDisplay({
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-    }, 30000); // Update every 30 seconds
+    }, 30000); 
 
     return () => clearInterval(timer);
   }, []);
 
-  // If no price tiers, show base price
+  
   if (!ticketType.priceTiers || ticketType.priceTiers.length === 0) {
     return (
       <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export default function DynamicPriceDisplay({
     );
   }
 
-  // Convert the ticketType to match pricing library expectations
+  
   const ticketTypeForPricing: TicketTypeWithPricing = {
     id: ticketType.id,
     name: ticketType.name,
@@ -53,7 +53,7 @@ export default function DynamicPriceDisplay({
       currency: tier.currency || 'CLP',
       startDate: new Date(tier.startDate),
       endDate: tier.endDate ? new Date(tier.endDate) : null,
-      isActive: true // Assuming active if it exists
+      isActive: true 
     }))
   };
 

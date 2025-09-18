@@ -28,7 +28,7 @@ export function TicketTypePriceDisplay({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [timeUntilChange, setTimeUntilChange] = useState<string>("");
 
-  // Actualizar tiempo cada segundo
+  
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -37,7 +37,7 @@ export function TicketTypePriceDisplay({
     return () => clearInterval(timer);
   }, []);
 
-  // Convertir el ticketType a formato TicketTypeWithPricing (memorizado)
+  
   const ticketTypeWithPricing: TicketTypeWithPricing = useMemo(() => ({
     id: ticketType.id,
     name: ticketType.name,
@@ -50,7 +50,7 @@ export function TicketTypePriceDisplay({
     })),
   }), [ticketType]);
 
-  // Calcular tiempo hasta próximo cambio
+  
   useEffect(() => {
     if (showNextPriceChange && ticketTypeWithPricing.priceTiers && ticketTypeWithPricing.priceTiers.length > 0) {
       const nextChangeInfo = getNextPriceChange(ticketTypeWithPricing, currentTime);
@@ -63,7 +63,7 @@ export function TicketTypePriceDisplay({
     }
   }, [currentTime, ticketTypeWithPricing, showNextPriceChange]);
 
-  // Si no hay price tiers, mostrar precio base
+  
   if (!ticketType.priceTiers || ticketType.priceTiers.length === 0) {
     return (
       <div className={className}>
@@ -81,13 +81,13 @@ export function TicketTypePriceDisplay({
   const currentPriceInfo = getCurrentPrice(ticketTypeWithPricing, currentTime);
   const nextPriceChangeInfo = getNextPriceChange(ticketTypeWithPricing, currentTime);
   
-  // Determinar si estamos en early bird
+  
   const isEarlyBird = currentPriceInfo.price < ticketType.price;
   
   return (
     <div className={className}>
       <div className="space-y-2">
-        {/* Precio actual */}
+        {}
         <p className="font-semibold">
           {currentPriceInfo.price === 0 ? (
             <span className="text-green-600">Gratis</span>
@@ -96,7 +96,7 @@ export function TicketTypePriceDisplay({
           )}
         </p>
 
-        {/* Badge de Early Bird */}
+        {}
         {showEarlyBirdBadge && isEarlyBird && (
           <Badge 
             variant="secondary" 
@@ -106,14 +106,14 @@ export function TicketTypePriceDisplay({
           </Badge>
         )}
 
-        {/* Precio original si hay descuento */}
+        {}
         {isEarlyBird && (
           <p className="text-sm text-gray-500 line-through">
             Precio regular: {formatCurrency(ticketType.price)}
           </p>
         )}
 
-        {/* Información del próximo cambio de precio */}
+        {}
         {showNextPriceChange && nextPriceChangeInfo?.nextTier && timeUntilChange && (
           <div className="flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
             <Clock className="h-3 w-3" />

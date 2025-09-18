@@ -52,7 +52,7 @@ export default function SeatMapViewer({
 
     setSelectedSeats(newSelectedSeats)
 
-    // Preparar información detallada de asientos seleccionados
+    
     const detailedSeats = newSelectedSeats.map(seatId => {
       const seatSection = sections.find(s => s.seats?.some(seat => seat.id === seatId))
       const seatInfo = seatSection?.seats?.find(s => s.id === seatId)
@@ -110,7 +110,7 @@ export default function SeatMapViewer({
 
   return (
     <div className="space-y-6">
-      {/* Leyenda */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle>Seleccionar Asientos</CardTitle>
@@ -145,7 +145,7 @@ export default function SeatMapViewer({
         </CardContent>
       </Card>
 
-      {/* Mapa de asientos por sección */}
+      {}
       {sectionsWithSeats.map(section => {
         const rowGroups = groupSeatsByRow(section.seats || [])
         const sortedRows = Object.keys(rowGroups).sort()

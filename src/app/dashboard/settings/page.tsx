@@ -2,7 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import { SettingsClient } from "@/components/settings-client";
 import { ROLE_LABELS } from "@/lib/roles";
 
-// Force dynamic rendering for this page
+
 export const dynamic = 'force-dynamic'
 
 export default async function SettingsPage() {
