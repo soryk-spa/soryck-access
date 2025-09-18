@@ -84,9 +84,18 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   
   if (isProtectedRoute(req)) {
     try {
-      await auth.protect();
-    } catch {
-      console.warn(`auth.protect() failed for path=${req.nextUrl.pathname} ip=${ip}`)
+      const authResult = await auth();
+      const userId = authResult.userId;
+      console.log(`[middleware] auth check for path=${req.nextUrl.pathname} userId=${userId || 'none'} ip=${ip}`);
+      
+      if (!userId) {
+        console.warn(`[middleware] no userId found for path=${req.nextUrl.pathname} ip=${ip} - redirecting to sign-in`);
+        const signInUrl = new URL("/sign-in", req.url);
+        signInUrl.searchParams.set("redirectTo", req.url);
+        return NextResponse.redirect(signInUrl);
+      }
+    } catch (error) {
+      console.warn(`[middleware] auth.protect() failed for path=${req.nextUrl.pathname} ip=${ip} error=${error}`);
       const signInUrl = new URL("/sign-in", req.url);
       signInUrl.searchParams.set("redirectTo", req.url);
       return NextResponse.redirect(signInUrl);
