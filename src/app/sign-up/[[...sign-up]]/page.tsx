@@ -1,6 +1,8 @@
 import { SignUp } from '@clerk/nextjs'
 
 export default function Page() {
+  console.log('[signup-page] Sign-up page accessed at:', new Date().toISOString());
+  
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md">
@@ -21,6 +23,8 @@ export default function Page() {
               footerActionLink: "text-primary hover:text-primary/90"
             }
           }}
+          afterSignUpUrl="/dashboard"
+          redirectUrl="/dashboard"
         />
       </div>
     </div>
