@@ -52,13 +52,15 @@ export default async function EditPromoCodePage({
   });
 
   
+  const { priceAfter, ...promoCodeWithoutPriceAfter } = promoCode;
   const serializedPromoCode = {
-    ...promoCode,
+    ...promoCodeWithoutPriceAfter,
     description: promoCode.description ?? "",
     usageLimit: promoCode.usageLimit ?? undefined,
     usageLimitPerUser: promoCode.usageLimitPerUser ?? undefined,
     validFrom: promoCode.validFrom.toISOString().slice(0, 16),
     validUntil: promoCode.validUntil?.toISOString().slice(0, 16) || "",
+    priceAfter: priceAfter ?? undefined,
     eventId: promoCode.eventId || "all",
     createdAt: promoCode.createdAt.toISOString(),
     updatedAt: promoCode.updatedAt.toISOString(),
