@@ -7,8 +7,8 @@ interface SeatData {
   id: string
   row: string
   number: string
-  x: number
-  y: number
+  x?: number // Posición visual X
+  y?: number // Posición visual Y
   price?: number
   status?: string
   isAccessible?: boolean
@@ -18,11 +18,11 @@ interface SectionData {
   id: string
   name: string
   color: string
-  x: number
-  y: number
-  width: number
-  height: number
-  rotation: number
+  x?: number // Posición visual X
+  y?: number // Posición visual Y
+  width?: number // Ancho visual
+  height?: number // Alto visual
+  rotation?: number // Rotación visual
   basePrice?: number
   seats?: SeatData[]
 }
@@ -73,6 +73,12 @@ export async function GET(
       rowCount: section.rowCount,
       seatsPerRow: section.seatsPerRow,
       hasSeats: section.hasSeats,
+      // Incluir coordenadas visuales del editor
+      x: section.x,
+      y: section.y,
+      width: section.width,
+      height: section.height,
+      rotation: section.rotation,
       seats: section.seats.map(seat => ({
         id: seat.id,
         row: seat.row,
@@ -80,7 +86,10 @@ export async function GET(
         displayName: seat.displayName,
         price: seat.price,
         status: seat.reservations.length > 0 ? 'RESERVED' : seat.status,
-        isAccessible: seat.isAccessible
+        isAccessible: seat.isAccessible,
+        // Incluir posición visual del asiento
+        x: seat.x,
+        y: seat.y,
       }))
     }))
 
@@ -145,6 +154,12 @@ export async function POST(
             color: section.color,
             basePrice: section.basePrice,
             seatCount: section.seats?.length || 0,
+            // Guardar coordenadas visuales del editor
+            x: section.x,
+            y: section.y,
+            width: section.width,
+            height: section.height,
+            rotation: section.rotation ?? 0,
             eventId
           }
         })
@@ -159,6 +174,9 @@ export async function POST(
               price: seat.price,
               status: (seat.status as SeatStatus) || SeatStatus.AVAILABLE,
               isAccessible: seat.isAccessible || false,
+              // Guardar posición visual del asiento
+              x: seat.x,
+              y: seat.y,
               sectionId: createdSection.id
             }))
           })

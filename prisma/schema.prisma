@@ -532,6 +532,12 @@ model Section {
   seatsPerRow Int     @default(1) // Asientos por fila (para generar grilla)
   hasSeats   Boolean  @default(true) // Si tiene asientos numerados o es general
   description String? // Descripción adicional de la sección
+  // Campos para el editor visual
+  x          Float?   // Posición X en el canvas del editor
+  y          Float?   // Posición Y en el canvas del editor
+  width      Float?   // Ancho en el canvas del editor
+  height     Float?   // Alto en el canvas del editor
+  rotation   Float    @default(0) // Rotación en grados
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   eventId    String
@@ -550,6 +556,9 @@ model EventSeat {
   price        Float?     // Precio específico del asiento (opcional)
   status       SeatStatus @default(AVAILABLE)
   isAccessible Boolean    @default(false) // Para asientos de accesibilidad
+  // Campos para posición visual en el editor
+  x            Float?     // Posición X relativa a la sección
+  y            Float?     // Posición Y relativa a la sección
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   sectionId    String
