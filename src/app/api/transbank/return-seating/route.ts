@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { webpayPlus } from '@/lib/transbank'
 import { prisma } from '@/lib/prisma'
 import { SeatReservationManager } from '@/lib/seat-reservation-manager'
+import { generateTicketQR } from '@/lib/qr'
+import { sendTicketEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 import { randomUUID } from 'crypto'
 
 interface TransbankCommitResponse {
@@ -15,17 +18,21 @@ interface TransbankCommitResponse {
 
 async function handleTransactionCommit(token: string | null) {
   if (!token) {
-    console.error('[SEATING-RETURN] No se recibió token en la URL de retorno')
+    logger.error('Seating payment return: No token received', undefined, { service: 'seating' })
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=no-token`
     )
   }
 
-  console.log(`[SEATING-RETURN] Confirmando transacción con token: ${token}`)
+  logger.info('Seating payment return: Committing transaction', { token: token.substring(0, 10) + '...', service: 'seating' })
 
   try {
     const response = await webpayPlus.commit(token)
-    console.log('[SEATING-RETURN] Respuesta de Transbank:', response)
+    logger.debug('Seating payment return: Transbank response received', { 
+      status: response.status, 
+      responseCode: response.response_code,
+      service: 'seating'
+    })
 
     // Buscar el pago
     const payment = await prisma.payment.findFirst({
@@ -41,7 +48,7 @@ async function handleTransactionCommit(token: string | null) {
     })
 
     if (!payment) {
-      console.error(`[SEATING-RETURN] No se encontró el pago para token: ${token}`)
+      logger.error('Seating payment return: Payment not found', undefined, { token: token.substring(0, 10) + '...', service: 'seating' })
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=payment-not-found`
       )
@@ -62,7 +69,7 @@ async function handleTransactionCommit(token: string | null) {
       )
     }
   } catch (error) {
-    console.error('[SEATING-RETURN] Error al confirmar transacción:', error)
+    logger.error('Seating payment return: Transaction commit failed', error as Error, { service: 'seating' })
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=confirmation-error`
     )
@@ -73,26 +80,34 @@ async function processSuccessfulSeatingPayment(
   payment: { id: string; order: { id: string; eventId: string; userId: string; paymentIntentId: string | null } },
   transbankResponse: TransbankCommitResponse
 ) {
-  console.log('[SEATING-RETURN] Procesando pago exitoso de asientos...')
+  logger.info('Processing successful seating payment', { orderId: payment.order.id, service: 'seating' })
 
   const { order } = payment
 
   // Extraer metadata de paymentIntentId
   // Formato: "seating:sessionId:seatId1,seatId2,seatId3"
   if (!order.paymentIntentId || !order.paymentIntentId.startsWith('seating:')) {
-    console.error('[SEATING-RETURN] Metadata de asientos no encontrada en paymentIntentId')
+    logger.error('Seating metadata not found in paymentIntentId', undefined, { 
+      orderId: order.id, 
+      paymentIntentId: order.paymentIntentId,
+      service: 'seating' 
+    })
     throw new Error('Metadata de asientos no válida')
   }
 
   const [, sessionId, seatIdsStr] = order.paymentIntentId.split(':')
   const seatIds = seatIdsStr.split(',')
 
-  console.log('[SEATING-RETURN] Metadata recuperada:', { sessionId, seatIds })
+  logger.debug('Seating metadata recovered', { sessionId, seatCount: seatIds.length, orderId: order.id, service: 'seating' })
 
   // Verificar que los asientos aún están reservados para esta sesión
   const reservation = await SeatReservationManager.getSessionReservations(sessionId)
   if (!reservation) {
-    console.warn('[SEATING-RETURN] Reserva expirada, pero el pago fue exitoso. Continuando...')
+    logger.warn('Seating reservation expired but payment succeeded', { 
+      sessionId, 
+      orderId: order.id,
+      service: 'seating' 
+    })
   }
 
   try {
@@ -103,7 +118,12 @@ async function processSuccessfulSeatingPayment(
     })
 
     if (seats.length !== seatIds.length) {
-      console.error('[SEATING-RETURN] No se encontraron todos los asientos')
+      logger.error('Not all seats found in database', undefined, { 
+        expectedCount: seatIds.length, 
+        foundCount: seats.length,
+        sessionId,
+        service: 'seating'
+      })
       throw new Error('Asientos no encontrados')
     }
 
@@ -149,25 +169,122 @@ async function processSuccessfulSeatingPayment(
       }),
     ])
 
-    console.log('[SEATING-RETURN] Tickets creados y asientos marcados como vendidos')
+    logger.seating.purchaseCompleted(order.id, sessionId, seatIds, { 
+      eventId: order.eventId, 
+      userId: order.userId 
+    })
 
     // Liberar reserva
     await SeatReservationManager.releaseReservation(sessionId)
-    console.log('[SEATING-RETURN] Reserva liberada')
+    logger.seating.reservationReleased(sessionId, 'payment-success', { orderId: order.id })
 
-    // TODO: Enviar email con tickets
-    // await sendSeatingTicketsEmail(order, seats)
+    // Enviar email con tickets
+    await sendSeatingTicketsEmail(order)
+    logger.info('Seating tickets email sent successfully', { 
+      orderId: order.id, 
+      sessionId,
+      service: 'seating' 
+    })
   } catch (error) {
-    console.error('[SEATING-RETURN] Error procesando pago exitoso:', error)
+    logger.seating.purchaseFailed(sessionId, error as Error, { orderId: order.id })
     throw error
   }
+}
+
+async function sendSeatingTicketsEmail(
+  order: { id: string; eventId: string; userId: string }
+) {
+  logger.debug('Preparing seating tickets email', { orderId: order.id, service: 'seating' })
+
+  // Obtener datos del evento y usuario
+  const [event, user, tickets] = await Promise.all([
+    prisma.event.findUnique({
+      where: { id: order.eventId },
+    }),
+    prisma.user.findUnique({
+      where: { id: order.userId },
+    }),
+    prisma.ticket.findMany({
+      where: { orderId: order.id },
+      include: {
+        seat: {
+          include: {
+            section: true,
+          },
+        },
+      },
+    }),
+  ])
+
+  if (!event || !user) {
+    logger.error('Event or user not found for seating email', undefined, { 
+      orderId: order.id, 
+      eventId: order.eventId, 
+      userId: order.userId,
+      service: 'seating'
+    })
+    return
+  }
+
+  // Generar QR codes e imágenes
+  const ticketsWithQR = await Promise.all(
+    tickets.map(async (ticket) => {
+      const qrCodeImage = await generateTicketQR({
+        ticketId: ticket.id,
+        eventId: event.id,
+        userId: user.id,
+        eventTitle: event.title,
+        attendeeName: user.firstName || user.email.split('@')[0],
+        attendeeEmail: user.email,
+        eventDate: event.startDate.toISOString(),
+        eventLocation: event.location,
+        qrCode: ticket.qrCode,
+        timestamp: new Date().toISOString(),
+      })
+      
+      return {
+        qrCode: ticket.qrCode,
+        qrCodeImage,
+        seatInfo: ticket.seat
+          ? {
+              sectionName: ticket.seat.section.name,
+              row: ticket.seat.row,
+              number: ticket.seat.number,
+              sectionColor: ticket.seat.section.color,
+            }
+          : undefined,
+      }
+    })
+  )
+
+  // Enviar email
+  await sendTicketEmail({
+    userEmail: user.email,
+    userName: user.firstName || user.email.split('@')[0],
+    eventTitle: event.title,
+    eventDate: event.startDate.toISOString(),
+    eventLocation: event.location,
+    orderNumber: order.id,
+    tickets: ticketsWithQR,
+  })
+
+  logger.info('Seating tickets email sent successfully', { 
+    orderId: order.id, 
+    recipient: user.email, 
+    ticketCount: ticketsWithQR.length,
+    service: 'seating'
+  })
 }
 
 async function processFailedSeatingPayment(
   payment: { id: string; order: { id: string; paymentIntentId: string | null } },
   transbankResponse: TransbankCommitResponse
 ) {
-  console.log('[SEATING-RETURN] Procesando pago fallido de asientos...')
+  logger.warn('Processing failed seating payment', { 
+    orderId: payment.order.id, 
+    responseCode: transbankResponse.response_code,
+    service: 'seating'
+  })
 
   const { order } = payment
 
@@ -177,7 +294,7 @@ async function processFailedSeatingPayment(
     
     // Liberar reserva ya que el pago falló
     await SeatReservationManager.releaseReservation(sessionId)
-    console.log('[SEATING-RETURN] Reserva liberada por pago fallido')
+    logger.seating.reservationReleased(sessionId, 'payment-failed', { orderId: order.id })
   }
 
   await prisma.$transaction([
@@ -195,16 +312,20 @@ async function processFailedSeatingPayment(
     }),
   ])
 
-  console.log('[SEATING-RETURN] Orden y pago marcados como rechazados')
+  logger.warn('Seating order and payment marked as rejected', { 
+    orderId: order.id, 
+    paymentId: payment.id,
+    service: 'seating'
+  })
 }
 
 export async function GET(request: NextRequest) {
-  console.log('[SEATING-RETURN] GET request recibido')
+  logger.api.request('GET', '/api/transbank/return-seating')
   const { searchParams } = new URL(request.url)
   const token = searchParams.get('token_ws')
 
   if (searchParams.get('TBK_TOKEN')) {
-    console.log('[SEATING-RETURN] Usuario canceló la transacción')
+    logger.warn('User cancelled seating transaction', { service: 'seating' })
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL}/payment/error?reason=transaction-cancelled`
     )
@@ -214,7 +335,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('[SEATING-RETURN] POST request recibido')
+  logger.api.request('POST', '/api/transbank/return-seating')
   const formData = await request.formData()
   const token = formData.get('token_ws') as string
   return await handleTransactionCommit(token)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@clerk/nextjs/server'
 import { SeatStatus } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 interface SeatData {
   id: string
@@ -93,13 +94,16 @@ export async function GET(
       }))
     }))
 
+    const totalSeats = sections.reduce((sum, s) => sum + s.seats.length, 0)
+    logger.seating.layoutLoaded(eventId, sections.length, totalSeats)
+
     return NextResponse.json({
       eventId,
       hasSeatingPlan: event.hasSeatingPlan,
       sections
     })
   } catch (error) {
-    console.error('Error fetching seating plan:', error)
+    logger.error('Error fetching seating plan', error as Error, { service: 'seating' })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -111,8 +115,13 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  let eventId: string = ''
+  let userId: string | null = null
+  
   try {
-    const { userId } = await auth()
+    const authResult = await auth()
+    userId = authResult.userId
+    
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -120,7 +129,8 @@ export async function POST(
       )
     }
 
-    const { id: eventId } = await context.params
+    const params = await context.params
+    eventId = params.id
     const { sections }: { sections: SectionData[] } = await request.json()
 
     
@@ -190,12 +200,19 @@ export async function POST(
       })
     })
 
+    const totalSeats = sections.reduce((sum, s) => sum + (s.seats?.length || 0), 0)
+    logger.seating.layoutSaved(eventId, sections.length, totalSeats, { userId })
+
     return NextResponse.json({
       success: true,
       message: 'Seating plan saved successfully'
     })
   } catch (error) {
-    console.error('Error saving seating plan:', error)
+    logger.error('Error saving seating plan', error as Error, { 
+      eventId, 
+      userId: userId || undefined, 
+      service: 'seating' 
+    })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

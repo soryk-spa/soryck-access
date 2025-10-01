@@ -5,7 +5,13 @@ interface Ticket {
   qrCode: string;
   qrCodeImage: string; 
   qrCodeUrl?: string; 
-  backupCode?: string; 
+  backupCode?: string;
+  seatInfo?: {
+    sectionName: string;
+    row: string;
+    number: string;
+    sectionColor?: string;
+  };
 }
 
 interface TicketEmailProps {
@@ -201,6 +207,38 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           >
                             <strong>📍 Lugar:</strong> {eventLocation}
                           </p>
+                          {ticket.seatInfo && (
+                            <>
+                              <hr style={{ 
+                                border: "none", 
+                                borderTop: "1px solid #dee2e6", 
+                                margin: "12px 0" 
+                              }} />
+                              <div style={{
+                                backgroundColor: ticket.seatInfo.sectionColor || "#e7f3ff",
+                                padding: "12px",
+                                borderRadius: "6px",
+                                marginTop: "8px"
+                              }}>
+                                <p style={{
+                                  margin: "0",
+                                  color: "#0056b3",
+                                  fontSize: "15px",
+                                  fontWeight: "bold"
+                                }}>
+                                  🪑 Información de Asiento
+                                </p>
+                                <p style={{
+                                  margin: "8px 0 0 0",
+                                  color: "#333",
+                                  fontSize: "14px"
+                                }}>
+                                  <strong>Sección:</strong> {ticket.seatInfo.sectionName}<br />
+                                  <strong>Fila:</strong> {ticket.seatInfo.row} | <strong>Asiento:</strong> {ticket.seatInfo.number}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         {}

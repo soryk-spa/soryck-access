@@ -55,7 +55,16 @@ export async function sendTicketEmail({
   eventDate: string;
   eventLocation: string;
   orderNumber: string;
-  tickets: { qrCode: string; qrCodeImage: string }[];
+  tickets: { 
+    qrCode: string; 
+    qrCodeImage: string;
+    seatInfo?: {
+      sectionName: string;
+      row: string;
+      number: string;
+      sectionColor?: string;
+    };
+  }[];
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
     logger.warn("Envío de ticket por email omitido por falta de configuración de Resend.");

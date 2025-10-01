@@ -204,6 +204,97 @@ class Logger {
       });
     }
   };
+
+  
+  seating = {
+    reservationCreated: (sessionId: string, seatIds: string[], eventId: string, context?: LogContext) => {
+      this.info(`Seating reservation created`, {
+        sessionId,
+        seatCount: seatIds.length,
+        seatIds: seatIds.join(','),
+        eventId,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    reservationReleased: (sessionId: string, reason: 'payment-success' | 'payment-failed' | 'expired' | 'manual', context?: LogContext) => {
+      this.info(`Seating reservation released`, {
+        sessionId,
+        reason,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    reservationExpired: (sessionId: string, seatIds: string[], context?: LogContext) => {
+      this.warn(`Seating reservation expired`, {
+        sessionId,
+        seatCount: seatIds.length,
+        seatIds: seatIds.join(','),
+        service: 'seating',
+        ...context
+      });
+    },
+
+    purchaseStarted: (sessionId: string, seatIds: string[], amount: number, context?: LogContext) => {
+      this.info(`Seating purchase started`, {
+        sessionId,
+        seatCount: seatIds.length,
+        amount,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    purchaseCompleted: (orderId: string, sessionId: string, seatIds: string[], context?: LogContext) => {
+      this.info(`Seating purchase completed`, {
+        orderId,
+        sessionId,
+        seatCount: seatIds.length,
+        seatIds: seatIds.join(','),
+        service: 'seating',
+        ...context
+      });
+    },
+
+    purchaseFailed: (sessionId: string, error: Error, context?: LogContext) => {
+      this.error(`Seating purchase failed`, error, {
+        sessionId,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    layoutSaved: (eventId: string, sectionCount: number, seatCount: number, context?: LogContext) => {
+      this.info(`Seating layout saved`, {
+        eventId,
+        sectionCount,
+        seatCount,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    layoutLoaded: (eventId: string, sectionCount: number, seatCount: number, context?: LogContext) => {
+      this.debug(`Seating layout loaded`, {
+        eventId,
+        sectionCount,
+        seatCount,
+        service: 'seating',
+        ...context
+      });
+    },
+
+    conflictDetected: (seatIds: string[], sessionId: string, context?: LogContext) => {
+      this.warn(`Seating conflict detected`, {
+        sessionId,
+        conflictedSeats: seatIds.join(','),
+        service: 'seating',
+        ...context
+      });
+    }
+  };
 }
 
 export const logger = new Logger();
