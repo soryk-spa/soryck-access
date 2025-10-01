@@ -73,11 +73,26 @@ export default function OrganizerProfileForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building className="h-5 w-5" />
+    <div className="space-y-8">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              🏢 Perfil de Organizador
+            </h1>
+            <p className="text-blue-100 mt-2">
+              Configura la información pública de tu perfil como organizador de eventos
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
             Información del Organizador
           </CardTitle>
         </CardHeader>
@@ -163,6 +178,7 @@ export default function OrganizerProfileForm({
           </Button>
         </CardContent>
       </Card>
-    </form>
+      </form>
+    </div>
   );
 }

@@ -40,17 +40,33 @@ export default async function VenuesPage() {
   });
 
   return (
-    <div className="space-y-6">
-      {}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestión de Venues</h1>
-          <p className="text-muted-foreground mt-1">
-            Administra tus espacios y configuraciones de asientos
-          </p>
+    <div className="space-y-8">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              🏟️ Gestión de Venues
+            </h1>
+            <p className="text-blue-100 mt-2">
+              Administra tus espacios y configuraciones de asientos
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <Link href="/dashboard/organizer/venues/create">
+              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo Venue
+              </Button>
+            </Link>
+          </div>
         </div>
+      </div>
+      
+      {/* Mobile button */}
+      <div className="md:hidden">
         <Link href="/dashboard/organizer/venues/create">
-          <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+          <Button className="w-full">
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Venue
           </Button>
