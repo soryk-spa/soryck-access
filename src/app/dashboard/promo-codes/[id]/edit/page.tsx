@@ -70,42 +70,40 @@ export default async function EditPromoCodePage({
   const canEdit = promoCode._count.usages === 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="space-y-6">
-        {}
-        <BreadcrumbsSetter
-          items={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "Códigos promocionales", href: "/dashboard/promo-codes" },
-            { label: `Editar: ${promoCode.code}` },
-          ]}
-        />
+    <div className="space-y-6">
+      {}
+      <BreadcrumbsSetter
+        items={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "Códigos promocionales", href: "/dashboard/promo-codes" },
+          { label: `Editar: ${promoCode.code}` },
+        ]}
+      />
 
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard/promo-codes">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Editar Código Promocional</h1>
-            <p className="text-muted-foreground">
-              Código:{" "}
-              <code className="bg-muted px-2 py-1 rounded font-mono">
-                {promoCode.code}
-              </code>
-            </p>
-          </div>
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/dashboard/promo-codes">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Link>
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold">Editar Código Promocional</h1>
+          <p className="text-muted-foreground">
+            Código:{" "}
+            <code className="bg-muted px-2 py-1 rounded font-mono">
+              {promoCode.code}
+            </code>
+          </p>
         </div>
-
-        {}
-        <EditPromoCodeForm
-          promoCode={serializedPromoCode}
-          events={events}
-          canEdit={canEdit}
-        />
       </div>
+
+      {}
+      <EditPromoCodeForm
+        promoCode={serializedPromoCode}
+        events={events}
+        canEdit={canEdit}
+      />
     </div>
   );
 }
