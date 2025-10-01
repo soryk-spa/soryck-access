@@ -35,6 +35,8 @@ import {
   ArrowRight,
   Award,
   Activity,
+  Armchair,
+  Building2,
 } from "lucide-react";
 
 
@@ -99,8 +101,16 @@ const StatCard = ({
 
 
 
+interface Venue {
+  id: string;
+  name: string;
+  address?: string | null;
+  capacity?: number | null;
+}
+
 interface EventFormProps {
   categories: Category[];
+  venues?: Venue[];
   initialData?: InitialEventData;
   mode: "create" | "edit";
 }
@@ -111,6 +121,7 @@ interface EventFormProps {
 
 export default function CreateEventForm({
   categories,
+  venues = [],
   initialData,
   mode = "create",
 }: EventFormProps) {
@@ -355,6 +366,94 @@ export default function CreateEventForm({
                       </div>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+
+              {}
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
+                      <Armchair className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-semibold">Sistema de Asientos</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="hasSeatingPlan" className="text-sm font-medium">
+                        Este evento usa asientos numerados
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Los clientes podrán seleccionar asientos específicos en un mapa interactivo
+                      </p>
+                    </div>
+                    <Switch
+                      id="hasSeatingPlan"
+                      checked={eventForm.formData.hasSeatingPlan}
+                      onCheckedChange={(checked) => eventForm.handleBooleanChange('hasSeatingPlan', checked)}
+                    />
+                  </div>
+
+                  {}
+                  {eventForm.formData.hasSeatingPlan && (
+                    <div className="space-y-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                      <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Importante:</strong> Después de crear el evento, podrás configurar 
+                          el plan de asientos desde la página de gestión del evento.
+                        </AlertDescription>
+                      </Alert>
+
+                      {venues.length > 0 && (
+                        <div>
+                          <Label htmlFor="venueId" className="text-sm font-medium">
+                            Seleccionar venue (opcional)
+                          </Label>
+                          <Select
+                            value={eventForm.formData.venueId || "none"}
+                            onValueChange={(value) => 
+                              eventForm.handleInputChange('venueId', value === "none" ? null : value)
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Selecciona un venue existente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sin venue (crear desde cero)</SelectItem>
+                              {venues.map((venue) => (
+                                <SelectItem key={venue.id} value={venue.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    {venue.name}
+                                    {venue.capacity && (
+                                      <span className="text-xs text-muted-foreground">
+                                        (Cap: {venue.capacity})
+                                      </span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Puedes reutilizar la configuración de un venue existente o crear uno nuevo
+                          </p>
+                        </div>
+                      )}
+
+                      {venues.length === 0 && (
+                        <Alert>
+                          <Building2 className="h-4 w-4" />
+                          <AlertDescription>
+                            No hay venues disponibles. Podrás crear uno nuevo después de crear el evento.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 

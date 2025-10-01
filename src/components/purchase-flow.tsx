@@ -167,7 +167,7 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
   const handleConfirmPurchase = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/events/${event.id}/purchase/confirm`, {
+      const response = await fetch(`/api/events/${event.id}/purchase/create-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,24 +175,37 @@ export default function PurchaseFlow({ event, sections, onClose }: PurchaseFlowP
           buyerInfo,
           seatIds: selectedSeats,
           selectedSeats: selectedSeatsDetails,
-          totalAmount: getTotalAmount()
         })
       })
 
       if (response.ok) {
-        await response.json()
-        alert('¡Compra realizada exitosamente! Recibirás los tickets por email.')
-        onClose()
+        const data = await response.json()
+        
+        // Si es gratis, la compra ya está confirmada
+        if (data.isFree) {
+          alert('¡Compra realizada exitosamente! Recibirás los tickets por email.')
+          onClose()
+          return
+        }
+        
+        // Si tiene que pagar, redirigir a Transbank
+        if (data.paymentUrl) {
+          // Redirigir al usuario a Transbank WebPay
+          window.location.href = data.paymentUrl
+        } else {
+          alert('Error: No se pudo generar la URL de pago')
+        }
       } else {
         const error = await response.json()
         alert(error.error || 'Error al procesar la compra')
+        setIsLoading(false)
       }
     } catch (error) {
       console.error('Error confirming purchase:', error)
       alert('Error al procesar la compra')
-    } finally {
       setIsLoading(false)
     }
+    // No ponemos finally aquí porque si redirige a Transbank, el componente se desmonta
   }
 
   const handleInputChange = (field: keyof BuyerInfo, value: string) => {

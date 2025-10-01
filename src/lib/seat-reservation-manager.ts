@@ -8,7 +8,7 @@ export interface ReservationSession {
 }
 
 export class SeatReservationManager {
-  private static readonly RESERVATION_TIMEOUT = 5 * 60 * 1000 
+  private static readonly RESERVATION_TIMEOUT = 15 * 60 * 1000 
 
   
   static async createReservation(eventId: string, seatIds: string[]): Promise<string> {
