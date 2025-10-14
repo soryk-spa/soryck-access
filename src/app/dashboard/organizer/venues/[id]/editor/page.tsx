@@ -127,9 +127,9 @@ export default function VenueEditorPage() {
 
   return (
     <div className="h-screen flex flex-col">
-      {}
+      {/* Header con layout amplio */}
       <div className="border-b bg-background p-4">
-        <div className="container mx-auto flex items-center justify-between">
+        <div className="max-w-[98%] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
               <Link href="/dashboard/organizer/venues">
@@ -141,7 +141,7 @@ export default function VenueEditorPage() {
                 Configurar Asientos: {venue?.name}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Diseña el layout de asientos para este venue
+                Diseña el layout de asientos para este venue • Guardado manual con Ctrl+S
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function VenueEditorPage() {
         </div>
       </div>
 
-      {}
+      {/* Editor con ancho completo */}
       <div className="flex-1 overflow-hidden">
         <SeatingEditor
           initialSections={layoutData.sections}

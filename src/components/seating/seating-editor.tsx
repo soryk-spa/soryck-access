@@ -1021,30 +1021,23 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     setHistoryIndex(prev => Math.min(prev + 1, 49))
   }, [sections, elements, historyIndex])
 
-  
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  
-  useEffect(() => {
-    
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    
-    saveTimeoutRef.current = setTimeout(() => {
-      console.log("💾 Guardado automático:", { sections: sections.length, elements: elements.length });
-      onSave?.(sections, elements)
-      saveTimeoutRef.current = null
-    }, 3000)
-
-    
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
-    }
-  }, [sections, elements, onSave])
+  // ⚠️ GUARDADO AUTOMÁTICO DESACTIVADO - El usuario guarda manualmente con Ctrl+S
+  // const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // useEffect(() => {
+  //   if (saveTimeoutRef.current) {
+  //     clearTimeout(saveTimeoutRef.current)
+  //   }
+  //   saveTimeoutRef.current = setTimeout(() => {
+  //     console.log("💾 Guardado automático:", { sections: sections.length, elements: elements.length });
+  //     onSave?.(sections, elements)
+  //     saveTimeoutRef.current = null
+  //   }, 3000)
+  //   return () => {
+  //     if (saveTimeoutRef.current) {
+  //       clearTimeout(saveTimeoutRef.current)
+  //     }
+  //   }
+  // }, [sections, elements, onSave])
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
