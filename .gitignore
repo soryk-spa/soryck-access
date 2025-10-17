@@ -48,6 +48,9 @@ next-env.d.ts
 
 # experimental/development files (exclude from main)
 /src/experimental/
+
+# output files (sample PDFs, etc)
+/output/
 /src/playground/
 /src/sandbox/
 *.experimental.*
