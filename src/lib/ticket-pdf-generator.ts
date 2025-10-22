@@ -1,5 +1,7 @@
 import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
+import path from 'path'
+import fs from 'fs'
 
 interface TicketData {
   qrCode: string
@@ -58,25 +60,33 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
         .rect(0, 0, 400, 80)
         .fill('#0053CC')
 
-      // Logo/Icono del evento
-      doc
-        .fontSize(32)
-        .fillColor('#FFFFFF')
-        .text('🎫', 20, 25)
+      // Logo de SorykPass (si existe)
+      try {
+        const logoPath = path.join(process.cwd(), 'public', 'sorykpass_horizontal_white.png')
+        if (fs.existsSync(logoPath)) {
+          doc.image(logoPath, 20, 15, { width: 100 })
+        }
+      } catch {
+        // Si no se puede cargar el logo, mostrar emoji de respaldo
+        doc
+          .fontSize(32)
+          .fillColor('#FFFFFF')
+          .text('🎫', 20, 20)
+      }
 
       // Título del header
       doc
         .fontSize(14)
         .font('Helvetica-Bold')
         .fillColor('#FFFFFF')
-        .text('TU ENTRADA', 70, 30, { width: 310 })
+        .text('TU ENTRADA', 130, 25, { width: 250 })
 
       // Nombre del evento
       doc
         .fontSize(11)
         .font('Helvetica')
         .fillColor('#E0E0E0')
-        .text(ticketData.eventName, 70, 50, { width: 310, ellipsis: true })
+        .text(ticketData.eventName, 130, 48, { width: 250, ellipsis: true })
 
       // === INFORMACIÓN DEL EVENTO ===
       let yPosition = 100
