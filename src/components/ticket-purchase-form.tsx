@@ -53,24 +53,21 @@ interface TicketPurchaseFormProps {
 const TicketTypeCard = ({
   ticketType,
   isSelected,
-  onSelect,
   availability,
 }: {
   ticketType: TicketTypeWithCount;
   isSelected: boolean;
-  onSelect: () => void;
   availability: ReturnType<ReturnType<typeof useTicketAvailability>["getTicketAvailability"]>;
 }) => {
   const isDisabled = availability.available === 0;
 
   return (
     <div
-      className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
+      className={`relative p-4 border rounded-lg transition-all ${
         isSelected
           ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
           : "border-gray-200 hover:border-gray-300"
       } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-      onClick={!isDisabled ? onSelect : undefined}
     >
       <div className="flex items-center space-x-3">
         <RadioGroupItem
@@ -78,7 +75,10 @@ const TicketTypeCard = ({
           id={ticketType.id}
           disabled={isDisabled}
         />
-        <div className="flex-1">
+        <label
+          htmlFor={ticketType.id}
+          className={`flex-1 ${!isDisabled ? "cursor-pointer" : "cursor-not-allowed"}`}
+        >
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium">{ticketType.name}</h3>
@@ -99,7 +99,7 @@ const TicketTypeCard = ({
               </Badge>
             </div>
           </div>
-        </div>
+        </label>
       </div>
     </div>
   );
@@ -295,9 +295,6 @@ export default function TicketPurchaseFormOptimized({
                       key={ticketType.id}
                       ticketType={ticketType}
                       isSelected={ticketPurchase.formData.selectedTicketType === ticketType.id}
-                      onSelect={() =>
-                        ticketPurchase.updateFormData("selectedTicketType", ticketType.id)
-                      }
                       availability={availability.getTicketAvailability()}
                     />
                   ))}
