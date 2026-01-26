@@ -1,14 +1,14 @@
 import { requireOrganizer } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import CreateEventForm from "@/components/create-event-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-
-export const dynamic = 'force-dynamic'
 import {
   Calendar,
   Users,

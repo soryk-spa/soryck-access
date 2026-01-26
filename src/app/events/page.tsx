@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 import { prisma } from "@/lib/prisma";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import PublicEventsList from "@/components/public-events-list";
 import type { Metadata } from "next";
 import { Prisma } from "@prisma/client";

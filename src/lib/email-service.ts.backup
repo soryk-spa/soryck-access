@@ -1,0 +1,520 @@
+import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { render } from "@react-email/render";
+import {
+  OrderConfirmationEmail,
+  EventReminderEmail,
+  NewsletterEmail,
+} from "@/app/api/_emails/order-confirmation-email";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+interface SendOrderConfirmationProps {
+  userId: string;
+  orderId: string;
+  eventTitle: string;
+  eventDate: Date;
+  ticketCount: number;
+  totalPrice: number;
+  downloadUrl: string;
+}
+
+interface SendEventReminderProps {
+  userId: string;
+  eventId: string;
+  eventTitle: string;
+  eventDate: Date;
+  eventTime: string;
+  location: string;
+  ticketCount: number;
+}
+
+interface SendNewsletterProps {
+  recipientEmail: string;
+  title: string;
+  subtitle: string;
+  articles: Array<{
+    title: string;
+    description: string;
+    image: string;
+    url: string;
+  }>;
+  unsubscribeToken: string;
+}
+
+interface EmailTemplate {
+  name: string;
+  subject: string;
+  html: string;
+  preheader?: string;
+}
+
+/**
+ * Enviar email de confirmación de pedido
+ */
+export async function sendOrderConfirmationEmail(
+  props: SendOrderConfirmationProps
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: props.userId },
+      select: { email: true, firstName: true, lastName: true },
+    });
+
+    if (!user?.email) {
+      throw new Error("User email not found");
+    }
+
+    const emailHtml = await render(
+      OrderConfirmationEmail({
+        orderNumber: props.orderId.slice(-8).toUpperCase(),
+        customerName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Cliente",
+        customerEmail: user.email,
+        eventTitle: props.eventTitle,
+        eventDate: props.eventDate.toLocaleDateString("es-CL", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        ticketCount: props.ticketCount,
+        totalPrice: props.totalPrice,
+        downloadUrl: props.downloadUrl,
+      })
+    );
+
+    const response = await resend.emails.send({
+      from: "Pedidos SorykPass <orders@sorykpass.com>",
+      to: user.email,
+      subject: `Confirmación de Compra - Pedido #${props.orderId.slice(-8).toUpperCase()}`,
+      html: emailHtml,
+      replyTo: "support@sorykpass.com",
+      tags: [
+        {
+          name: "category",
+          value: "order_confirmation",
+        },
+        {
+          name: "event",
+          value: props.eventTitle,
+        },
+      ],
+    });
+
+    // Registrar en base de datos
+    await logEmailSent({
+      userId: props.userId,
+      email: user.email,
+      type: "order_confirmation",
+      subject: `Confirmación de Compra - Pedido #${props.orderId.slice(-8).toUpperCase()}`,
+      status: "sent",
+      externalId: response.data?.id || "unknown",
+      metadata: {
+        orderId: props.orderId,
+        eventTitle: props.eventTitle,
+        totalPrice: props.totalPrice,
+      },
+    });
+
+    logger.info("Order confirmation email sent", {
+      userId: props.userId,
+      orderId: props.orderId,
+      email: user.email,
+      messageId: response.data?.id || "unknown",
+    });
+
+    return {
+      success: true,
+      messageId: response.data?.id || "unknown",
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to send order confirmation email", {
+      userId: props.userId,
+      orderId: props.orderId,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Enviar recordatorio de evento (24h antes)
+ */
+export async function sendEventReminderEmail(
+  props: SendEventReminderProps
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: props.userId },
+      select: { email: true, firstName: true, lastName: true },
+    });
+
+    if (!user?.email) {
+      throw new Error("User email not found");
+    }
+
+    const emailHtml = await render(
+      EventReminderEmail({
+        customerName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Cliente",
+        eventTitle: props.eventTitle,
+        eventDate: props.eventDate.toLocaleDateString("es-CL", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        eventTime: props.eventTime,
+        location: props.location,
+        ticketCount: props.ticketCount,
+        eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/events/${props.eventId}`,
+      })
+    );
+
+    const response = await resend.emails.send({
+      from: "Recordatorios SorykPass <reminders@sorykpass.com>",
+      to: user.email,
+      subject: `Recordatorio: ${props.eventTitle} es mañana`,
+      html: emailHtml,
+      replyTo: "support@sorykpass.com",
+      tags: [
+        {
+          name: "category",
+          value: "event_reminder",
+        },
+        {
+          name: "event",
+          value: props.eventTitle,
+        },
+      ],
+    });
+
+    // Registrar en base de datos
+    await logEmailSent({
+      userId: props.userId,
+      email: user.email,
+      type: "event_reminder",
+      subject: `Recordatorio: ${props.eventTitle} es mañana`,
+      status: "sent",
+      externalId: response.data?.id || "unknown",
+      metadata: {
+        eventId: props.eventId,
+        eventTitle: props.eventTitle,
+      },
+    });
+
+    logger.info("Event reminder email sent", {
+      userId: props.userId,
+      eventId: props.eventId,
+      email: user.email,
+      messageId: response.data?.id || "unknown",
+    });
+
+    return {
+      success: true,
+      messageId: response.data?.id || "unknown",
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to send event reminder email", {
+      userId: props.userId,
+      eventId: props.eventId,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Enviar newsletter
+ */
+export async function sendNewsletterEmail(
+  props: SendNewsletterProps
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> {
+  try {
+    const emailHtml = await render(
+      NewsletterEmail({
+        recipientName: props.recipientEmail.split("@")[0],
+        title: props.title,
+        subtitle: props.subtitle,
+        articles: props.articles,
+        unsubscribeUrl: `${process.env.NEXT_PUBLIC_APP_URL}/newsletter/unsubscribe?token=${props.unsubscribeToken}`,
+      })
+    );
+
+    const response = await resend.emails.send({
+      from: "Newsletter SorykPass <newsletter@sorykpass.com>",
+      to: props.recipientEmail,
+      subject: props.title,
+      html: emailHtml,
+      replyTo: "support@sorykpass.com",
+      tags: [
+        {
+          name: "category",
+          value: "newsletter",
+        },
+      ],
+    });
+
+    logger.info("Newsletter email sent", {
+      recipientEmail: props.recipientEmail,
+      messageId: response.data?.id || "unknown",
+    });
+
+    return {
+      success: true,
+      messageId: response.data?.id || "unknown",
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to send newsletter email", {
+      recipientEmail: props.recipientEmail,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Enviar email genérico con template
+ */
+export async function sendTemplateEmail(
+  to: string,
+  template: EmailTemplate
+): Promise<{
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}> {
+  try {
+    const response = await resend.emails.send({
+      from: "SorykPass <noreply@sorykpass.com>",
+      to,
+      subject: template.subject,
+      html: template.html,
+      replyTo: "support@sorykpass.com",
+    });
+
+    logger.info("Template email sent", {
+      to,
+      template: template.name,
+      messageId: response.data?.id || "unknown",
+    });
+
+    return {
+      success: true,
+      messageId: response.data?.id || "unknown",
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error("Failed to send template email", {
+      to,
+      template: template.name,
+      error: errorMessage,
+    });
+
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Registrar envío de email en base de datos
+ */
+async function logEmailSent(
+  data: {
+    userId?: string;
+    email: string;
+    type: string;
+    subject: string;
+    status: "sent" | "failed" | "bounced";
+    externalId?: string;
+    metadata?: Record<string, unknown>;
+  }
+) {
+  try {
+    // Verificar si existe tabla EmailLog
+    // Descomenta cuando agregues el modelo a Prisma
+    /*
+    await prisma.emailLog.create({
+      data: {
+        userId: data.userId,
+        email: data.email,
+        type: data.type,
+        subject: data.subject,
+        status: data.status,
+        externalId: data.externalId,
+        metadata: data.metadata,
+      },
+    });
+    */
+
+    logger.info("Email logged", {
+      email: data.email,
+      type: data.type,
+    });
+  } catch (error) {
+    // Silently fail - logging is not critical
+    logger.debug("Failed to log email", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+/**
+ * Enviar recordatorios de eventos a todos los usuarios que asistirán
+ */
+export async function sendEventRemindersForTomorrow() {
+  try {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const nextDay = new Date(tomorrow);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    // Obtener eventos para mañana
+    const events = await prisma.event.findMany({
+      where: {
+        startDate: {
+          gte: tomorrow,
+          lt: nextDay,
+        },
+        isPublished: true,
+      },
+      select: {
+        id: true,
+        title: true,
+        startDate: true,
+        location: true,
+        tickets: {
+          where: {
+            order: {
+              paymentStatus: "completed",
+            },
+          },
+          select: {
+            order: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    logger.info("Found events for reminders", {
+      count: events.length,
+    });
+
+    let sentCount = 0;
+    let failedCount = 0;
+
+    for (const event of events) {
+      const userIds = [
+        ...new Set(event.tickets.map((t) => t.order.userId)),
+      ];
+
+      for (const userId of userIds) {
+        const result = await sendEventReminderEmail({
+          userId,
+          eventId: event.id,
+          eventTitle: event.title,
+          eventDate: new Date(event.startDate),
+          eventTime: new Date(event.startDate).toLocaleTimeString("es-CL", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          location: event.location || "Por definir",
+          ticketCount: event.tickets.filter(
+            (t) => t.order.userId === userId
+          ).length,
+        });
+
+        if (result.success) {
+          sentCount++;
+        } else {
+          failedCount++;
+        }
+      }
+    }
+
+    logger.info("Event reminders sent", {
+      sent: sentCount,
+      failed: failedCount,
+    });
+
+    return { sentCount, failedCount };
+  } catch (error) {
+    logger.error("Failed to send event reminders", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+}
+
+/**
+ * Obtener estadísticas de emails enviados
+ */
+export async function getEmailStatistics(
+  options: {
+    type?: string;
+    days?: number;
+  } = {}
+): Promise<{
+  total: number;
+  sent: number;
+  failed: number;
+  byType: Record<string, number>;
+}> {
+  try {
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - (options.days || 30));
+
+    // Esta función requiere que tengas un modelo EmailLog en Prisma
+    // Por ahora retornamos estadísticas simuladas
+    return {
+      total: 0,
+      sent: 0,
+      failed: 0,
+      byType: {
+        order_confirmation: 0,
+        event_reminder: 0,
+        newsletter: 0,
+      },
+    };
+  } catch (error) {
+    logger.error("Failed to get email statistics", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
+}

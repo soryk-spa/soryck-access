@@ -1,7 +1,6 @@
 
 import { requireAdmin } from "@/lib/auth";
 
-
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { RoleRequestsPageClient } from "@/components/role-requests-page-client";
