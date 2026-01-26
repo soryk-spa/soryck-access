@@ -638,15 +638,6 @@ export default function EventDetailView({
                         </Badge>
                       </div>
 
-                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
-                        <span className="text-muted-foreground">
-                          Órdenes realizadas
-                        </span>
-                        <span className="font-semibold">
-                          {event._count.orders.toLocaleString()}
-                        </span>
-                      </div>
-
                       <div className="flex justify-between items-center py-2">
                         <span className="text-muted-foreground">Estado</span>
                         <Badge
