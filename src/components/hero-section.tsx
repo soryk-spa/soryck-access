@@ -36,7 +36,7 @@ export function HeroSection({ events }: HeroSectionProps) {
         <div className="absolute inset-0">
           <InfiniteMovingCards
             items={duplicatedItems}
-            direction="right"
+            direction="left"
             speed="slow"
             pauseOnHover={true}
             className="h-full"
