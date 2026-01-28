@@ -22,60 +22,61 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // Email (opcional)
-  RESEND_API_KEY: z.string().optional(),
+  RESEND_API_KEY: z.string().startsWith('re_', 'Resend API key inválida').optional(),
+
+  // Redis (opcional)
+  REDIS_URL: z.string().optional(),
 
   // UploadThing (opcional)
   UPLOADTHING_SECRET: z.string().optional(),
   UPLOADTHING_APP_ID: z.string().optional(),
+  UPLOADTHING_TOKEN: z.string().optional(),
 
-  // Redis (opcional)
-  REDIS_URL: z.string().url().optional(),
-
-  // Roles (opcional)
+  // Admin emails (opcional)
   ADMIN_EMAILS: z.string().optional(),
   ORGANIZER_EMAILS: z.string().optional(),
-
-  // Debug (solo desarrollo)
-  DEBUG_API_KEY: z.string().optional(),
 });
 
-export type Env = z.infer<typeof envSchema>;
+type Env = z.infer<typeof envSchema>;
 
 /**
- * Valida las variables de entorno al inicio
+ * Valida y parsea las variables de entorno
+ * @throws {Error} Si hay variables faltantes o inválidas
  */
-export function validateEnv() {
+export function validateEnv(): Env {
   try {
-    const env = envSchema.parse(process.env);
-    
-    // Validaciones adicionales para producción
-    if (env.NODE_ENV === 'production') {
-      if (env.TRANSBANK_ENVIRONMENT === 'production' && 
-          (!env.TRANSBANK_COMMERCE_CODE || !env.TRANSBANK_API_KEY)) {
-        throw new Error('TRANSBANK_COMMERCE_CODE y TRANSBANK_API_KEY son requeridos en producción');
-      }
-    }
-
-    console.log('✅ Variables de entorno validadas correctamente');
-    return env;
+    return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('❌ Error de validación de variables de entorno:');
-      error.issues.forEach((issue) => {
-        console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
-      });
-    } else {
-      console.error('❌ Error validando variables de entorno:', error);
+      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      
+      console.error('❌ Variables de entorno faltantes o inválidas:');
+      missingVars.forEach(msg => console.error(`  - ${msg}`));
+      console.error('\n📄 Revisa el archivo .env.example para ver las variables requeridas');
+      
+      throw new Error(`Invalid environment variables: ${missingVars.join(', ')}`);
     }
-    
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Variables de entorno inválidas en producción');
-    }
-    
-    console.warn('⚠️  Continuando en modo desarrollo con variables inválidas');
-    return process.env as Env;
+    throw error;
   }
 }
 
-// Exportar variables validadas
+/**
+ * Variables de entorno validadas y tipadas
+ * Solo usar después de llamar validateEnv()
+ */
 export const env = validateEnv();
+
+/**
+ * Verifica si estamos en modo desarrollo
+ */
+export const isDev = env.NODE_ENV === 'development';
+
+/**
+ * Verifica si estamos en modo producción
+ */
+export const isProd = env.NODE_ENV === 'production';
+
+/**
+ * Verifica si estamos en modo test
+ */
+export const isTest = env.NODE_ENV === 'test';
