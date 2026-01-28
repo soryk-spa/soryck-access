@@ -23,7 +23,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public details?: any) {
+  constructor(message: string, public details?: unknown) {
     super(message, 400, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
   }
@@ -57,7 +57,7 @@ function mapErrorToResponse(error: unknown): {
   message: string;
   statusCode: number;
   code?: string;
-  details?: any;
+  details?: unknown;
 } {
   // Errores personalizados
   if (error instanceof AppError) {
@@ -156,7 +156,16 @@ export function handleError(error: unknown): NextResponse {
     timestamp: new Date().toISOString(),
   });
 
-  const response: any = {
+  const response: {
+    error: string;
+    code?: string;
+    timestamp: string;
+    details?: unknown;
+    debug?: {
+      originalError: string;
+      stack?: string;
+    };
+  } = {
     error: message,
     code,
     timestamp: new Date().toISOString(),
@@ -181,7 +190,7 @@ export function handleError(error: unknown): NextResponse {
 /**
  * Wrapper para API handlers con manejo de errores automático
  */
-export function withErrorHandler<T extends any[]>(
+export function withErrorHandler<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {
