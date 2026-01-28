@@ -48,10 +48,10 @@ export function validateEnv(): Env {
     return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`);
+      const missingVars = error.issues.map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`);
       
       console.error('❌ Variables de entorno faltantes o inválidas:');
-      missingVars.forEach(msg => console.error(`  - ${msg}`));
+      missingVars.forEach((msg: string) => console.error(`  - ${msg}`));
       console.error('\n📄 Revisa el archivo .env.example para ver las variables requeridas');
       
       throw new Error(`Invalid environment variables: ${missingVars.join(', ')}`);

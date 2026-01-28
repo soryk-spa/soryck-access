@@ -132,11 +132,15 @@ export class RateLimiter {
     if (this.useRedis) return;
 
     const now = Date.now();
-    for (const [key, record] of memoryStore.entries()) {
+    const keysToDelete: string[] = [];
+    
+    memoryStore.forEach((record, key) => {
       if (record.resetTime <= now) {
-        memoryStore.delete(key);
+        keysToDelete.push(key);
       }
-    }
+    });
+    
+    keysToDelete.forEach(key => memoryStore.delete(key));
   }
 }
 

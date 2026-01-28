@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
-import { ClerkAPIError } from '@clerk/nextjs/errors';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
+
+// Tipo para errores de Clerk
+interface ClerkError extends Error {
+  clerkError?: boolean;
+  status?: number;
+}
 
 /**
  * Tipos de errores personalizados
@@ -69,7 +74,7 @@ function mapErrorToResponse(error: unknown): {
       message: 'Datos inválidos',
       statusCode: 400,
       code: 'VALIDATION_ERROR',
-      details: error.errors.map(err => ({
+      details: error.issues.map((err: ZodIssue) => ({
         field: err.path.join('.'),
         message: err.message,
       })),
@@ -107,10 +112,11 @@ function mapErrorToResponse(error: unknown): {
   }
 
   // Errores de Clerk
-  if (error instanceof ClerkAPIError) {
+  if (error && typeof error === 'object' && 'clerkError' in error) {
+    const clerkError = error as ClerkError;
     return {
       message: 'Error de autenticación',
-      statusCode: 401,
+      statusCode: clerkError.status || 401,
       code: 'AUTH_ERROR',
     };
   }
