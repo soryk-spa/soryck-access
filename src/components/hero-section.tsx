@@ -19,6 +19,7 @@ export function HeroSection({ events }: HeroSectionProps) {
     ? events
         .filter((event) => event.imageUrl)
         .map((event) => ({
+          id: event.id,
           image: event.imageUrl!,
           title: event.title,
         }))
