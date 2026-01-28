@@ -1,7 +1,50 @@
 // Seeder completo para desarrollo
 const { PrismaClient } = require('@prisma/client')
+const readline = require('readline')
 
 const prisma = new PrismaClient()
+
+// 🚨 PROTECCIÓN: Verificar que no estemos en producción
+function checkSafetyBeforeSeeding() {
+  const dbUrl = process.env.DATABASE_URL || ''
+  
+  // Lista de indicadores de producción
+  const productionIndicators = [
+    'neon.tech', // Neon production
+    'amazonaws.com', // AWS RDS
+    'azure.com', // Azure
+    'production',
+    'prod',
+    'vercel'
+  ]
+  
+  // Verificar si algún indicador está en la URL
+  const isProduction = productionIndicators.some(indicator => 
+    dbUrl.toLowerCase().includes(indicator)
+  )
+  
+  if (isProduction) {
+    console.error('\n🚨 ⛔ PELIGRO: Base de datos de PRODUCCIÓN detectada!')
+    console.error('DATABASE_URL contiene indicadores de producción:', dbUrl.substring(0, 50) + '...')
+    console.error('\n❌ El seeder NO SE EJECUTARÁ por seguridad.')
+    console.error('\n💡 Para ejecutar seeders:')
+    console.error('   1. Crea una base de datos local de desarrollo')
+    console.error('   2. Copia .env.development.example a .env')
+    console.error('   3. Actualiza DATABASE_URL con tu DB local')
+    console.error('   4. Ejecuta el seeder nuevamente\n')
+    process.exit(1)
+  }
+  
+  // Verificar que se requiera confirmación explícita
+  if (process.env.ALLOW_SEED !== 'true') {
+    console.error('\n⚠️  Para ejecutar el seeder, confirma con:')
+    console.error('   ALLOW_SEED=true node prisma/seed.js\n')
+    console.error('📖 Lee DATABASE_SAFETY.md para más información\n')
+    process.exit(1)
+  }
+  
+  console.log('✅ Verificaciones de seguridad pasadas\n')
+}
 
 // Datos de prueba
 const testUsers = [
@@ -229,6 +272,9 @@ const testEvents = [
 
 async function seed() {
   try {
+    // 🚨 VERIFICACIÓN DE SEGURIDAD
+    checkSafetyBeforeSeeding()
+    
     console.log('🌱 Iniciando seeder de desarrollo...\n')
 
     // Limpiar datos existentes (solo en desarrollo)
