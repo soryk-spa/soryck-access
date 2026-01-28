@@ -24,13 +24,18 @@ export function HeroSection({ events }: HeroSectionProps) {
         }))
     : [];
 
+  // Si hay solo 1 evento, duplicarlo para que el carousel funcione
+  const duplicatedItems = carouselItems.length === 1 
+    ? [...carouselItems, ...carouselItems, ...carouselItems] 
+    : carouselItems;
+
   return (
     <div className="relative w-full h-[600px] overflow-hidden">
       {hasEvents && carouselItems.length > 0 ? (
         // Carousel con eventos reales
         <div className="absolute inset-0">
           <InfiniteMovingCards
-            items={carouselItems}
+            items={duplicatedItems}
             direction="right"
             speed="slow"
             pauseOnHover={true}
