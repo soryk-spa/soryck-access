@@ -63,33 +63,34 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   response.headers.set("X-XSS-Protection", "1; mode=block");
   
   
+  // TEMPORAL: CSP muy permisiva para debugging del CAPTCHA
   if (process.env.NODE_ENV === "production") {
-    // Strict CSP with specific domains for production
+    // Temporarily very permissive CSP to allow all CAPTCHA providers
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://clerk.sorykpass.com https://*.clerk.dev https://*.clerk.accounts.dev https://js.stripe.com https://checkout.stripe.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com https://hcaptcha.com https://*.hcaptcha.com; " +
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
+      "style-src 'self' 'unsafe-inline' https: data:; " +
       "img-src 'self' data: https: blob:; " +
-      "font-src 'self' https://fonts.gstatic.com data:; " +
-      "connect-src 'self' https://clerk.sorykpass.com https://*.clerk.dev https://*.clerk.accounts.dev https://api.clerk.dev https://api.stripe.com https://checkout.stripe.com https://www.google.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com wss://*.clerk.dev wss://*.clerk.accounts.dev; " +
-      "frame-src 'self' https://clerk.sorykpass.com https://*.clerk.dev https://js.stripe.com https://checkout.stripe.com https://www.google.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com; " +
-      "worker-src 'self' blob:; " +
+      "font-src 'self' https: data:; " +
+      "connect-src 'self' https: wss: ws:; " +
+      "frame-src 'self' https:; " +
+      "worker-src 'self' blob: https:; " +
       "object-src 'none'; " +
       "base-uri 'self';"
     );
   } else if (process.env.NODE_ENV === "development") {
-    // More permissive CSP for development to allow CAPTCHA and debugging
+    // Very permissive CSP for development debugging
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'self'; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.clerk.dev https://*.clerk.accounts.dev https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com https://hcaptcha.com https://*.hcaptcha.com; " +
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
+      "style-src 'self' 'unsafe-inline' https: data:; " +
       "img-src 'self' data: https: blob:; " +
-      "font-src 'self' https://fonts.gstatic.com data:; " +
-      "connect-src 'self' https://*.clerk.dev https://*.clerk.accounts.dev https://api.clerk.dev https://www.google.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com wss://*.clerk.dev wss://*.clerk.accounts.dev; " +
-      "frame-src 'self' https://*.clerk.dev https://www.google.com https://www.recaptcha.net https://hcaptcha.com https://*.hcaptcha.com; " +
-      "worker-src 'self' blob:; " +
+      "font-src 'self' https: data:; " +
+      "connect-src 'self' https: wss: ws:; " +
+      "frame-src 'self' https:; " +
+      "worker-src 'self' blob: https:; " +
       "object-src 'none'; " +
       "base-uri 'self';"
     );
