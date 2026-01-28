@@ -44,11 +44,11 @@ export const InfiniteMovingCards = ({
   const getSpeed = useCallback(() => {
     if (containerRef.current) {
       if (speed === "fast") {
-        containerRef.current.style.setProperty("--animation-duration", "20s");
+        containerRef.current.style.setProperty("--animation-duration", "60s");
       } else if (speed === "normal") {
-        containerRef.current.style.setProperty("--animation-duration", "40s");
+        containerRef.current.style.setProperty("--animation-duration", "100s");
       } else {
-        containerRef.current.style.setProperty("--animation-duration", "80s");
+        containerRef.current.style.setProperty("--animation-duration", "400s");
       }
     }
   }, [speed]);
@@ -92,23 +92,23 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="w-[350px] max-w-full relative rounded-2xl flex-shrink-0 px-8 py-6 md:w-[450px]"
+            className="w-[450px] max-w-full relative rounded-2xl flex-shrink-0 px-4 py-4 md:w-[550px] transition-transform duration-300 hover:scale-105 cursor-pointer"
             style={{
               background:
                 "linear-gradient(180deg, rgba(0,0,0,0.4), rgba(0,0,0,0.8))",
             }}
             key={idx}
           >
-            <div className="relative h-[300px] w-full rounded-lg overflow-hidden">
+            <div className="relative h-[500px] w-full rounded-lg overflow-hidden group">
               <Image
                 src={item.image}
                 alt={item.title}
                 fill
-                className="object-cover"
-                sizes="(max-width: 768px) 350px, 450px"
+                className="object-cover transition-all duration-300 group-hover:brightness-110 group-hover:scale-105"
+                sizes="(max-width: 768px) 450px, 550px"
               />
-              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                <p className="text-white font-semibold text-lg">{item.title}</p>
+              <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent transition-all duration-300 group-hover:from-black/95">
+                <p className="text-white font-bold text-xl">{item.title}</p>
               </div>
             </div>
           </li>

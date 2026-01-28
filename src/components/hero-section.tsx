@@ -1,7 +1,6 @@
 "use client";
 
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 interface HeroSectionProps {
@@ -51,33 +50,8 @@ export function HeroSection({ events }: HeroSectionProps) {
         </>
       )}
 
-      {/* Overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60"></div>
-
-      {/* Contenido central */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center text-white max-w-7xl mx-auto px-4 z-10">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
-            Vive la Experiencia
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 opacity-90 drop-shadow-md">
-            {hasEvents
-              ? "Los mejores eventos te están esperando"
-              : "Descubre eventos increíbles próximamente"}
-          </p>
-          <Button
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
-            onClick={() => {
-              document.getElementById("events-section")?.scrollIntoView({
-                behavior: "smooth",
-              });
-            }}
-          >
-            Explorar Eventos
-          </Button>
-        </div>
-      </div>
+      {/* Overlay gradient - más sutil para mejor visualización del carousel */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50"></div>
     </div>
   );
 }

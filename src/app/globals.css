@@ -410,6 +410,10 @@ body {
   animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
 }
 
+.animate-scroll:hover {
+  animation-play-state: paused;
+}
+
 .scroller {
   max-width: 100vw;
 }
