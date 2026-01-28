@@ -124,9 +124,17 @@ export class CacheService {
   async get<T>(key: string): Promise<T | null> {
     try {
       const cached = await this.redis.get(key);
-      return cached ? JSON.parse(cached) : null;
+      if (!cached) return null;
+      
+      
+      try {
+        return JSON.parse(cached);
+      } catch {
+        
+        return cached as T;
+      }
     } catch (error) {
-  logger.error(`Error getting cache key ${key}`, error as Error);
+      logger.error(`Error getting cache key ${key}`, error as Error);
       return null;
     }
   }

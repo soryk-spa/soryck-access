@@ -1,9 +1,22 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent, getCurrentUser } from '@/lib/auth'
+
+
+export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { CacheInvalidation } from '@/lib/cache-invalidation'
+import { parseChileDatetime } from '@/lib/date-utils'
 
+
+const priceTierEditSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "El nombre es requerido"),
+  price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+  startDate: z.string().transform((str) => parseChileDatetime(str)),
+  endDate: z.string().optional().nullable().transform((str) => str ? parseChileDatetime(str) : null),
+});
 
 const ticketTypeEditSchema = z.object({
   id: z.string().optional(),
@@ -12,6 +25,7 @@ const ticketTypeEditSchema = z.object({
   price: z.number().min(0, 'El precio no puede ser negativo'),
   capacity: z.number().min(1, 'La capacidad debe ser al menos 1'),
   ticketsGenerated: z.number().min(1, 'Debe generar al menos 1 ticket').default(1),
+  priceTiers: z.array(priceTierEditSchema).optional(),
 });
 
 const updateEventSchema = z.object({
@@ -20,7 +34,7 @@ const updateEventSchema = z.object({
   location: z.string().min(1, 'La ubicación es requerida').max(200, 'La ubicación es demasiado larga'),
   startDate: z.string().refine((dateStr) => {
     try {
-      const date = new Date(dateStr);
+      const date = parseChileDatetime(dateStr);
       return !isNaN(date.getTime()) && date > new Date();
     } catch {
       return false;
@@ -37,8 +51,8 @@ const updateEventSchema = z.object({
 }).refine((data) => {
   if (data.endDate) {
     try {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
+      const startDate = parseChileDatetime(data.startDate);
+      const endDate = parseChileDatetime(data.endDate);
       return endDate > startDate;
     } catch {
       return false;
@@ -98,7 +112,8 @@ export async function GET(
               select: {
                 tickets: true
               }
-            }
+            },
+            priceTiers: true
           }
         },
         _count: {
@@ -188,8 +203,8 @@ export async function PUT(
 
     
     
-    const startDate = new Date(eventData.startDate);
-    const endDate = eventData.endDate ? new Date(eventData.endDate) : null;
+    const startDate = parseChileDatetime(eventData.startDate);
+    const endDate = eventData.endDate ? parseChileDatetime(eventData.endDate) : null;
     
     console.log('📅 Fechas procesadas:', {
       startDate: startDate.toISOString(),
@@ -276,9 +291,39 @@ export async function PUT(
                   ...(typeTicketsSold === 0 && { ticketsGenerated: ticketType.ticketsGenerated }),
                 }
               });
+
+              
+              if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
+                console.log(`🎟️ Actualizando ${ticketType.priceTiers.length} price tiers para ticket type ${ticketType.id}`);
+                
+                
+                await tx.priceTier.deleteMany({
+                  where: { ticketTypeId: ticketType.id }
+                });
+
+                
+                for (const priceTier of ticketType.priceTiers) {
+                  console.log(`💰 Creando price tier: ${priceTier.name} - $${priceTier.price}`);
+                  await tx.priceTier.create({
+                    data: {
+                      ticketTypeId: ticketType.id,
+                      name: priceTier.name,
+                      price: priceTier.price,
+                      currency: 'CLP',
+                      startDate: new Date(priceTier.startDate),
+                      endDate: priceTier.endDate ? new Date(priceTier.endDate) : null,
+                      isActive: true,
+                    }
+                  });
+                }
+                console.log(`✅ Price tiers actualizados para ticket type ${ticketType.id}`);
+              } else {
+                console.log(`⚠️ No hay price tiers para actualizar en ticket type ${ticketType.id}`);
+              }
             }
           } else {
-            await tx.ticketType.create({
+            
+            const newTicketType = await tx.ticketType.create({
               data: {
                 eventId: id,
                 name: ticketType.name,
@@ -289,6 +334,26 @@ export async function PUT(
                 currency: 'CLP',
               }
             });
+
+            
+            if (ticketType.priceTiers && ticketType.priceTiers.length > 0) {
+              console.log(`🆕 Creando ${ticketType.priceTiers.length} price tiers para nuevo ticket type ${newTicketType.id}`);
+              for (const priceTier of ticketType.priceTiers) {
+                console.log(`💰 Creando price tier: ${priceTier.name} - $${priceTier.price}`);
+                await tx.priceTier.create({
+                  data: {
+                    ticketTypeId: newTicketType.id,
+                    name: priceTier.name,
+                    price: priceTier.price,
+                    currency: 'CLP',
+                    startDate: new Date(priceTier.startDate),
+                    endDate: priceTier.endDate ? new Date(priceTier.endDate) : null,
+                    isActive: true,
+                  }
+                });
+              }
+              console.log(`✅ Price tiers creados para nuevo ticket type ${newTicketType.id}`);
+            }
           }
         }
 
@@ -328,11 +393,14 @@ export async function PUT(
       include: {
         category: true,
         organizer: true,
-        ticketTypes: { include: { _count: { select: { tickets: true } } } }
+        ticketTypes: { include: { _count: { select: { tickets: true } }, priceTiers: true } }
       }
     });
 
     console.log('✅ Evento actualizado exitosamente');
+
+    
+    await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({
       message: 'Evento actualizado exitosamente',
@@ -377,6 +445,9 @@ export async function DELETE(
     await prisma.event.delete({
       where: { id }
     })
+
+    
+    await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({
       message: 'Evento eliminado exitosamente'

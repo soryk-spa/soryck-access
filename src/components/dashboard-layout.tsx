@@ -4,6 +4,8 @@ import { useState } from "react";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import { SidebarProvider, useSidebar } from "@/components/sidebar-context";
+import { BreadcrumbsProvider, useBreadcrumbs } from "./breadcrumbs-context";
+import Breadcrumbs from "./breadcrumbs";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -20,6 +22,7 @@ function DashboardLayoutContent({
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { collapsed } = useSidebar();
+  const { items } = useBreadcrumbs();
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
@@ -57,7 +60,11 @@ function DashboardLayoutContent({
         <main className={`flex-1 overflow-y-auto transition-all duration-300 ease-in-out pt-16 ${
           collapsed ? 'lg:ml-0' : 'lg:ml-0'
         }`}>
-          <div className="container mx-auto p-4 lg:p-6 max-w-full">
+          <div className="container mx-auto p-4 lg:p-6 max-w-7xl">
+            {}
+            <div className="mb-4">
+              {items && items.length > 0 ? <Breadcrumbs items={items} /> : null}
+            </div>
             {children}
           </div>
         </main>
@@ -69,7 +76,10 @@ function DashboardLayoutContent({
 export function DashboardLayout(props: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <DashboardLayoutContent {...props} />
+      <BreadcrumbsProvider>
+        <DashboardLayoutContent {...props} />
+      </BreadcrumbsProvider>
     </SidebarProvider>
   );
 }
+

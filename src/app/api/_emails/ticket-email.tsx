@@ -1,11 +1,17 @@
-/* eslint-disable @next/next/no-img-element */
+
 import * as React from "react";
 
 interface Ticket {
   qrCode: string;
   qrCodeImage: string; 
   qrCodeUrl?: string; 
-  backupCode?: string; 
+  backupCode?: string;
+  seatInfo?: {
+    sectionName: string;
+    row: string;
+    number: string;
+    sectionColor?: string;
+  };
 }
 
 interface TicketEmailProps {
@@ -15,6 +21,10 @@ interface TicketEmailProps {
   eventLocation: string;
   orderNumber: string;
   tickets: Ticket[];
+  ticketTypeName?: string;
+  freeUntil?: string;
+  afterPrice?: string;
+  attachmentMode?: boolean; // Si es true, los QR están en PDF adjunto
 }
 
 export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
@@ -24,6 +34,10 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
   eventLocation,
   orderNumber,
   tickets,
+  ticketTypeName,
+  freeUntil,
+  afterPrice,
+  attachmentMode = false,
 }) => (
   <html>
     <head>
@@ -97,33 +111,19 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                     <strong>Hola {userName},</strong>
                   </p>
 
-                  <p
-                    style={{
-                      color: "#333",
-                      fontSize: "16px",
-                      lineHeight: "1.6",
-                      margin: "0 0 20px 0",
-                    }}
-                  >
-                    ¡Gracias por tu compra! Aquí están tus tickets para{" "}
-                    <strong>{eventName}</strong>.
-                  </p>
-
                   <div
                     style={{
-                      backgroundColor: "#fff3cd",
-                      border: "1px solid #ffeaa7",
+                      backgroundColor: "#ffffff",
                       borderRadius: "8px",
-                      padding: "16px",
+                      padding: "12px 16px",
                       margin: "20px 0",
-                      color: "#856404",
-                      textAlign: "center",
+                      color: "#333",
+                      textAlign: "left",
+                      fontSize: "15px",
+                      lineHeight: "1.4",
                     }}
                   >
-                    <strong>📱 Importante:</strong> Presenta el código QR en la
-                    entrada del evento.
-                    <br />
-                    Puedes mostrar este email directamente desde tu teléfono.
+                    <strong>Instrucciones de Uso —</strong> ⏰ Gratis hasta: {freeUntil || '—'}. A partir de esa hora, el precio será {afterPrice || '—'}. Llega al evento con este email en tu teléfono; muestra el código QR al personal de entrada; si hay problemas, usa el código de respaldo; ten tu identificación lista para verificar.
                   </div>
 
                   {}
@@ -189,6 +189,17 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           >
                             <strong>🗓️ Fecha:</strong> {eventDate}
                           </p>
+                          {ticketTypeName && (
+                            <p
+                              style={{
+                                margin: "4px 0",
+                                color: "#333",
+                                fontSize: "14px",
+                              }}
+                            >
+                              <strong>🎫 Tipo de ticket:</strong> {ticketTypeName}
+                            </p>
+                          )}
                           <p
                             style={{
                               margin: "4px 0",
@@ -198,6 +209,38 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           >
                             <strong>📍 Lugar:</strong> {eventLocation}
                           </p>
+                          {ticket.seatInfo && (
+                            <>
+                              <hr style={{ 
+                                border: "none", 
+                                borderTop: "1px solid #dee2e6", 
+                                margin: "12px 0" 
+                              }} />
+                              <div style={{
+                                backgroundColor: ticket.seatInfo.sectionColor || "#e7f3ff",
+                                padding: "12px",
+                                borderRadius: "6px",
+                                marginTop: "8px"
+                              }}>
+                                <p style={{
+                                  margin: "0",
+                                  color: "#0056b3",
+                                  fontSize: "15px",
+                                  fontWeight: "bold"
+                                }}>
+                                  🪑 Información de Asiento
+                                </p>
+                                <p style={{
+                                  margin: "8px 0 0 0",
+                                  color: "#333",
+                                  fontSize: "14px"
+                                }}>
+                                  <strong>Sección:</strong> {ticket.seatInfo.sectionName}<br />
+                                  <strong>Fila:</strong> {ticket.seatInfo.row} | <strong>Asiento:</strong> {ticket.seatInfo.number}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         {}
@@ -238,7 +281,48 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                           </div>
 
                           {}
-                          {ticket.qrCodeImage ? (
+                          {attachmentMode ? (
+                            <div style={{ margin: "20px 0", textAlign: "center" }}>
+                              {}
+                              <div
+                                style={{
+                                  marginBottom: "15px",
+                                  padding: "20px",
+                                  backgroundColor: "#e8f5e9",
+                                  borderRadius: "8px",
+                                  fontSize: "16px",
+                                  color: "#2e7d32",
+                                  border: "2px solid #81c784",
+                                }}
+                              >
+                                📎 <strong>Tus tickets están adjuntos en PDF</strong><br />
+                                <div style={{ marginTop: "10px", fontSize: "14px", color: "#558b2f" }}>
+                                  Descarga los archivos PDF adjuntos a este correo.<br />
+                                  Cada PDF contiene un código QR único para acceder al evento.
+                                </div>
+                              </div>
+                              
+                              {}
+                              <div
+                                style={{
+                                  backgroundColor: "#fff3e0",
+                                  padding: "15px",
+                                  borderRadius: "6px",
+                                  fontSize: "13px",
+                                  color: "#ef6c00",
+                                  border: "1px solid #ffcc80",
+                                  textAlign: "left",
+                                }}
+                              >
+                                <strong>📱 Cómo usar tus tickets:</strong>
+                                <ol style={{ margin: "10px 0 0 20px", paddingLeft: "0" }}>
+                                  <li>Descarga los PDFs adjuntos a tu dispositivo</li>
+                                  <li>Guárdalos en tu teléfono o imprímelos</li>
+                                  <li>Presenta el código QR en la entrada del evento</li>
+                                </ol>
+                              </div>
+                            </div>
+                          ) : ticket.qrCodeImage ? (
                             <div style={{ margin: "20px 0", textAlign: "center" }}>
                               {}
                               <div
@@ -267,6 +351,7 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                                   boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                 }}
                               >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={ticket.qrCodeImage}
                                   alt={`Código QR para acceder a ${eventName}`}
@@ -401,6 +486,23 @@ export const TicketEmail: React.FC<Readonly<TicketEmailProps>> = ({
                             >
                               ✅ Instrucciones de Uso
                             </div>
+                            {freeUntil && (
+                              <div
+                                style={{
+                                  backgroundColor: '#fffef6',
+                                  border: '1px solid #fff0b3',
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  color: '#856404'
+                                }}
+                              >
+                                ⏰ <strong>Gratis hasta:</strong> {freeUntil}
+                                {afterPrice && (
+                                  <div style={{ marginTop: '6px' }}>A partir de esa hora, el precio será {afterPrice}</div>
+                                )}
+                              </div>
+                            )}
                             <ul
                               style={{
                                 fontSize: "13px",

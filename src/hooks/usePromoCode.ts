@@ -138,22 +138,27 @@ export function usePromoCodeSharing() {
   const sharePromoCode = (code: PromoCode, formatDiscount: (type: string, value: number) => string) => {
     const shareText = `🎫 ¡Descuento especial! Usa el código ${code.code} y obtén ${formatDiscount(code.type, code.value)} en tu próxima compra.`;
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       navigator.share({
         title: `Código promocional: ${code.name}`,
         text: shareText,
       });
-    } else {
+    } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
       toast.success("Texto de promoción copiado al portapapeles");
     }
   };
 
   const exportPromoCodes = (promoCodes: PromoCode[]) => {
-    
     const csv = generatePromoCodeCSV(promoCodes);
-    downloadCSV(csv, 'codigos-promocionales.csv');
-    toast.success("Códigos promocionales exportados exitosamente");
+    
+    if (typeof document !== 'undefined') {
+      downloadCSV(csv, 'codigos-promocionales.csv');
+      toast.success("Códigos promocionales exportados exitosamente");
+    } else {
+      
+      return csv;
+    }
   };
 
   return {

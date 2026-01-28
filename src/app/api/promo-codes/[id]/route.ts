@@ -1,15 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
+
+
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const updatePromoCodeSchema = z.object({
+  
   name: z.string().min(1, "Nombre requerido").max(100).optional(),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
+  priceAfter: z.number().min(0).optional(),
+  
+  code: z.string().min(3).max(100).optional(),
+  type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
+  value: z.number().min(0).optional(),
+  eventId: z.string().optional(),
+  ticketTypeId: z.string().optional(),
 });
 
 export async function GET(
@@ -57,6 +68,7 @@ export async function GET(
       ...promoCode,
       description: promoCode.description ?? undefined,
       usageLimit: promoCode.usageLimit ?? undefined,
+      priceAfter: promoCode.priceAfter ?? undefined,
       validFrom: promoCode.validFrom.toISOString(),
       validUntil: promoCode.validUntil?.toISOString() || undefined,
       createdAt: promoCode.createdAt.toISOString(),
@@ -108,6 +120,9 @@ export async function PATCH(
         id,
         createdBy: user.id,
       },
+      include: {
+        _count: { select: { usages: true } },
+      },
     });
 
     if (!promoCode) {
@@ -118,18 +133,50 @@ export async function PATCH(
     }
 
     const { validUntil, ...restData } = validation.data;
+
     
+    const usedCount = promoCode._count?.usages ?? 0;
+
+    
+    const protectedFields = ["code", "type", "value", "eventId", "ticketTypeId"];
+
+    if (usedCount > 0) {
+      
+      for (const field of protectedFields) {
+        if (field in restData) {
+          return NextResponse.json(
+            { error: `No se puede modificar '${field}' porque el código ya ha sido usado` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     const updateData: Partial<{
+      code?: string;
       name?: string;
-      description?: string;
+      description?: string | null;
+      type?: "PERCENTAGE" | "FIXED_AMOUNT" | "FREE";
+      value?: number;
       status?: "ACTIVE" | "INACTIVE";
-      usageLimit?: number;
-      usageLimitPerUser?: number;
-      validUntil?: Date;
+      usageLimit?: number | null;
+      usageLimitPerUser?: number | null;
+      validUntil?: Date | null;
+      priceAfter?: number | null;
+      eventId?: string | null;
+      ticketTypeId?: string | null;
     }> = {
       ...restData,
       ...(validUntil && { validUntil: new Date(validUntil) }),
     };
+
+    
+    if (restData.code) {
+      const existing = await prisma.promoCode.findUnique({ where: { code: restData.code } });
+      if (existing && existing.id !== id) {
+        return NextResponse.json({ error: "El código ya existe" }, { status: 400 });
+      }
+    }
 
     const updatedPromoCode = await prisma.promoCode.update({
       where: { id },
@@ -148,6 +195,7 @@ export async function PATCH(
       ...updatedPromoCode,
       description: updatedPromoCode.description ?? undefined,
       usageLimit: updatedPromoCode.usageLimit ?? undefined,
+      priceAfter: updatedPromoCode.priceAfter ?? undefined,
       validFrom: updatedPromoCode.validFrom.toISOString(),
       validUntil: updatedPromoCode.validUntil?.toISOString() || undefined,
       createdAt: updatedPromoCode.createdAt.toISOString(),

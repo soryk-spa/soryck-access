@@ -14,7 +14,7 @@ import {
 
 export default function UpgradePage() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+  <div className="max-w-7xl mx-auto space-y-8">
       {}
       <div className="text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] text-white rounded-full text-sm font-medium">

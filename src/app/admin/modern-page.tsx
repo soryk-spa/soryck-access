@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { AdminDashboardClient } from "@/components/admin-dashboard-client";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function AdminDashboard() {
   const [
     totalUsers,

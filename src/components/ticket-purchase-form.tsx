@@ -25,7 +25,6 @@ import {
   Loader2,
 } from "lucide-react";
 
-
 import type { Event } from "@/types";
 import { formatCurrency, formatDisplayDateTime } from "@/lib/utils";
 import { usePayment } from "@/hooks/use-payment";
@@ -36,6 +35,7 @@ import {
   type TicketTypeWithCount,
   type PromoCodeData,
 } from "@/hooks/useTicketPurchase";
+import { TicketTypePriceDisplay } from "@/components/ticket-type-price-display";
 
 
 
@@ -53,24 +53,21 @@ interface TicketPurchaseFormProps {
 const TicketTypeCard = ({
   ticketType,
   isSelected,
-  onSelect,
   availability,
 }: {
   ticketType: TicketTypeWithCount;
   isSelected: boolean;
-  onSelect: () => void;
   availability: ReturnType<ReturnType<typeof useTicketAvailability>["getTicketAvailability"]>;
 }) => {
   const isDisabled = availability.available === 0;
 
   return (
     <div
-      className={`relative p-4 border rounded-lg cursor-pointer transition-all ${
+      className={`relative p-4 border rounded-lg transition-all ${
         isSelected
           ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
           : "border-gray-200 hover:border-gray-300"
       } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
-      onClick={!isDisabled ? onSelect : undefined}
     >
       <div className="flex items-center space-x-3">
         <RadioGroupItem
@@ -78,7 +75,10 @@ const TicketTypeCard = ({
           id={ticketType.id}
           disabled={isDisabled}
         />
-        <div className="flex-1">
+        <label
+          htmlFor={ticketType.id}
+          className={`flex-1 ${!isDisabled ? "cursor-pointer" : "cursor-not-allowed"}`}
+        >
           <div className="flex justify-between items-start">
             <div>
               <h3 className="font-medium">{ticketType.name}</h3>
@@ -89,19 +89,17 @@ const TicketTypeCard = ({
               )}
             </div>
             <div className="text-right">
-              <p className="font-semibold">
-                {ticketType.price === 0 ? (
-                  <span className="text-green-600">Gratis</span>
-                ) : (
-                  formatCurrency(ticketType.price)
-                )}
-              </p>
+              <TicketTypePriceDisplay 
+                ticketType={ticketType}
+                showEarlyBirdBadge={false}
+                showNextPriceChange={false}
+              />
               <Badge className={`text-xs mt-1 ${availability.badgeColor}`}>
                 {availability.badgeText}
               </Badge>
             </div>
           </div>
-        </div>
+        </label>
       </div>
     </div>
   );
@@ -204,7 +202,7 @@ export default function TicketPurchaseFormOptimized({
 }: TicketPurchaseFormProps) {
   
   const ticketPurchase = useTicketPurchase(event, ticketTypes);
-  const availability = useTicketAvailability(ticketTypes);
+  const availability = useTicketAvailability();
   const { processPayment, loading: paymentLoading, error: paymentError } = usePayment();
 
   
@@ -239,24 +237,8 @@ export default function TicketPurchaseFormOptimized({
     );
   }
 
-  if (ticketPurchase.isEventFull) {
-    return (
-      <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950">
-        <CardContent className="p-6 text-center">
-          <Ticket className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">
-            Evento Agotado
-          </h3>
-          <p className="text-orange-600 dark:text-orange-400">
-            Lo sentimos, todos los tickets para este evento se han agotado.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+  <div className="max-w-7xl mx-auto p-6 space-y-6">
       {}
       <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
         <CardContent className="p-6">
@@ -313,10 +295,7 @@ export default function TicketPurchaseFormOptimized({
                       key={ticketType.id}
                       ticketType={ticketType}
                       isSelected={ticketPurchase.formData.selectedTicketType === ticketType.id}
-                      onSelect={() =>
-                        ticketPurchase.updateFormData("selectedTicketType", ticketType.id)
-                      }
-                      availability={availability.getTicketAvailability(ticketType)}
+                      availability={availability.getTicketAvailability()}
                     />
                   ))}
                 </RadioGroup>
@@ -406,7 +385,12 @@ export default function TicketPurchaseFormOptimized({
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span>{ticketPurchase.selectedType.name}</span>
-                      <span>{formatCurrency(ticketPurchase.selectedType.price)}</span>
+                      <TicketTypePriceDisplay 
+                        ticketType={ticketPurchase.selectedType}
+                        showEarlyBirdBadge={false}
+                        showNextPriceChange={false}
+                        className="text-sm"
+                      />
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Cantidad</span>

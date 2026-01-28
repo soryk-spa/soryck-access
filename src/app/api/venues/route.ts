@@ -24,14 +24,9 @@ export async function GET() {
         createdBy: user.id,
       },
       include: {
-        sections: {
-          include: {
-            venueSeats: true,
-          },
-        },
         _count: {
           select: {
-            sections: true,
+            events: true,
           },
         },
       },
@@ -42,14 +37,10 @@ export async function GET() {
 
     
     const venuesWithStats = venues.map(venue => {
-      const totalSeats = venue.sections.reduce((total, section) => {
-        return total + section.venueSeats.length;
-      }, 0);
-
       return {
         ...venue,
-        totalSeats,
-        totalSections: venue._count.sections,
+        totalSeats: venue.capacity || 0,
+        totalEvents: venue._count.events,
       };
     });
 

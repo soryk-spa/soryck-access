@@ -29,6 +29,7 @@ import {
   HelpCircle,
   Database,
   Armchair,
+  Layout,
 } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -83,6 +84,12 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       href: "/dashboard",
       icon: Armchair,
       description: "Venues, scanners y configuración",
+    },
+    {
+      title: "Editor de Venues",
+      href: "/dashboard/organizer/venues",
+      icon: Layout,
+      description: "Editor visual de venues y distribución de asientos",
     },
     {
       title: "Códigos Promocionales",

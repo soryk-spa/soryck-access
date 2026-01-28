@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HeroSection } from "@/components/hero-section";
 import {
   Select,
   SelectContent,
@@ -111,16 +112,48 @@ const EventCard = ({ event }: { event: Event }) => {
   };
 
   const { day, month, time } = formatDate(event.startDate);
-  const soldOutPercentage = (event._count.tickets / event.capacity) * 100;
+  
+  const getPriceDisplay = () => {
+    
+    if (event.isFree) return { text: "Gratis", isGreen: true };
+    
+    
+    const allPrices: number[] = [];
+    
+    
+    if (event.price && event.price > 0) {
+      allPrices.push(event.price);
+    }
+    
+    
+    if (event.ticketTypes?.length) {
+      const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+      allPrices.push(...ticketPrices);
+    }
+    
+    
+    if (allPrices.length === 0) return { text: "Gratis", isGreen: true };
+    
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    
+    
+    if (minPrice === maxPrice) {
+      return { text: `$${minPrice.toLocaleString()}`, isGreen: false };
+    }
+    
+    
+    return { text: `Desde $${minPrice.toLocaleString()}`, isGreen: false };
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-900 shadow-sm">
-      <div className="relative aspect-[16/9] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
         <Image
           src={event.imageUrl || "/sorykpass_1.jpg"}
           alt={event.title}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-300"
+          className="object-contain group-hover:scale-105 transition-transform duration-300"
         />
         
         <div className="absolute top-3 left-3">
@@ -163,23 +196,11 @@ const EventCard = ({ event }: { event: Event }) => {
           </div>
         </div>
         
-        {soldOutPercentage > 80 && (
-          <div className="flex justify-end">
-            <Badge variant="destructive" className="text-xs">
-              ¡Últimas entradas!
-            </Badge>
-          </div>
-        )}
-        
         <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
           <div className="space-y-1">
-            {event.isFree ? (
-              <div className="text-lg font-bold text-green-600">Gratis</div>
-            ) : (
-              <div className="text-lg font-bold text-gray-900 dark:text-white">
-                ${event.price.toLocaleString()}
-              </div>
-            )}
+            <div className={`text-lg font-bold ${getPriceDisplay().isGreen ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
+              {getPriceDisplay().text}
+            </div>
             <div className="text-xs text-gray-500">por persona</div>
           </div>
           
@@ -212,28 +233,28 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch events
+        
         const eventsResponse = await fetch('/api/events/public');
         if (eventsResponse.ok) {
           const eventsData = await eventsResponse.json();
           const eventsArray = eventsData.events || [];
           setEvents(eventsArray);
           
-          // Extract unique categories
+          
           const uniqueCategories = Array.from(
             new Set(eventsArray.map((event: Event) => event.category.name))
           ) as string[];
           setCategories(uniqueCategories);
         }
 
-        // Fetch regions
+        
         const regionsResponse = await fetch('/api/regions');
         if (regionsResponse.ok) {
           const regionsData = await regionsResponse.json();
           setRegions(regionsData.regions || []);
         }
 
-        // Fetch all comunas
+        
         const comunasResponse = await fetch('/api/comunas');
         if (comunasResponse.ok) {
           const comunasData = await comunasResponse.json();
@@ -249,7 +270,7 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Filter comunas based on selected region
+  
   const filteredComunas = selectedRegion === "all" 
     ? comunas 
     : comunas.filter(comuna => comuna.regionId === selectedRegion);
@@ -279,44 +300,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Banner */}
-      <div className="relative w-full h-[600px] overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&h=600&fit=crop&crop=center"
-          alt="Banner de eventos"
-          fill
-          className="object-cover"
-          priority
-        />
-        
-        {/* Overlay gradiente */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60"></div>
-        
-        {/* Contenido del banner */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white max-w-4xl mx-auto px-4">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
-              Vive la Experiencia
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 drop-shadow-md">
-              Los mejores eventos te están esperando
-            </p>
-            <Button 
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => {
-                document.getElementById('events-section')?.scrollIntoView({ 
-                  behavior: 'smooth' 
-                });
-              }}
-            >
-              Explorar Eventos
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Hero Section con carousel de eventos */}
+      <HeroSection events={events} />
 
-      {/* Header Section */}
+      {/* Sección de eventos */}
       <div id="events-section" className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
@@ -328,7 +315,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Search and Filters */}
+          {}
           <div className="max-w-6xl mx-auto space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -341,7 +328,7 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Filtros de categoría */}
+            {}
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoría</h3>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -359,16 +346,16 @@ export default function HomePage() {
               </Select>
             </div>
 
-            {/* Filtros de ubicación */}
+            {}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Filtro por región */}
+              {}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Región</h3>
                 <Select 
                   value={selectedRegion} 
                   onValueChange={(value) => {
                     setSelectedRegion(value);
-                    setSelectedComuna("all"); // Reset comuna when region changes
+                    setSelectedComuna("all"); 
                   }}
                 >
                   <SelectTrigger className="w-full">
@@ -385,7 +372,7 @@ export default function HomePage() {
                 </Select>
               </div>
 
-              {/* Filtro por comuna */}
+              {}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Comuna</h3>
                 <Select value={selectedComuna} onValueChange={setSelectedComuna}>
@@ -407,7 +394,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Events Grid */}
+      {}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="flex justify-center items-center py-12">
@@ -450,7 +437,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* CTA Section */}
+      {}
       <div className="bg-blue-600 dark:bg-blue-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <h2 className="text-2xl font-bold text-white mb-4">

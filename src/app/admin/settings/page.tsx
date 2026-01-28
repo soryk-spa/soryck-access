@@ -1,4 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
+
+
+export const dynamic = 'force-dynamic'
 import { DashboardPageLayout } from "@/components/dashboard-page-layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

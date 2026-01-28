@@ -35,11 +35,14 @@ import {
   ArrowRight,
   Award,
   Activity,
+  Armchair,
+  Building2,
 } from "lucide-react";
 
 
-import type { Category } from "@/types";
+import type { Category, PriceTier } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import PriceTierManager from "@/components/price-tier-manager";
 import {
   useEventForm,
   useTicketTypes,
@@ -98,8 +101,16 @@ const StatCard = ({
 
 
 
+interface Venue {
+  id: string;
+  name: string;
+  address?: string | null;
+  capacity?: number | null;
+}
+
 interface EventFormProps {
   categories: Category[];
+  venues?: Venue[];
   initialData?: InitialEventData;
   mode: "create" | "edit";
 }
@@ -110,6 +121,7 @@ interface EventFormProps {
 
 export default function CreateEventForm({
   categories,
+  venues = [],
   initialData,
   mode = "create",
 }: EventFormProps) {
@@ -293,7 +305,155 @@ export default function CreateEventForm({
                         onCheckedChange={(checked) => eventForm.handleBooleanChange('allowCourtesy', checked)}
                       />
                     </div>
+
+                    {}
+                    {eventForm.formData.allowCourtesy && (
+                      <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="courtesyLimit" className="text-sm font-medium">
+                              Límite de cortesías *
+                            </Label>
+                            <Input
+                              id="courtesyLimit"
+                              type="number"
+                              min="1"
+                              value={eventForm.formData.courtesyLimit || ""}
+                              onChange={(e) => eventForm.handleNumberChange('courtesyLimit', parseInt(e.target.value) || null)}
+                              className="mt-1"
+                              placeholder="Ej: 10"
+                            />
+                            {eventForm.errors.courtesyLimit && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyLimit}</p>
+                            )}
+                          </div>
+                          <div>
+                            <Label htmlFor="courtesyValidUntil" className="text-sm font-medium">
+                              Válidas hasta (hora)
+                            </Label>
+                            <Input
+                              id="courtesyValidUntil"
+                              type="time"
+                              value={eventForm.formData.courtesyValidUntil || ""}
+                              onChange={(e) => eventForm.handleInputChange('courtesyValidUntil', e.target.value)}
+                              className="mt-1"
+                            />
+                            {eventForm.errors.courtesyValidUntil && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyValidUntil}</p>
+                            )}
+                          </div>
+                        </div>
+                        {eventForm.formData.courtesyValidUntil && (
+                          <div>
+                            <Label htmlFor="courtesyPriceAfter" className="text-sm font-medium">
+                              Precio después de la hora límite
+                            </Label>
+                            <Input
+                              id="courtesyPriceAfter"
+                              type="number"
+                              min="0"
+                              step="100"
+                              value={eventForm.formData.courtesyPriceAfter || ""}
+                              onChange={(e) => eventForm.handleNumberChange('courtesyPriceAfter', parseInt(e.target.value) || null)}
+                              className="mt-1"
+                              placeholder="Precio en CLP"
+                            />
+                            {eventForm.errors.courtesyPriceAfter && (
+                              <p className="text-sm text-red-600 mt-1">{eventForm.errors.courtesyPriceAfter}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
+                </CardContent>
+              </Card>
+
+              {}
+              <Card className="border shadow-lg bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-300">
+                <CardHeader className="pb-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-t-lg">
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
+                      <Armchair className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-gray-800 dark:text-gray-200 font-semibold">Sistema de Asientos</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <Label htmlFor="hasSeatingPlan" className="text-sm font-medium">
+                        Este evento usa asientos numerados
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Los clientes podrán seleccionar asientos específicos en un mapa interactivo
+                      </p>
+                    </div>
+                    <Switch
+                      id="hasSeatingPlan"
+                      checked={eventForm.formData.hasSeatingPlan}
+                      onCheckedChange={(checked) => eventForm.handleBooleanChange('hasSeatingPlan', checked)}
+                    />
+                  </div>
+
+                  {}
+                  {eventForm.formData.hasSeatingPlan && (
+                    <div className="space-y-4 p-4 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                      <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                          <strong>Importante:</strong> Después de crear el evento, podrás configurar 
+                          el plan de asientos desde la página de gestión del evento.
+                        </AlertDescription>
+                      </Alert>
+
+                      {venues.length > 0 && (
+                        <div>
+                          <Label htmlFor="venueId" className="text-sm font-medium">
+                            Seleccionar venue (opcional)
+                          </Label>
+                          <Select
+                            value={eventForm.formData.venueId || "none"}
+                            onValueChange={(value) => 
+                              eventForm.handleInputChange('venueId', value === "none" ? null : value)
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Selecciona un venue existente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Sin venue (crear desde cero)</SelectItem>
+                              {venues.map((venue) => (
+                                <SelectItem key={venue.id} value={venue.id}>
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    {venue.name}
+                                    {venue.capacity && (
+                                      <span className="text-xs text-muted-foreground">
+                                        (Cap: {venue.capacity})
+                                      </span>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Puedes reutilizar la configuración de un venue existente o crear uno nuevo
+                          </p>
+                        </div>
+                      )}
+
+                      {venues.length === 0 && (
+                        <Alert>
+                          <Building2 className="h-4 w-4" />
+                          <AlertDescription>
+                            No hay venues disponibles. Podrás crear uno nuevo después de crear el evento.
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -417,6 +577,9 @@ export default function CreateEventForm({
                               className="pl-10"
                             />
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Precio base (se puede configurar precios dinámicos abajo)
+                          </p>
                         </div>
 
                         <div>
@@ -435,6 +598,22 @@ export default function CreateEventForm({
                             />
                           </div>
                         </div>
+                      </div>
+
+                      {}
+                      <div className="mt-4 border-t pt-4">
+                        <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                          <Clock className="h-4 w-4" />
+                          Precios Dinámicos (Opcional)
+                        </Label>
+                        <PriceTierManager
+                          ticketTypeName={ticket.name || `Tipo ${index + 1}`}
+                          priceTiers={ticket.priceTiers}
+                          onPriceTiersChange={(priceTiers: PriceTier[]) => ticketTypesHook.handlePriceTiersChange(index, priceTiers)}
+                          eventStartDate={eventForm.formData.startDate ? new Date(eventForm.formData.startDate) : new Date()}
+                          basePrice={ticket.price}
+                          currency="CLP"
+                        />
                       </div>
 
                       {ticket.price > 0 && (

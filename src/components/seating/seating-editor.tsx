@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,10 +39,6 @@ import {
   AlignRight,
   Download,
   Upload,
-  RotateCcw,
-  RotateCw,
-  Group,
-  Ungroup,
   Hand
 } from 'lucide-react'
 
@@ -167,7 +163,7 @@ const ENTRANCE_COLORS = {
 }
 
 const SEAT_SIZE = 20
-const GRID_SIZE = 10
+
 
 export function SeatingEditor({ initialSections = [], initialElements = [], onSave }: SeatingEditorProps) {
   const { resolvedTheme } = useTheme()
@@ -186,12 +182,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   
   const [isEditingInPlace, setIsEditingInPlace] = useState(false)
-  const [editingText, setEditingText] = useState('')
+  const [editingText, setEditingText] = useState('') 
   const [isResizing, setIsResizing] = useState(false)
   const [resizeHandle, setResizeHandle] = useState<'nw' | 'ne' | 'sw' | 'se' | null>(null)
   const [showGrid, setShowGrid] = useState(false)
-  const [snapToGrid, setSnapToGrid] = useState(true)
-  const [gridSize, setGridSize] = useState(20)
+  const [snapToGrid, setSnapToGrid] = useState(true) 
+  const [gridSize, setGridSize] = useState(20) 
   
   
   const [creationMode, setCreationMode] = useState<'manual' | 'bySeats'>('manual')
@@ -213,18 +209,22 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null)
   
-  // Estados para simetría
+  
   const [symmetryEnabled, setSymmetryEnabled] = useState(false)
   const [symmetryAxis, setSymmetryAxis] = useState<'vertical' | 'horizontal'>('vertical')
-  const [symmetryLine, setSymmetryLine] = useState(600) // Posición de la línea de simetría
+  const [symmetryLine, setSymmetryLine] = useState(600)
   
-  // Sistema de Deshacer/Rehacer
+  // 🚀 Optimización: Control de redibujado
+  const [needsRedraw, setNeedsRedraw] = useState(true)
+  const animationFrameRef = useRef<number | null>(null) 
+  
+  
   const [history, setHistory] = useState<{sections: Section[], elements: VenueElement[]}[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [clipboard, setClipboard] = useState<{sections: Section[], elements: VenueElement[]} | null>(null)
   
-  // Estados para herramientas avanzadas
-  const [selectedElements, setSelectedElements] = useState<string[]>([])
+  
+  const [selectedElements, setSelectedElements] = useState<string[]>([]) 
   const [showLayers, setShowLayers] = useState(false)
   const [layers, setLayers] = useState<{id: string, name: string, visible: boolean, locked: boolean}[]>([
     { id: 'default', name: 'Capa Principal', visible: true, locked: false }
@@ -238,12 +238,31 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   
   
   const [sidebarVisible, setSidebarVisible] = useState(true)
+  
+  // 🆕 Panel de ayuda de atajos
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false)
 
-  // Estados para herramienta de mano (hand tool)
+  
   const [isDraggingElement, setIsDraggingElement] = useState(false)
   const [draggedElementId, setDraggedElementId] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
 
+  // 🚀 Optimización: Custom hook para debounce
+  const useDebounce = <T,>(value: T, delay: number): T => {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value)
+    
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value)
+      }, delay)
+      
+      return () => {
+        clearTimeout(handler)
+      }
+    }, [value, delay])
+    
+    return debouncedValue
+  }
   
   const getThemeColors = useCallback(() => {
     const isDark = resolvedTheme === 'dark'
@@ -267,7 +286,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [snapToGrid, gridSize])
 
-  const getMousePos = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+  const getMousePos = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => { 
     const canvas = canvasRef.current
     if (!canvas) return { x: 0, y: 0 }
     
@@ -594,7 +613,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         )
         ctx.fill()
         
-        // Mostrar número del vértice si está seleccionado
+        
         if (isSelected && scale > 0.3) {
           ctx.fillStyle = '#ffffff'
           ctx.font = `bold ${Math.max(10, 8 * scale)}px Arial`
@@ -664,9 +683,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     ctx.lineWidth = isSelected ? 4 : 2
     ctx.stroke()
     
-    // No renderizar asientos individuales - solo mostrar la sección como área
     
-    // Mostrar puntos de control cuando está seleccionada
+    
+    
     if (isSelected) {
       ctx.fillStyle = '#0053CC'
       polygonSection.points.forEach(point => {
@@ -872,31 +891,6 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [])
 
-  
-  const createSectionBySeats = useCallback((x: number, y: number) => {
-    const dimensions = calculateOptimalDimensions(desiredSeats, seatsPerRow, seatSpacing, rowSpacing)
-    
-    const newSection: Section = {
-      id: Date.now().toString(),
-      type: 'section',
-      name: newSectionName || `Sección ${sections.length + 1} (${dimensions.actualSeats} asientos)`,
-      color: newSectionColor,
-      x,
-      y,
-      width: dimensions.width,
-      height: dimensions.height,
-      rotation: 0,
-      seats: []
-    }
-    
-    
-    const seats = generateSeatsForSectionWithSpacing(newSection, seatsPerRow, seatSpacing, rowSpacing)
-    newSection.seats = seats
-    
-    return newSection
-  }, [desiredSeats, seatsPerRow, seatSpacing, rowSpacing, newSectionName, newSectionColor, sections.length, calculateOptimalDimensions])
-
-  
   const generateSeatsForSectionWithSpacing = useCallback((section: Section, seatsPerRow: number, seatSpacing: number, rowSpacing: number): Seat[] => {
     const seats: Seat[] = []
     const rows = Math.ceil(desiredSeats / seatsPerRow)
@@ -925,7 +919,31 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
   }, [desiredSeats])
 
   
-  const isPointInPolygon = useCallback((point: { x: number; y: number }, polygon: { x: number; y: number }[]): boolean => {
+  const createSectionBySeats = useCallback((x: number, y: number) => {
+    const dimensions = calculateOptimalDimensions(desiredSeats, seatsPerRow, seatSpacing, rowSpacing)
+    
+    const newSection: Section = {
+      id: Date.now().toString(),
+      type: 'section',
+      name: newSectionName || `Sección ${sections.length + 1} (${dimensions.actualSeats} asientos)`,
+      color: newSectionColor,
+      x,
+      y,
+      width: dimensions.width,
+      height: dimensions.height,
+      rotation: 0,
+      seats: []
+    }
+    
+    
+    const seats = generateSeatsForSectionWithSpacing(newSection, seatsPerRow, seatSpacing, rowSpacing)
+    newSection.seats = seats
+    
+    return newSection
+  }, [desiredSeats, seatsPerRow, seatSpacing, rowSpacing, newSectionName, newSectionColor, sections.length, calculateOptimalDimensions, generateSeatsForSectionWithSpacing])
+
+  
+  const isPointInPolygon = useCallback((point: { x: number; y: number }, polygon: { x: number; y: number }[]): boolean => { 
     let inside = false
     let j = polygon.length - 1
 
@@ -944,7 +962,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     return inside
   }, [])
 
-  // Función para crear elemento simétrico
+  
   const createSymmetricElement = useCallback((element: VenueElement) => {
     if (!symmetryEnabled) return null
 
@@ -959,7 +977,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     } as VenueElement
 
     if (symmetryAxis === 'vertical') {
-      // Simetría vertical (espejo horizontal)
+      
       if (element.type === 'section') {
         (symmetricElement as Section).x = centerX * 2 - element.x - element.width
       } else if (element.type === 'polygonSection') {
@@ -971,7 +989,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         (symmetricElement as Stage | Shape | TextElement | Entrance).x = centerX * 2 - (element as Stage | Shape | TextElement | Entrance).x
       }
     } else {
-      // Simetría horizontal (espejo vertical)
+      
       if (element.type === 'section') {
         (symmetricElement as Section).y = centerY * 2 - element.y - element.height
       } else if (element.type === 'polygonSection') {
@@ -987,13 +1005,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     return symmetricElement
   }, [symmetryEnabled, symmetryAxis])
 
-  // Funciones del sistema de historial
+  
   const saveToHistory = useCallback(() => {
     const currentState = { sections, elements }
     setHistory(prev => {
       const newHistory = prev.slice(0, historyIndex + 1)
       newHistory.push(currentState)
-      // Mantener solo los últimos 50 estados
+      
       if (newHistory.length > 50) {
         newHistory.shift()
         return newHistory
@@ -1003,30 +1021,23 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     setHistoryIndex(prev => Math.min(prev + 1, 49))
   }, [sections, elements, historyIndex])
 
-  // Ref para guardar el timeout del debounce
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // useEffect para detectar cambios y activar guardado automático con debounce
-  useEffect(() => {
-    // Limpiar timeout anterior si existe
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
-
-    // Crear nuevo timeout
-    saveTimeoutRef.current = setTimeout(() => {
-      console.log("💾 Guardado automático:", { sections: sections.length, elements: elements.length });
-      onSave?.(sections, elements)
-      saveTimeoutRef.current = null
-    }, 3000)
-
-    // Cleanup function
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current)
-      }
-    }
-  }, [sections, elements, onSave])
+  // ⚠️ GUARDADO AUTOMÁTICO DESACTIVADO - El usuario guarda manualmente con Ctrl+S
+  // const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  // useEffect(() => {
+  //   if (saveTimeoutRef.current) {
+  //     clearTimeout(saveTimeoutRef.current)
+  //   }
+  //   saveTimeoutRef.current = setTimeout(() => {
+  //     console.log("💾 Guardado automático:", { sections: sections.length, elements: elements.length });
+  //     onSave?.(sections, elements)
+  //     saveTimeoutRef.current = null
+  //   }, 3000)
+  //   return () => {
+  //     if (saveTimeoutRef.current) {
+  //       clearTimeout(saveTimeoutRef.current)
+  //     }
+  //   }
+  // }, [sections, elements, onSave])
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -1046,7 +1057,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [history, historyIndex])
 
-  // Funciones de copiar/pegar
+  
   const copySelected = useCallback(() => {
     const selectedSections = sections.filter(s => selectedElements.includes(s.id))
     const selectedElementsList = elements.filter(e => selectedElements.includes(e.id))
@@ -1090,7 +1101,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     saveToHistory()
   }, [clipboard, saveToHistory])
 
-  // Funciones de alineación
+  
   const alignElements = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
     if (selectedElements.length < 2) return
     
@@ -1099,30 +1110,30 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     
     let referenceValue = 0
     
-    // Calcular valor de referencia
+    
     if (alignment === 'left') {
       referenceValue = Math.min(
         ...selectedSections.map(s => s.x),
-        ...selectedElementsList.filter(e => 'x' in e).map(e => (e as any).x)
+        ...selectedElementsList.filter(e => 'x' in e).map(e => (e as Section | Stage | Shape | TextElement | Entrance).x)
       )
     } else if (alignment === 'right') {
       referenceValue = Math.max(
         ...selectedSections.map(s => s.x + s.width),
-        ...selectedElementsList.filter(e => 'x' in e && 'width' in e).map(e => (e as any).x + (e as any).width)
+        ...selectedElementsList.filter(e => 'x' in e && 'width' in e).map(e => (e as Section | Stage | Shape | Entrance).x + (e as Section | Stage | Shape | Entrance).width)
       )
     } else if (alignment === 'top') {
       referenceValue = Math.min(
         ...selectedSections.map(s => s.y),
-        ...selectedElementsList.filter(e => 'y' in e).map(e => (e as any).y)
+        ...selectedElementsList.filter(e => 'y' in e).map(e => (e as Section | Stage | Shape | TextElement | Entrance).y)
       )
     } else if (alignment === 'bottom') {
       referenceValue = Math.max(
         ...selectedSections.map(s => s.y + s.height),
-        ...selectedElementsList.filter(e => 'y' in e && 'height' in e).map(e => (e as any).y + (e as any).height)
+        ...selectedElementsList.filter(e => 'y' in e && 'height' in e).map(e => (e as Section | Stage | Shape | Entrance).y + (e as Section | Stage | Shape | Entrance).height)
       )
     }
     
-    // Aplicar alineación
+    
     if (alignment === 'left') {
       setSections(prev => prev.map(s => 
         selectedElements.includes(s.id) ? { ...s, x: referenceValue } : s
@@ -1135,220 +1146,219 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     saveToHistory()
   }, [selectedElements, sections, elements, saveToHistory])
 
+  // 🚀 Optimización: Redraw optimizado con requestAnimationFrame
   const redraw = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    const colors = getThemeColors()
-
-    
-    ctx.fillStyle = colors.canvas
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    
-    drawGrid(ctx, canvas)
-
-    
-    sections.forEach(section => {
-      drawSection(ctx, section)
-      
-      drawResizeHandles(ctx, section)
-    })
-    
-    
-    elements.forEach(element => {
-      if ('type' in element) {
-        switch (element.type) {
-          case 'polygonSection':
-            drawPolygonSection(ctx, element as PolygonSection)
-            break
-          case 'stage':
-            drawStage(ctx, element as Stage)
-            break
-          case 'rectangle':
-          case 'circle':
-            drawShape(ctx, element as Shape)
-            break
-          case 'text':
-            drawText(ctx, element as TextElement)
-            break
-          case 'entrance':
-            drawEntrance(ctx, element as Entrance)
-            break
-          case 'polygon':
-            drawPolygon(ctx, element as Polygon)
-            break
-        }
-        
-        if (element.type !== 'text' && element.type !== 'polygonSection') {
-          drawResizeHandles(ctx, element)
-        }
-      }
-    })
-
-    
-    if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length > 0) {
-      ctx.strokeStyle = newSectionColor
-      ctx.fillStyle = newSectionColor
-      ctx.lineWidth = 2
-      ctx.setLineDash([5, 5])
-      
-      
-      ctx.beginPath()
-      const firstPoint = polygonSectionPoints[0]
-      ctx.moveTo(
-        (firstPoint.x * scale) + offset.x,
-        (firstPoint.y * scale) + offset.y
-      )
-      
-      
-      for (let i = 1; i < polygonSectionPoints.length; i++) {
-        const point = polygonSectionPoints[i]
-        ctx.lineTo(
-          (point.x * scale) + offset.x,
-          (point.y * scale) + offset.y
-        )
-      }
-      
-      ctx.stroke()
-      
-      
-      polygonSectionPoints.forEach(point => {
-        ctx.beginPath()
-        ctx.arc(
-          (point.x * scale) + offset.x,
-          (point.y * scale) + offset.y,
-          6,
-          0,
-          2 * Math.PI
-        )
-        ctx.fill()
-      })
-      
-      
-      ctx.setLineDash([])
-      
-      
-      if (mousePosition && polygonSectionPoints.length > 0) {
-        const lastPoint = polygonSectionPoints[polygonSectionPoints.length - 1]
-        ctx.strokeStyle = newSectionColor
-        ctx.lineWidth = 1
-        ctx.setLineDash([3, 3])
-        ctx.globalAlpha = 0.7
-        
-        ctx.beginPath()
-        ctx.moveTo(
-          (lastPoint.x * scale) + offset.x,
-          (lastPoint.y * scale) + offset.y
-        )
-        ctx.lineTo(
-          (mousePosition.x * scale) + offset.x,
-          (mousePosition.y * scale) + offset.y
-        )
-        ctx.stroke()
-        
-        ctx.globalAlpha = 1
-        ctx.setLineDash([])
-      }
+    // Cancelar animación anterior si existe
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
     }
-
     
-    if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length > 0) {
+    // Programar nuevo redibujado
+    animationFrameRef.current = requestAnimationFrame(() => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
       const colors = getThemeColors()
-      ctx.strokeStyle = colors.selectedBg
-      ctx.fillStyle = colors.selectedBg
-      ctx.lineWidth = 2
-      ctx.setLineDash([5, 5])
-      
-      
-      ctx.beginPath()
-      const firstPoint = polygonPoints[0]
-      ctx.moveTo(
-        (firstPoint.x * scale) + offset.x,
-        (firstPoint.y * scale) + offset.y
-      )
-      
-      
-      for (let i = 1; i < polygonPoints.length; i++) {
-        const point = polygonPoints[i]
-        ctx.lineTo(
-          (point.x * scale) + offset.x,
-          (point.y * scale) + offset.y
-        )
-      }
-      
-      ctx.stroke()
-      
-      
-      polygonPoints.forEach(point => {
-        ctx.beginPath()
-        ctx.arc(
-          (point.x * scale) + offset.x,
-          (point.y * scale) + offset.y,
-          6,
-          0,
-          2 * Math.PI
-        )
-        ctx.fill()
+
+      // Limpiar canvas
+      ctx.fillStyle = colors.canvas
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // Dibujar grid
+      drawGrid(ctx, canvas)
+
+      // Dibujar secciones
+      sections.forEach(section => {
+        drawSection(ctx, section)
+        // Dibujar handles de resize si está seleccionado
+        drawResizeHandles(ctx, section)
       })
       
-      
-      ctx.setLineDash([])
-      
-      
-      if (mousePosition && polygonPoints.length > 0) {
-        const lastPoint = polygonPoints[polygonPoints.length - 1]
-        ctx.strokeStyle = colors.selectedBg
-        ctx.lineWidth = 1
-        ctx.setLineDash([3, 3])
-        ctx.globalAlpha = 0.7
+      // Dibujar otros elementos
+      elements.forEach(element => {
+        if ('type' in element) {
+          switch (element.type) {
+            case 'polygonSection':
+              drawPolygonSection(ctx, element as PolygonSection)
+              break
+            case 'stage':
+              drawStage(ctx, element as Stage)
+              break
+            case 'rectangle':
+            case 'circle':
+              drawShape(ctx, element as Shape)
+              break
+            case 'text':
+              drawText(ctx, element as TextElement)
+              break
+            case 'entrance':
+              drawEntrance(ctx, element as Entrance)
+              break
+            case 'polygon':
+              drawPolygon(ctx, element as Polygon)
+              break
+          }
+        
+          if (element.type !== 'text' && element.type !== 'polygonSection') {
+            drawResizeHandles(ctx, element)
+          }
+        }
+      })
+
+      // Dibujar polígono de sección en creación
+      if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length > 0) {
+        ctx.strokeStyle = newSectionColor
+        ctx.fillStyle = newSectionColor
+        ctx.lineWidth = 2
+        ctx.setLineDash([5, 5])
         
         ctx.beginPath()
+        const firstPoint = polygonSectionPoints[0]
         ctx.moveTo(
-          (lastPoint.x * scale) + offset.x,
-          (lastPoint.y * scale) + offset.y
+          (firstPoint.x * scale) + offset.x,
+          (firstPoint.y * scale) + offset.y
         )
-        ctx.lineTo(
-          (mousePosition.x * scale) + offset.x,
-          (mousePosition.y * scale) + offset.y
-        )
+        
+        for (let i = 1; i < polygonSectionPoints.length; i++) {
+          const point = polygonSectionPoints[i]
+          ctx.lineTo(
+            (point.x * scale) + offset.x,
+            (point.y * scale) + offset.y
+          )
+        }
+        
         ctx.stroke()
         
+        polygonSectionPoints.forEach(point => {
+          ctx.beginPath()
+          ctx.arc(
+            (point.x * scale) + offset.x,
+            (point.y * scale) + offset.y,
+            6,
+            0,
+            2 * Math.PI
+          )
+          ctx.fill()
+        })
+        
+        ctx.setLineDash([])
+        
+        if (mousePosition && polygonSectionPoints.length > 0) {
+          const lastPoint = polygonSectionPoints[polygonSectionPoints.length - 1]
+          ctx.strokeStyle = newSectionColor
+          ctx.lineWidth = 1
+          ctx.setLineDash([3, 3])
+          ctx.globalAlpha = 0.7
+          
+          ctx.beginPath()
+          ctx.moveTo(
+            (lastPoint.x * scale) + offset.x,
+            (lastPoint.y * scale) + offset.y
+          )
+          ctx.lineTo(
+            (mousePosition.x * scale) + offset.x,
+            (mousePosition.y * scale) + offset.y
+          )
+          ctx.stroke()
+          
+          ctx.globalAlpha = 1
+          ctx.setLineDash([])
+        }
+      }
+
+      // Dibujar polígono en creación
+      if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length > 0) {
+        const colors = getThemeColors()
+        ctx.strokeStyle = colors.selectedBg
+        ctx.fillStyle = colors.selectedBg
+        ctx.lineWidth = 2
+        ctx.setLineDash([5, 5])
+        
+        ctx.beginPath()
+        const firstPoint = polygonPoints[0]
+        ctx.moveTo(
+          (firstPoint.x * scale) + offset.x,
+          (firstPoint.y * scale) + offset.y
+        )
+        
+        for (let i = 1; i < polygonPoints.length; i++) {
+          const point = polygonPoints[i]
+          ctx.lineTo(
+            (point.x * scale) + offset.x,
+            (point.y * scale) + offset.y
+          )
+        }
+        
+        ctx.stroke()
+        
+        polygonPoints.forEach(point => {
+          ctx.beginPath()
+          ctx.arc(
+            (point.x * scale) + offset.x,
+            (point.y * scale) + offset.y,
+            6,
+            0,
+            2 * Math.PI
+          )
+          ctx.fill()
+        })
+        
+        ctx.setLineDash([])
+        
+        if (mousePosition && polygonPoints.length > 0) {
+          const lastPoint = polygonPoints[polygonPoints.length - 1]
+          ctx.strokeStyle = colors.selectedBg
+          ctx.lineWidth = 1
+          ctx.setLineDash([3, 3])
+          ctx.globalAlpha = 0.7
+          
+          ctx.beginPath()
+          ctx.moveTo(
+            (lastPoint.x * scale) + offset.x,
+            (lastPoint.y * scale) + offset.y
+          )
+          ctx.lineTo(
+            (mousePosition.x * scale) + offset.x,
+            (mousePosition.y * scale) + offset.y
+          )
+          ctx.stroke()
+          
+          ctx.globalAlpha = 1
+          ctx.setLineDash([])
+        }
+      }
+
+      // Dibujar línea de simetría
+      if (symmetryEnabled) {
+        const canvasWidth = 1200
+        const canvasHeight = 800
+        const centerX = canvasWidth / 2
+        const centerY = canvasHeight / 2
+
+        ctx.strokeStyle = '#9333ea' 
+        ctx.lineWidth = 2
+        ctx.setLineDash([10, 5])
+        ctx.globalAlpha = 0.7
+
+        ctx.beginPath()
+        if (symmetryAxis === 'vertical') {
+          ctx.moveTo((centerX * scale) + offset.x, 0)
+          ctx.lineTo((centerX * scale) + offset.x, canvasHeight * scale + offset.y)
+        } else {
+          ctx.moveTo(0, (centerY * scale) + offset.y)
+          ctx.lineTo(canvasWidth * scale + offset.x, (centerY * scale) + offset.y)
+        }
+        ctx.stroke()
+
         ctx.globalAlpha = 1
         ctx.setLineDash([])
       }
-    }
-
-    // Dibujar línea de simetría si está habilitada
-    if (symmetryEnabled) {
-      const canvasWidth = 1200
-      const canvasHeight = 800
-      const centerX = canvasWidth / 2
-      const centerY = canvasHeight / 2
-
-      ctx.strokeStyle = '#9333ea' // Color púrpura para la línea de simetría
-      ctx.lineWidth = 2
-      ctx.setLineDash([10, 5])
-      ctx.globalAlpha = 0.7
-
-      ctx.beginPath()
-      if (symmetryAxis === 'vertical') {
-        // Línea vertical en el centro
-        ctx.moveTo((centerX * scale) + offset.x, 0)
-        ctx.lineTo((centerX * scale) + offset.x, canvasHeight * scale + offset.y)
-      } else {
-        // Línea horizontal en el centro
-        ctx.moveTo(0, (centerY * scale) + offset.y)
-        ctx.lineTo(canvasWidth * scale + offset.x, (centerY * scale) + offset.y)
-      }
-      ctx.stroke()
-
-      ctx.globalAlpha = 1
-      ctx.setLineDash([])
-    }
+      
+      setNeedsRedraw(false)
+    })
   }, [sections, elements, drawGrid, drawSection, drawStage, drawShape, drawText, drawEntrance, drawPolygon, drawPolygonSection, drawResizeHandles, getThemeColors, tool, isCreatingPolygonSection, polygonSectionPoints, newSectionColor, isCreatingPolygon, polygonPoints, mousePosition, scale, offset, symmetryEnabled, symmetryAxis])
 
   
@@ -1418,7 +1428,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
       setElements(prev => [...prev, newText])
       setSelectedElement(newText.id)
-      // Guardado automático se encarga del resto
+      
     } else if (tool === 'polygon') {
       
       const snapPos = snapToGridCoords(x, y)
@@ -1430,7 +1440,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         setIsCreatingPolygon(true)
         setPolygonPoints([snapPos])
       } else {
-        // Verificar si se está clickeando cerca del primer punto para cerrar el polígono
+        
         if (polygonPoints.length >= 3) {
           const firstPoint = polygonPoints[0]
           const distance = Math.sqrt(
@@ -1438,7 +1448,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             Math.pow(snapPos.y - firstPoint.y, 2)
           )
           
-          // Si está cerca del primer punto (menos de 20 unidades), cerrar el polígono
+          
           if (distance < 20) {
             const newPolygon: Polygon = {
               id: currentPolygonId!,
@@ -1455,7 +1465,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             setElements(prev => [...prev, newPolygon])
             setSelectedElement(newPolygon.id)
             
-            // Limpiar estado
+            
             setIsCreatingPolygon(false)
             setPolygonPoints([])
             setCurrentPolygonId(null)
@@ -1464,7 +1474,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
         }
         
-        // Agregar nuevo punto
+        
         setPolygonPoints(prev => [...prev, snapPos])
       }
     } else if (tool === 'polygonSection') {
@@ -1519,10 +1529,10 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       
       setSelectedElement(clickedElement?.id || null)
     } else if (tool === 'hand') {
-      // Herramienta de mano - buscar elemento para arrastrar
+      
       let clickedElement: VenueElement | null = null
       
-      // Buscar en elementos
+      
       for (const element of elements) {
         if ('type' in element) {
           const elem = element as Stage | Shape | TextElement | Entrance
@@ -1543,7 +1553,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         }
       }
       
-      // Buscar en secciones si no se encontró elemento
+      
       if (!clickedElement) {
         const clickedSection = sections.find(section => 
           x >= section.x && x <= section.x + section.width &&
@@ -1556,7 +1566,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         setIsDraggingElement(true)
         setDraggedElementId(clickedElement.id)
         setSelectedElement(clickedElement.id)
-        // Calcular offset del mouse respecto al elemento
+        
         if ('x' in clickedElement && 'y' in clickedElement) {
           const elementWithPos = clickedElement as Section | Stage | Shape | TextElement | Entrance
           setDragOffset({
@@ -1568,9 +1578,20 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  // 🚀 Optimización: Throttle para MouseMove
+  const lastMouseMoveTime = useRef<number>(0)
+  const MOUSE_MOVE_THROTTLE = 16 // ~60fps
+  
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
     if (!canvas) return
+    
+    // 🚀 Throttling: Solo procesar cada 16ms (~60fps)
+    const now = Date.now()
+    if (now - lastMouseMoveTime.current < MOUSE_MOVE_THROTTLE) {
+      return
+    }
+    lastMouseMoveTime.current = now
 
     const rect = canvas.getBoundingClientRect()
     const currentX = (e.clientX - rect.left - offset.x) / scale
@@ -1581,6 +1602,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         x: e.clientX - startPos.x,
         y: e.clientY - startPos.y
       })
+      setNeedsRedraw(true)
       return
     }
 
@@ -1787,11 +1809,11 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
     
     
-    // Dragging con herramienta de mano
+    
     if (isDraggingElement && draggedElementId && tool === 'hand') {
       const snapPos = snapToGridCoords(currentX - dragOffset.x, currentY - dragOffset.y)
       
-      // Actualizar posición del elemento arrastrado
+      
       const draggedSection = sections.find(s => s.id === draggedElementId)
       if (draggedSection) {
         setSections(prev => prev.map(s => 
@@ -1807,11 +1829,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       }
     }
     
-    
+    // Actualizar posición del mouse para previsualización de polígonos
     if ((tool === 'polygon' && isCreatingPolygon) || (tool === 'polygonSection' && isCreatingPolygonSection)) {
       setMousePosition({ x: currentX, y: currentY })
+      setNeedsRedraw(true)
     }
-  }
+  }, [isPanning, startPos, isResizing, selectedElement, resizeHandle, sections, elements, snapToGridCoords, scale, offset, isDrawing, tool, isDraggingElement, draggedElementId, dragOffset, isCreatingPolygon, isCreatingPolygonSection, newSectionColor, newElementColor, entranceType, polygonPoints, polygonSectionPoints])
 
   const handleMouseUp = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (isPanning) {
@@ -1846,7 +1869,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             const newSection = createSectionBySeats(x, y)
             const sectionsToAdd = [newSection]
             
-            // Crear sección simétrica si está habilitado
+            
             if (symmetryEnabled) {
               const symmetricElement = createSymmetricElement(newSection)
               if (symmetricElement) {
@@ -1873,7 +1896,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             
             const sectionsToAdd = [newSection]
             
-            // Crear sección simétrica si está habilitado
+            
             if (symmetryEnabled) {
               const symmetricElement = createSymmetricElement(newSection)
               if (symmetricElement) {
@@ -1898,7 +1921,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newStage])
           setSelectedElement(newStage.id)
-          // Guardado automático se encarga del resto
+          
         } else if (tool === 'rectangle') {
           const newShape: Shape = {
             id: `rect-${Date.now()}`,
@@ -1916,7 +1939,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newShape])
           setSelectedElement(newShape.id)
-          // Guardado automático se encarga del resto
+          
         } else if (tool === 'circle') {
           const newShape: Shape = {
             id: `circle-${Date.now()}`,
@@ -1934,7 +1957,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newShape])
           setSelectedElement(newShape.id)
-          // Guardado automático se encarga del resto
+          
         } else if (tool === 'entrance') {
           const newEntrance: Entrance = {
             id: `entrance-${Date.now()}`,
@@ -1950,7 +1973,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           setElements(prev => [...prev, newEntrance])
           setSelectedElement(newEntrance.id)
-          // Guardado automático se encarga del resto
+          
         }
       } else {
         console.log("❌ Figura demasiado pequeña para crear:", { width, height, minSize: 10, tool });
@@ -1959,12 +1982,12 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       setIsDrawing(false)
     }
 
-    // Finalizar dragging con herramienta de mano
+    
     if (isDraggingElement && tool === 'hand') {
       setIsDraggingElement(false)
       setDraggedElementId(null)
       setDragOffset({ x: 0, y: 0 })
-      // Guardar en historial después del drag
+      
       saveToHistory()
     }
   }
@@ -2003,7 +2026,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
   
   const handleDoubleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Terminar polígono en creación con doble clic (solo si tiene al menos 3 puntos)
+    
     if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length >= 3) {
       const newPolygon: Polygon = {
         id: currentPolygonId!,
@@ -2019,7 +2042,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       
       const elementsToAdd = [newPolygon]
       
-      // Crear elemento simétrico si está habilitado
+      
       if (symmetryEnabled) {
         const symmetricElement = createSymmetricElement(newPolygon)
         if (symmetricElement) {
@@ -2030,7 +2053,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       setElements(prev => [...prev, ...elementsToAdd])
       setSelectedElement(newPolygon.id)
       
-      // Limpiar estado
+      
       setIsCreatingPolygon(false)
       setPolygonPoints([])
       setCurrentPolygonId(null)
@@ -2038,7 +2061,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       return
     }
     
-    // Terminar sección polígono en creación con doble clic (solo si tiene al menos 3 puntos)
+    
     if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length >= 3) {
       const newPolygonSection: PolygonSection = {
         id: currentPolygonSectionId!,
@@ -2047,13 +2070,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
         points: [...polygonSectionPoints],
         rotation: 0,
         color: newSectionColor,
-        capacity: 50, // Capacidad inicial por defecto
-        seats: [] // Sin generación automática de asientos
+        capacity: 50, 
+        seats: [] 
       }
       
       const elementsToAdd = [newPolygonSection]
       
-      // Crear elemento simétrico si está habilitado
+      
       if (symmetryEnabled) {
         const symmetricElement = createSymmetricElement(newPolygonSection)
         if (symmetricElement) {
@@ -2064,7 +2087,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
       setElements(prev => [...prev, ...elementsToAdd])
       setSelectedElement(newPolygonSection.id)
       
-      // Limpiar estado
+      
       setIsCreatingPolygonSection(false)
       setPolygonSectionPoints([])
       setCurrentPolygonSectionId(null)
@@ -2141,9 +2164,17 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }
 
+  // 🚀 Optimización: Redibujado optimizado con cleanup
   useEffect(() => {
     redraw()
-  }, [redraw])
+    
+    // Cleanup: Cancelar animaciones pendientes al desmontar
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+    }
+  }, [redraw, sections, elements, scale, offset, selectedElement, tool, isCreatingPolygon, isCreatingPolygonSection])
 
   
   useEffect(() => {
@@ -2178,13 +2209,15 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
     }
   }, [tool, isCreatingPolygon, isCreatingPolygonSection, isDraggingElement])
 
-  // useEffect para manejar teclas de acceso rápido
+  
+  // ⌨️ Atajos de teclado mejorados
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Solo procesar si no estamos editando texto
+      // No interceptar si se está editando texto
       if (isEditingInPlace) return
 
       switch (e.key) {
+        // 🆕 Herramientas rápidas
         case 'h':
         case 'H':
           if (!e.ctrlKey && !e.metaKey) {
@@ -2198,6 +2231,111 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             setTool('select')
           }
           break
+        
+        // 🆕 Movimiento con flechas
+        case 'ArrowUp':
+        case 'ArrowDown':
+        case 'ArrowLeft':
+        case 'ArrowRight':
+          if (selectedElement) {
+            e.preventDefault()
+            const moveDistance = e.shiftKey ? 10 : 1 // Shift para mover más rápido
+            const element = [...sections, ...elements].find(el => el.id === selectedElement)
+            
+            if (element && 'x' in element && 'y' in element) {
+              let newX = element.x
+              let newY = element.y
+              
+              switch (e.key) {
+                case 'ArrowUp':
+                  newY -= moveDistance
+                  break
+                case 'ArrowDown':
+                  newY += moveDistance
+                  break
+                case 'ArrowLeft':
+                  newX -= moveDistance
+                  break
+                case 'ArrowRight':
+                  newX += moveDistance
+                  break
+              }
+              
+              // Aplicar snap to grid si está activado
+              const snapped = snapToGridCoords(newX, newY)
+              
+              if (element.type === 'section') {
+                setSections(prev => prev.map(s => 
+                  s.id === selectedElement ? { ...s, x: snapped.x, y: snapped.y } : s
+                ))
+              } else {
+                setElements(prev => prev.map(el => 
+                  el.id === selectedElement ? { ...el, x: snapped.x, y: snapped.y } : el
+                ))
+              }
+              saveToHistory()
+            }
+          }
+          break
+        
+        // 🆕 Duplicar elemento
+        case 'd':
+        case 'D':
+          if ((e.ctrlKey || e.metaKey) && selectedElement) {
+            e.preventDefault()
+            const element = [...sections, ...elements].find(el => el.id === selectedElement)
+            
+            if (element) {
+              const newId = `${element.type}-${Date.now()}`
+              const offset = 20 // Offset para que se vea que es un duplicado
+              
+              if (element.type === 'section') {
+                const duplicated: Section = {
+                  ...element,
+                  id: newId,
+                  name: `${element.name} (copia)`,
+                  x: element.x + offset,
+                  y: element.y + offset
+                }
+                setSections(prev => [...prev, duplicated])
+                setSelectedElement(newId)
+              } else if ('x' in element && 'y' in element) {
+                const duplicated = {
+                  ...element,
+                  id: newId,
+                  x: (element as { x: number }).x + offset,
+                  y: (element as { y: number }).y + offset
+                }
+                if ('name' in duplicated) {
+                  (duplicated as { name: string }).name += ' (copia)'
+                }
+                setElements(prev => [...prev, duplicated as VenueElement])
+                setSelectedElement(newId)
+              }
+              saveToHistory()
+            }
+          }
+          break
+        
+        // 🆕 Toggle Grid
+        case 'g':
+        case 'G':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            setShowGrid(prev => !prev)
+          }
+          break
+        
+        // 🆕 Toggle Layers Panel
+        case 'l':
+        case 'L':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault()
+            setShowLayers(prev => !prev)
+          }
+          break
+        
+        // Deshacer/Rehacer
         case 'z':
         case 'Z':
           if (e.ctrlKey || e.metaKey) {
@@ -2216,6 +2354,8 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             redo()
           }
           break
+        
+        // Copiar/Pegar
         case 'c':
         case 'C':
           if (e.ctrlKey || e.metaKey) {
@@ -2225,7 +2365,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           break
         case 'v':
         case 'V':
-          if (e.ctrlKey || e.metaKey) {
+          if (e.ctrlKey || e.metaKey && !isEditingInPlace) {
             e.preventDefault()
             pasteFromClipboard()
           }
@@ -2240,7 +2380,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           }
           break
         case 'Enter':
-          // Completar polígono si tiene al menos 3 puntos
+          
           if (tool === 'polygon' && isCreatingPolygon && polygonPoints.length >= 3) {
             const newPolygon: Polygon = {
               id: currentPolygonId!,
@@ -2257,13 +2397,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             setElements(prev => [...prev, newPolygon])
             setSelectedElement(newPolygon.id)
             
-            // Limpiar estado
+            
             setIsCreatingPolygon(false)
             setPolygonPoints([])
             setCurrentPolygonId(null)
             setMousePosition(null)
           }
-          // Completar sección polígono si tiene al menos 3 puntos
+          
           else if (tool === 'polygonSection' && isCreatingPolygonSection && polygonSectionPoints.length >= 3) {
             const newPolygonSection: PolygonSection = {
               id: currentPolygonSectionId!,
@@ -2272,14 +2412,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
               points: [...polygonSectionPoints],
               rotation: 0,
               color: newSectionColor,
-              capacity: 50, // Capacidad inicial por defecto
+              capacity: 50, 
               seats: []
             }
             
             setElements(prev => [...prev, newPolygonSection])
             setSelectedElement(newPolygonSection.id)
             
-            // Limpiar estado
+            
             setIsCreatingPolygonSection(false)
             setPolygonSectionPoints([])
             setCurrentPolygonSectionId(null)
@@ -2288,7 +2428,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           break
         
         case 'Escape':
-          // Cancelar creación de polígono
+          
           if (isCreatingPolygon) {
             setIsCreatingPolygon(false)
             setPolygonPoints([])
@@ -2301,13 +2441,13 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             setCurrentPolygonSectionId(null)
             setMousePosition(null)
           }
-          // Deseleccionar elemento
+          
           setSelectedElement(null)
           break
         
         case 'Delete':
         case 'Backspace':
-          // Eliminar elemento seleccionado
+          
           if (selectedElement) {
             setSections(prev => prev.filter(s => s.id !== selectedElement))
             setElements(prev => prev.filter(e => e.id !== selectedElement))
@@ -2319,14 +2459,14 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [tool, isCreatingPolygon, polygonPoints, currentPolygonId, newElementName, elements, newElementColor, isCreatingPolygonSection, polygonSectionPoints, currentPolygonSectionId, newSectionName, newSectionColor, selectedElement, isEditingInPlace, undo, redo, copySelected, pasteFromClipboard, saveToHistory, setSections, setElements, setSelectedElement, setTool])
+  }, [tool, isCreatingPolygon, polygonPoints, currentPolygonId, newElementName, elements, newElementColor, isCreatingPolygonSection, polygonSectionPoints, currentPolygonSectionId, newSectionName, newSectionColor, selectedElement, isEditingInPlace, undo, redo, copySelected, pasteFromClipboard, saveToHistory, setSections, setElements, setSelectedElement, setTool, sections, snapToGridCoords])
 
-  // Auto-guardar en historial cuando cambian sections o elements
+  
   useEffect(() => {
     if (sections.length > 0 || elements.length > 0) {
       const timeoutId = setTimeout(() => {
         saveToHistory()
-      }, 1000) // Guardar después de 1 segundo sin cambios
+      }, 1000) 
       
       return () => clearTimeout(timeoutId)
     }
@@ -2516,7 +2656,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           
           <div className="w-px h-6 bg-border/50" />
           
-          {/* Controles de Simetría */}
+          {}
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             <Button
               variant={symmetryEnabled ? 'default' : 'ghost'}
@@ -2556,7 +2696,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           
           <div className="w-px h-6 bg-border/50" />
           
-          {/* Herramientas Avanzadas */}
+          {}
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             <Button
               variant="ghost"
@@ -2598,7 +2738,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           
           <div className="w-px h-6 bg-border/50" />
           
-          {/* Panel de Capas */}
+          {}
           <Button
             variant={showLayers ? 'default' : 'ghost'}
             size="sm"
@@ -2613,16 +2753,25 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             size="sm"
             onClick={() => setShowGrid(!showGrid)}
             className={showGrid ? "bg-muted" : ""}
-            title="Mostrar/ocultar grilla"
+            title="Mostrar/ocultar grilla (Ctrl+G)"
           >
             <Grid3X3 className="w-4 h-4" />
           </Button>
           
-          <div className="w-px h-6 bg-border/50" />
+          {/* 🆕 Botón de ayuda de atajos */}
+          <Button
+            variant={showKeyboardHelp ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setShowKeyboardHelp(!showKeyboardHelp)}
+            title="Atajos de teclado"
+            className={showKeyboardHelp ? "bg-blue-600 text-white" : ""}
+          >
+            <span className="text-sm font-bold">⌨️</span>
+          </Button>
           
           <div className="w-px h-6 bg-border/50" />
           
-          {/* Importar/Exportar */}
+          {}
           <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg">
             <Button
               variant="ghost"
@@ -2751,7 +2900,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </CardContent>
           </Card>
 
-          {/* Card de Simetría */}
+          {}
           {symmetryEnabled && (
             <Card className="border-0 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-purple-600/10 to-pink-600/10 pb-4">
@@ -2796,7 +2945,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             </Card>
           )}
 
-          {/* Herramientas de Alineación */}
+          {}
           {selectedElements.length > 1 && (
             <Card className="border-0 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-green-600/10 to-blue-600/10 pb-4">
@@ -3211,9 +3360,9 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
                       if (element.type === 'section') {
                         const newSections = sections.filter(s => s.id !== selectedElement);
                         setSections(newSections);
-                        // Guardado automático se encarga del resto
+                        
                       } else {
-                        // Si es un elemento (no sección), guardado automático se encarga del resto
+                        
                       }
                     }}
                     className="h-8 w-8 p-0 bg-red-600 hover:bg-red-700"
@@ -3772,7 +3921,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </CardContent>
         </Card>
 
-        {/* Panel de Capas */}
+        {}
         {showLayers && (
           <Card className="border-0 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-600/10 to-purple-600/10 pb-4">
@@ -3860,7 +4009,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
             Los cambios se guardarán automáticamente
           </p>
           
-          {/* Indicador visual de scroll */}
+          {}
           <div className="mt-8 pt-4 border-t border-border/50">
             <div className="text-center text-muted-foreground">
               <div className="inline-flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-full text-xs">
@@ -3915,7 +4064,110 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </div>
         </div>
 
-        {/* Panel de instrucciones para polígonos */}
+        {/* 🆕 Panel de ayuda de atajos de teclado */}
+        {showKeyboardHelp && (
+          <div className="absolute top-6 left-6 bg-gradient-to-br from-blue-600 to-purple-600 backdrop-blur-sm p-6 rounded-xl border-0 shadow-2xl text-white max-w-md z-50">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold flex items-center gap-2">
+                  ⌨️ Atajos de Teclado
+                </h3>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowKeyboardHelp(false)}
+                  className="text-white hover:bg-white/20 h-6 w-6 p-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-3 text-sm">
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-blue-100">📝 Edición</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+Z</kbd>
+                      <span>Deshacer</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+Y</kbd>
+                      <span>Rehacer</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+C</kbd>
+                      <span>Copiar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+V</kbd>
+                      <span>Pegar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+D</kbd>
+                      <span>Duplicar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Del</kbd>
+                      <span>Eliminar</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-blue-100">🎯 Herramientas</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">V</kbd>
+                      <span>Seleccionar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">H</kbd>
+                      <span>Mano</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-blue-100">↔️ Movimiento</h4>
+                  <div className="grid grid-cols-1 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">↑ ↓ ← →</kbd>
+                      <span>Mover elemento (1px)</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Shift + ↑ ↓ ← →</kbd>
+                      <span>Mover rápido (10px)</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-blue-100">⚙️ Vista</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+G</kbd>
+                      <span>Grid On/Off</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Ctrl+L</kbd>
+                      <span>Capas On/Off</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="bg-white/20 px-2 py-1 rounded">Esc</kbd>
+                      <span>Deseleccionar</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-3 border-t border-white/20 text-xs text-blue-100">
+                💡 Tip: Usa Alt+Clic o clic medio para mover el lienzo
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Indicador de creación de polígonos */}
         {(isCreatingPolygon || isCreatingPolygonSection) && (
           <div className="absolute top-6 right-6 bg-blue-500/95 backdrop-blur-sm p-4 rounded-xl border-0 shadow-lg text-white max-w-sm">
             <div className="space-y-3">
@@ -4017,7 +4269,7 @@ export function SeatingEditor({ initialSections = [], initialElements = [], onSa
           </div>
         )}
 
-        {/* Indicador de Estado */}
+        {}
         <div className="absolute bottom-4 right-4 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">
           <div className="flex items-center gap-3 text-sm">
             <div className="flex items-center gap-2">

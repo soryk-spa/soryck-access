@@ -55,7 +55,16 @@ export async function sendTicketEmail({
   eventDate: string;
   eventLocation: string;
   orderNumber: string;
-  tickets: { qrCode: string; qrCodeImage: string }[];
+  tickets: { 
+    qrCode: string; 
+    qrCodeImage: string;
+    seatInfo?: {
+      sectionName: string;
+      row: string;
+      number: string;
+      sectionColor?: string;
+    };
+  }[];
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
     logger.warn("Envío de ticket por email omitido por falta de configuración de Resend.");
@@ -72,9 +81,31 @@ export async function sendTicketEmail({
     
     const TicketEmail = await loadTicketEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
+    const { generateMultipleTicketPDFs } = await import('./ticket-pdf-generator');
     
     const formattedDate = formatFullDateTime(new Date(eventDate));
 
+    // Generar PDFs para cada ticket
+    const ticketPDFs = await generateMultipleTicketPDFs(
+      tickets.map(ticket => ({
+        qrCode: ticket.qrCode,
+        seatInfo: ticket.seatInfo,
+        eventName: eventTitle,
+        eventDate: formattedDate,
+        eventLocation,
+        orderNumber,
+        userName,
+      })),
+      {
+        eventName: eventTitle,
+        eventDate: formattedDate,
+        eventLocation,
+        orderNumber,
+        userName,
+      }
+    );
+
+    // Renderizar email HTML (sin QR, solo información)
     const emailHtml = await render(
       React.createElement(TicketEmail, {
         userName,
@@ -83,14 +114,23 @@ export async function sendTicketEmail({
         eventLocation,
         orderNumber,
         tickets,
+        attachmentMode: true, // Indicar que los QR van en PDF adjunto
       })
     );
+
+    // Preparar adjuntos (PDFs)
+    const attachments = ticketPDFs.map((pdfBuffer, index) => ({
+      filename: `ticket-${orderNumber}-${index + 1}.pdf`,
+      content: pdfBuffer,
+      type: 'application/pdf',
+    }));
 
     const emailData = {
       from: process.env.EMAIL_FROM,
       to: userEmail,
       subject: `🎫 ${tickets.length > 1 ? 'Tus tickets' : 'Tu ticket'} para ${eventTitle}`,
       html: emailHtml,
+      attachments,
     };
 
     await resend.emails.send(emailData);
@@ -98,7 +138,8 @@ export async function sendTicketEmail({
     logger.email.sent("ticket", userEmail, emailData.subject, {
       eventTitle,
       orderNumber,
-      ticketCount: tickets.length
+      ticketCount: tickets.length,
+      pdfCount: ticketPDFs.length
     });
   } catch (error) {
     logger.email.failed("ticket", userEmail, error as Error, {
@@ -137,7 +178,26 @@ export async function sendCourtesyEmail({
 
     const userName = user.firstName || user.email.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
-    const expiresAt = formatFullDateTime(courtesyRequest.expiresAt!);
+    
+    
+    const formatDateAsChileLocal = (date: Date) => {
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      const hour = date.getUTCHours();
+      const minute = date.getUTCMinutes();
+      const chileLocalDate = new Date(year, month, day, hour, minute);
+      return chileLocalDate.toLocaleString('es-CL', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    };
+    
+    const expiresAt = formatDateAsChileLocal(courtesyRequest.expiresAt!);
 
     const emailHtml = await render(
       React.createElement(CourtesyEmail, {
@@ -196,6 +256,7 @@ export async function sendCourtesyInvitationEmail({
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
+    priceTier?: { price: number; currency?: string } | null;
   };
   event: FullEvent;
   ticket: {
@@ -211,6 +272,20 @@ export async function sendCourtesyInvitationEmail({
     orderId: string;
     ticketTypeId?: string | null;
     seatId?: string | null;
+    ticketType?: {
+      id: string;
+      name: string;
+      price: number;
+      description?: string | null;
+      currency: string;
+      capacity: number;
+      status: string;
+      eventId: string;
+      ticketsGenerated: number;
+      createdAt: Date;
+      updatedAt: Date;
+      [key: string]: unknown;
+    } | null;
   };
 }) {
   if (!resend || !process.env.EMAIL_FROM) {
@@ -229,23 +304,57 @@ export async function sendCourtesyInvitationEmail({
     const { formatFullDateTime } = await loadDateUtils();
     
     
-    const { generateQRCodeBase64 } = await import('@/lib/qr-generator');
+    const { generateTicketPDF } = await import('./ticket-pdf-generator');
 
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
     
-    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticket.qrCode}`;
-    const qrCodeImage = await generateQRCodeBase64(ticket.qrCode, verificationUrl);
+    const formatDateAsChileLocal = (date: Date) => {
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth();
+      const day = date.getUTCDate();
+      const hour = date.getUTCHours();
+      const minute = date.getUTCMinutes();
+      const chileLocalDate = new Date(year, month, day, hour, minute);
+      return chileLocalDate.toLocaleString('es-CL', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit'
+      });
+    };
+    
+    const freeUntil = invitation.expiresAt ? formatDateAsChileLocal(invitation.expiresAt) : undefined;
+    let afterPrice: string | undefined = undefined;
+    
+    const { formatCurrency } = await import('@/lib/utils');
+    
+    if (invitation.priceTier && typeof invitation.priceTier.price === 'number') {
+      afterPrice = formatCurrency(invitation.priceTier.price, invitation.priceTier.currency || event.currency || 'CLP');
+    } else if (ticket.ticketType && typeof ticket.ticketType.price === 'number') {
+      afterPrice = formatCurrency(ticket.ticketType.price, ticket.ticketType.currency || event.currency || 'CLP');
+    }
 
-    logger.email.processing("courtesy_invitation_qr", invitation.invitedEmail, {
-      qrSize: Math.ceil(qrCodeImage.length / 1024), 
-      verificationUrl
+    // Generar PDF del ticket
+    const orderNumber = `CORTESÍA-${invitation.id.slice(-8).toUpperCase()}`;
+    const ticketPDF = await generateTicketPDF({
+      qrCode: ticket.qrCode,
+      eventName: event.title,
+      eventDate,
+      eventLocation: event.location,
+      orderNumber,
+      ticketNumber: 1,
+      userName,
+      ticketTypeName: ticket.ticketType?.name,
     });
 
-    
-    const qrBase64Data = qrCodeImage.replace(/^data:image\/png;base64,/, '');
-    const qrBuffer = Buffer.from(qrBase64Data, 'base64');
+    logger.email.processing("courtesy_invitation_pdf", invitation.invitedEmail, {
+      pdfSize: Math.ceil(ticketPDF.length / 1024),
+      orderNumber
+    });
 
     const emailHtml = await render(
       React.createElement(TicketEmail, {
@@ -253,27 +362,30 @@ export async function sendCourtesyInvitationEmail({
         eventName: event.title,
         eventDate,
         eventLocation: event.location,
-        orderNumber: `CORTESÍA-${invitation.id.slice(-8).toUpperCase()}`,
+        orderNumber,
+        ticketTypeName: ticket.ticketType?.name || undefined,
         tickets: [{
           qrCode: ticket.qrCode,
-          qrCodeImage: qrCodeImage, 
+          qrCodeImage: '', // No usado en modo PDF
           backupCode: ticket.qrCode
         }],
+        freeUntil,
+        afterPrice,
+        attachmentMode: true, // PDF adjunto
       })
     );
 
     const emailData = {
       from: process.env.EMAIL_FROM,
       to: invitation.invitedEmail,
-      subject: `🎉 Invitación gratuita para ${event.title}`,
+      subject: `🎉 Invitación para ${event.title}`,
       html: emailHtml,
       
       attachments: [
         {
-          filename: `sorykpass-ticket-${ticket.qrCode.slice(-8)}.png`,
-          content: qrBuffer,
-          contentType: 'image/png',
-          contentDisposition: 'attachment'
+          filename: `ticket-${orderNumber}.pdf`,
+          content: ticketPDF,
+          type: 'application/pdf',
         }
       ]
     };

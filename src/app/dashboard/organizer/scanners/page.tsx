@@ -1,4 +1,7 @@
 import { requireAuth } from "@/lib/auth";
+
+
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,17 +101,33 @@ export default async function ScannersPage() {
   const scannerList = Object.values(uniqueScanners);
 
   return (
-    <div className="space-y-6">
-      {}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestión de Validadores</h1>
-          <p className="text-muted-foreground mt-1">
-            Administra usuarios que pueden escanear tickets en tus eventos
-          </p>
+    <div className="space-y-8">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              👥 Gestión de Validadores
+            </h1>
+            <p className="text-blue-100 mt-2">
+              Administra usuarios que pueden escanear tickets en tus eventos
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <Link href="/dashboard/organizer/scanners/invite">
+              <Button variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <Plus className="w-4 h-4 mr-2" />
+                Invitar Scanner
+              </Button>
+            </Link>
+          </div>
         </div>
+      </div>
+
+      {/* Mobile button */}
+      <div className="md:hidden">
         <Link href="/dashboard/organizer/scanners/invite">
-          <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+          <Button className="w-full">
             <Plus className="w-4 h-4 mr-2" />
             Invitar Scanner
           </Button>

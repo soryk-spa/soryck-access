@@ -169,7 +169,7 @@ model TicketType {
   id               String           @id @default(cuid())
   name             String
   description      String?
-  price            Float
+  price            Float            // Precio base/por defecto
   currency         String           @default("CLP")
   capacity         Int
   ticketsGenerated Int              @default(1)
@@ -178,10 +178,29 @@ model TicketType {
   event            Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   tickets          Ticket[]
   promoCodes       PromoCode[]
+  priceTiers       PriceTier[]      // Nuevos niveles de precio dinámico
+  courtesyInvitations CourtesyInvitation[] @relation("TicketTypeCourtesyInvitations")
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@map("ticket_types")
+}
+
+model PriceTier {
+  id           String     @id @default(cuid())
+  name         String     // Ej: "Early Bird", "Regular", "Last Minute"
+  price        Float      // Precio para este nivel
+  currency     String     @default("CLP")
+  startDate    DateTime   // Cuándo empieza este precio
+  endDate      DateTime?  // Cuándo termina (null = hasta el final del evento)
+  isActive     Boolean    @default(true)
+  ticketTypeId String
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+  courtesyInvitations CourtesyInvitation[] @relation("PriceTierCourtesyInvitations")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("price_tiers")
 }
 
 model PromoCode {
@@ -200,6 +219,7 @@ model PromoCode {
   usageLimitPerUser Int?
   validFrom         DateTime
   validUntil        DateTime?
+  priceAfter        Float?          // Precio fijo después de validUntil (para pricing dinámico)
 
   eventId      String?
   event        Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
@@ -300,24 +320,34 @@ enum CourtesyCodeType {
 }
 
 model CourtesyInvitation {
-  id             String                     @id @default(cuid())
-  eventId        String
-  invitedEmail   String
-  invitedName    String?
-  message        String?
-  status         CourtesyInvitationStatus   @default(PENDING)
-  invitationCode String?                    @unique
-  sentAt         DateTime?
-  acceptedAt     DateTime?
-  expiresAt      DateTime?
-  ticketId       String?                    @unique
-  createdBy      String
-  createdAt      DateTime                   @default(now())
-  updatedAt      DateTime                   @updatedAt
+  id              String                     @id @default(cuid())
+  eventId         String
+  invitedEmail    String
+  invitedName     String?
+  message         String?
+  status          CourtesyInvitationStatus   @default(PENDING)
+  invitationCode  String?                    @unique
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+  expiresAt       DateTime?
+  ticketId        String?                    @unique
+  ticketTypeId    String?
+  supersededById  String?                    @unique // ID de la invitación que reemplazó a esta
+  supersededAt    DateTime?                  // Cuándo fue reemplazada
+  createdBy       String
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
 
   event   Event   @relation("EventCourtesyInvitations", fields: [eventId], references: [id], onDelete: Cascade)
   creator User    @relation("CreatedCourtesyInvitations", fields: [createdBy], references: [id], onDelete: Cascade)
   ticket  Ticket? @relation("CourtesyInvitationTicket", fields: [ticketId], references: [id], onDelete: SetNull)
+  ticketType TicketType? @relation("TicketTypeCourtesyInvitations", fields: [ticketTypeId], references: [id], onDelete: SetNull)
+  priceTierId String?
+  priceTier PriceTier? @relation("PriceTierCourtesyInvitations", fields: [priceTierId], references: [id], onDelete: SetNull)
+  
+  // Relación para trackear invitaciones supersedidas
+  supersededBy CourtesyInvitation? @relation("SupersededInvitation", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes   CourtesyInvitation? @relation("SupersededInvitation")
 
   @@unique([eventId, invitedEmail])
   @@index([eventId])
@@ -328,10 +358,11 @@ model CourtesyInvitation {
 }
 
 enum CourtesyInvitationStatus {
-  PENDING  // Invitación pendiente de envío
-  SENT     // Invitación enviada
-  ACCEPTED // Invitación aceptada (ticket generado)
-  EXPIRED  // Invitación expirada
+  PENDING    // Invitación pendiente de envío
+  SENT       // Invitación enviada
+  ACCEPTED   // Invitación aceptada (ticket generado)
+  EXPIRED    // Invitación expirada
+  SUPERSEDED // Invitación reemplazada por una nueva versión editada
 }
 
 model Payment {
@@ -501,6 +532,12 @@ model Section {
   seatsPerRow Int     @default(1) // Asientos por fila (para generar grilla)
   hasSeats   Boolean  @default(true) // Si tiene asientos numerados o es general
   description String? // Descripción adicional de la sección
+  // Campos para el editor visual
+  x          Float?   // Posición X en el canvas del editor
+  y          Float?   // Posición Y en el canvas del editor
+  width      Float?   // Ancho en el canvas del editor
+  height     Float?   // Alto en el canvas del editor
+  rotation   Float    @default(0) // Rotación en grados
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   eventId    String
@@ -519,6 +556,9 @@ model EventSeat {
   price        Float?     // Precio específico del asiento (opcional)
   status       SeatStatus @default(AVAILABLE)
   isAccessible Boolean    @default(false) // Para asientos de accesibilidad
+  // Campos para posición visual en el editor
+  x            Float?     // Posición X relativa a la sección
+  y            Float?     // Posición Y relativa a la sección
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   sectionId    String

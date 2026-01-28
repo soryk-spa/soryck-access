@@ -1,6 +1,9 @@
 import ModernAdminDashboard from "./modern-page";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
-  // Usar el nuevo dashboard moderno de admin
+  
   return <ModernAdminDashboard />;
 }

@@ -1,5 +1,8 @@
 import { requireOrganizer } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 import CreateEventForm from "@/components/create-event-form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
@@ -83,18 +86,28 @@ const FeatureCard = ({
 export default async function CreateEventPage() {
   const user = await requireOrganizer();
 
-  const categories = await prisma.category.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
-
-  
-  const [userEvents, userStats] = await Promise.all([
+  const [categories, venues, userEvents, userStats] = await Promise.all([
+    prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+    prisma.venue.findMany({
+      where: { createdBy: user.id },
+      select: {
+        id: true,
+        name: true,
+        address: true,
+        capacity: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
     prisma.event.count({
       where: { organizerId: user.id },
     }),
@@ -237,7 +250,11 @@ export default async function CreateEventPage() {
 
         {}
         {categories.length > 0 ? (
-          <CreateEventForm categories={categories} mode="create" />
+          <CreateEventForm 
+            categories={categories} 
+            venues={venues}
+            mode="create" 
+          />
         ) : (
           <Card className="border-0 shadow-lg">
             <CardContent className="py-16 text-center">

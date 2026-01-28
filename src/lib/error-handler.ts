@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
-import { ClerkAPIError } from '@clerk/nextjs/errors';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
+
+// Tipo para errores de Clerk
+interface ClerkError extends Error {
+  clerkError?: boolean;
+  status?: number;
+}
 
 /**
  * Tipos de errores personalizados
@@ -18,7 +23,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public details?: any) {
+  constructor(message: string, public details?: unknown) {
     super(message, 400, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
   }
@@ -52,7 +57,7 @@ function mapErrorToResponse(error: unknown): {
   message: string;
   statusCode: number;
   code?: string;
-  details?: any;
+  details?: unknown;
 } {
   // Errores personalizados
   if (error instanceof AppError) {
@@ -69,7 +74,7 @@ function mapErrorToResponse(error: unknown): {
       message: 'Datos inválidos',
       statusCode: 400,
       code: 'VALIDATION_ERROR',
-      details: error.errors.map(err => ({
+      details: error.issues.map((err: ZodIssue) => ({
         field: err.path.join('.'),
         message: err.message,
       })),
@@ -107,10 +112,11 @@ function mapErrorToResponse(error: unknown): {
   }
 
   // Errores de Clerk
-  if (error instanceof ClerkAPIError) {
+  if (error && typeof error === 'object' && 'clerkError' in error) {
+    const clerkError = error as ClerkError;
     return {
       message: 'Error de autenticación',
-      statusCode: 401,
+      statusCode: clerkError.status || 401,
       code: 'AUTH_ERROR',
     };
   }
@@ -150,7 +156,16 @@ export function handleError(error: unknown): NextResponse {
     timestamp: new Date().toISOString(),
   });
 
-  const response: any = {
+  const response: {
+    error: string;
+    code?: string;
+    timestamp: string;
+    details?: unknown;
+    debug?: {
+      originalError: string;
+      stack?: string;
+    };
+  } = {
     error: message,
     code,
     timestamp: new Date().toISOString(),
@@ -175,7 +190,7 @@ export function handleError(error: unknown): NextResponse {
 /**
  * Wrapper para API handlers con manejo de errores automático
  */
-export function withErrorHandler<T extends any[]>(
+export function withErrorHandler<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {

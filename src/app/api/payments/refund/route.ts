@@ -3,6 +3,9 @@ import { webpayPlus } from '@/lib/transbank';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 
+
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();

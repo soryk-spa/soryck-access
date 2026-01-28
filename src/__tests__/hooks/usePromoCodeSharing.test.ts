@@ -1,15 +1,12 @@
-/**
- * Tests para las funcionalidades de compartir códigos promocionales
- * Tests simplificados que no dependen de hooks de React
- */
+
 
 import { toast } from 'sonner';
 
-// Mock toast
+
 jest.mock('sonner');
 const mockToast = toast as jest.Mocked<typeof toast>;
 
-// Mock navigator clipboard
+
 Object.assign(navigator, {
   clipboard: {
     writeText: jest.fn().mockImplementation(() => Promise.resolve()),
@@ -17,7 +14,7 @@ Object.assign(navigator, {
   share: jest.fn().mockImplementation(() => Promise.resolve()),
 });
 
-// Mock PromoCode data
+
 const mockPromoCodes = [
   {
     id: '1',
@@ -74,7 +71,7 @@ describe('Funcionalidades de Compartir Códigos Promocionales', () => {
     });
 
     it('usa clipboard como fallback cuando no hay Web Share API', async () => {
-      // Temporalmente eliminar Web Share API
+      
       const originalShare = navigator.share;
       delete (navigator as unknown as { share?: typeof navigator.share }).share;
 
@@ -101,7 +98,7 @@ describe('Funcionalidades de Compartir Códigos Promocionales', () => {
         'Texto de promoción copiado al portapapeles'
       );
 
-      // Restaurar Web Share API
+      
       (navigator as unknown as { share?: typeof navigator.share }).share = originalShare;
     });
   });
@@ -172,15 +169,15 @@ describe('Funcionalidades de Compartir Códigos Promocionales', () => {
       const formatDiscount = (type: string, value: number) => 
         type === 'PERCENTAGE' ? `${value}%` : `$${value.toLocaleString()}`;
 
-      // Los números se formatean según la configuración regional
-      // En entorno de test, puede usar punto o coma como separador
+      
+      
       const formatted10k = formatDiscount('FIXED_AMOUNT', 10000);
       const formatted5500 = formatDiscount('FIXED_AMOUNT', 5500);
 
-      // Verificar que contiene el símbolo de moneda y el valor
+      
       expect(formatted10k).toContain('$');
       expect(formatted10k).toContain('10');
-      // Aceptar formatos locales con o sin separador de miles
+      
       expect(['$5500', '$5,500', '$5.500']).toContain(formatted5500);
     });
   });
@@ -189,37 +186,37 @@ describe('Funcionalidades de Compartir Códigos Promocionales', () => {
     it('simula la creación de blob y descarga', () => {
       const csvContent = 'header1,header2\nvalue1,value2';
       
-      // Crear blob para el CSV
+      
       new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-      // Simular creación de elementos DOM
+      
       const mockLink = {
         setAttribute: jest.fn(),
         click: jest.fn(),
         style: { visibility: 'hidden' },
       } as unknown as HTMLAnchorElement;
 
-      // Mock del proceso de descarga
+      
       const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue(mockLink);
       const appendChildSpy = jest.spyOn(document.body, 'appendChild').mockImplementation();
       const removeChildSpy = jest.spyOn(document.body, 'removeChild').mockImplementation();
 
-      // Simular el proceso de descarga directamente
+      
       const element = document.createElement('a');
       element.setAttribute('href', 'blob:mock-url');
       element.setAttribute('download', 'test.csv');
       element.style.visibility = 'hidden';
       
-      // Simular append, click, remove
+      
       document.body.appendChild(element);
       element.click();
       document.body.removeChild(element);
 
-      // Verificar que las funciones del mock funcionan
+      
       expect(mockLink.setAttribute).toBeDefined();
       expect(mockLink.click).toBeDefined();
 
-      // Limpiar mocks
+      
       createElementSpy.mockRestore();
       appendChildSpy.mockRestore();
       removeChildSpy.mockRestore();

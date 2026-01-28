@@ -124,18 +124,28 @@ export function SettingsClient({
   };
 
   return (
-    <div className="space-y-6">
-      {}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Configuración</h1>
-          <p className="text-muted-foreground">
-            Gestiona tu cuenta y preferencias de la plataforma
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Badge variant="outline">{userRole}</Badge>
-          <Button onClick={handleSave} disabled={saving || loading}>
+    <div className="space-y-8">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              ⚙️ Configuración
+            </h1>
+            <p className="text-blue-100 mt-2">
+              Gestiona tu cuenta y preferencias de la plataforma
+            </p>
+          </div>
+          <div className="hidden md:flex items-center space-x-2">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+              {userRole}
+            </Badge>
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || loading}
+              variant="secondary"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
             {saving ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
@@ -153,7 +163,34 @@ export function SettingsClient({
               </>
             )}
           </Button>
+          </div>
         </div>
+      </div>
+
+      {/* Mobile save button */}
+      <div className="md:hidden">
+        <Button 
+          onClick={handleSave} 
+          disabled={saving || loading}
+          className="w-full"
+        >
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+              Guardando...
+            </>
+          ) : saved ? (
+            <>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Guardado
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Guardar Cambios
+            </>
+          )}
+        </Button>
       </div>
 
       {(saved || success) && (
@@ -277,7 +314,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.websiteUrl || ''}
                     onChange={(e) => setUserData({...userData, websiteUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://www.ejemplo.com"
                   />
                 </div>
                 <div className="space-y-2">
@@ -287,7 +324,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.twitterUrl || ''}
                     onChange={(e) => setUserData({...userData, twitterUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://twitter.com/usuario"
                   />
                 </div>
                 <div className="space-y-2">
@@ -297,7 +334,7 @@ export function SettingsClient({
                     type="url"
                     value={userData.instagramUrl || ''}
                     onChange={(e) => setUserData({...userData, instagramUrl: e.target.value})}
-                    placeholder="https:
+                    placeholder="https://instagram.com/usuario"
                   />
                 </div>
               </div>

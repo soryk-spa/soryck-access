@@ -23,16 +23,14 @@ import {
   Loader2,
   Shield,
   CheckCircle,
-  Star,
   Copy,
   Globe,
   X,
   Sparkles,
-  TrendingUp,
   Award,
-  Zap,
 } from "lucide-react";
 import { calculateTotalPrice, formatPrice } from "@/lib/commission";
+import { getCurrentPrice, type TicketTypeWithPricing } from "@/lib/pricing";
 import TicketPurchaseForm from "@/components/ticket-purchase-form";
 import PurchaseFlow from "@/components/purchase-flow";
 import { formatFullDateTime } from "@/lib/date";
@@ -65,7 +63,15 @@ type EventDetailViewProps = {
       price: number;
       currency: string;
       capacity: number;
-      _count: { tickets: number };
+      priceTiers?: Array<{
+        id: string;
+        name: string;
+        price: number;
+        currency: string;
+        startDate: string;
+        endDate?: string;
+        isActive: boolean;
+      }>;
     }>;
     sections?: Array<{
       id: string;
@@ -90,7 +96,6 @@ type EventDetailViewProps = {
       }>;
     }>;
     _count: {
-      tickets: number;
       orders: number;
     };
   };
@@ -119,26 +124,39 @@ export default function EventDetailView({
   const isOwner = user && event.organizer.id === user.id;
   const isAdmin = user && user.role === "ADMIN";
 
-  const totalCapacity = event.ticketTypes.reduce(
-    (sum, type) => sum + type.capacity,
-    0
-  );
-  const availableTickets = totalCapacity - event._count.tickets;
-  const isSoldOut = availableTickets <= 0;
-  const salesPercentage = Math.round(
-    (event._count.tickets / totalCapacity) * 100
-  );
-
   const displayPrice = getEventPriceDisplay(event.ticketTypes);
 
   function getEventPriceDisplay(
     ticketTypes: EventDetailViewProps["event"]["ticketTypes"]
   ) {
     if (!ticketTypes.length) return "No disponible";
-    const prices = ticketTypes.map((t) => calculateTotalPrice(t.price));
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
+    
+    
+    const dynamicPrices = ticketTypes.map((t) => {
+      if (!t.priceTiers || t.priceTiers.length === 0) {
+        return calculateTotalPrice(t.price);
+      }
+
+      const ticketTypeWithPricing: TicketTypeWithPricing = {
+        id: t.id,
+        name: t.name,
+        price: t.price,
+        currency: t.currency,
+        priceTiers: t.priceTiers.map(tier => ({
+          ...tier,
+          startDate: new Date(tier.startDate),
+          endDate: tier.endDate ? new Date(tier.endDate) : null,
+        })),
+      };
+
+      const currentPriceInfo = getCurrentPrice(ticketTypeWithPricing);
+      return calculateTotalPrice(currentPriceInfo.price);
+    });
+
+    const min = Math.min(...dynamicPrices);
+    const max = Math.max(...dynamicPrices);
     const currency = ticketTypes[0].currency;
+    
     if (min === 0 && max === 0) return "Gratis";
     if (min === max) return formatPrice(min, currency);
     return `Desde ${formatPrice(min, currency)}`;
@@ -226,19 +244,6 @@ export default function EventDetailView({
                     </Badge>
                   )}
 
-                  {isSoldOut && !isPast && (
-                    <Badge className="bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] text-white border-0 px-4 py-2">
-                      <TrendingUp className="w-4 h-4 mr-2" />
-                      Agotado
-                    </Badge>
-                  )}
-
-                  {salesPercentage > 80 && !isSoldOut && (
-                    <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0 px-4 py-2">
-                      <Zap className="w-4 h-4 mr-2" />
-                      ¡Últimas entradas!
-                    </Badge>
-                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -331,20 +336,6 @@ export default function EventDetailView({
                       />
                     </div>
 
-                    {!isPast && (
-                      <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="font-medium">Entradas vendidas</span>
-                          <span className="font-bold">{salesPercentage}%</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div
-                            className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${salesPercentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="relative w-full max-w-2xl mx-auto">
@@ -357,20 +348,6 @@ export default function EventDetailView({
                       </div>
                     </div>
 
-                    {!isPast && (
-                      <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="font-medium">Entradas vendidas</span>
-                          <span className="font-bold">{salesPercentage}%</span>
-                        </div>
-                        <div className="w-full bg-muted rounded-full h-2">
-                          <div
-                            className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${salesPercentage}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -407,110 +384,6 @@ export default function EventDetailView({
                   </Card>
                 )}
 
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <div className="w-10 h-10 bg-gradient-to-r from-[#FE4F00] to-[#CC66CC] rounded-lg flex items-center justify-center">
-                        <Ticket className="h-5 w-5 text-white" />
-                      </div>
-                      Entradas Disponibles
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    <div className="space-y-6">
-                      {event.ticketTypes.map((ticketType, index) => {
-                        const typePrice = calculateTotalPrice(ticketType.price);
-                        const ticketsSoldForType = ticketType._count.tickets;
-                        const availableForType =
-                          ticketType.capacity - ticketsSoldForType;
-                        const isTypeSoldOut = availableForType <= 0;
-                        const typePercentage = Math.round(
-                          (ticketsSoldForType / ticketType.capacity) * 100
-                        );
-
-                        return (
-                          <div
-                            key={ticketType.id}
-                            className="relative p-6 border-2 rounded-xl hover:border-[#0053CC] transition-all duration-300 hover:shadow-lg group"
-                          >
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="space-y-2 flex-1">
-                                <div className="flex items-center gap-3">
-                                  <h3 className="font-bold text-xl group-hover:text-[#0053CC] transition-colors">
-                                    {ticketType.name}
-                                  </h3>
-                                  {index === 0 && (
-                                    <Badge className="bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white border-0">
-                                      <Star className="w-3 h-3 mr-1" />
-                                      Popular
-                                    </Badge>
-                                  )}
-                                </div>
-
-                                {ticketType.description && (
-                                  <p className="text-muted-foreground">
-                                    {ticketType.description}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className="text-right space-y-1">
-                                <p className="text-3xl font-bold bg-gradient-to-r from-[#0053CC] to-[#01CBFE] bg-clip-text text-transparent">
-                                  {formatPrice(typePrice, ticketType.currency)}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  por entrada
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground">
-                                  Disponibilidad
-                                </span>
-                                <span
-                                  className={`font-medium ${isTypeSoldOut ? "text-destructive" : "text-green-600"}`}
-                                >
-                                  {isTypeSoldOut
-                                    ? "Agotado"
-                                    : `${availableForType} disponibles`}
-                                </span>
-                              </div>
-
-                              <div className="space-y-2">
-                                <div className="w-full bg-muted rounded-full h-2">
-                                  <div
-                                    className={`h-2 rounded-full transition-all duration-300 ${
-                                      typePercentage > 80
-                                        ? "bg-gradient-to-r from-[#FE4F00] to-[#CC66CC]"
-                                        : "bg-gradient-to-r from-[#0053CC] to-[#01CBFE]"
-                                    }`}
-                                    style={{ width: `${typePercentage}%` }}
-                                  ></div>
-                                </div>
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>{ticketsSoldForType} vendidas</span>
-                                  <span>{ticketType.capacity} totales</span>
-                                </div>
-                              </div>
-
-                              {isTypeSoldOut && (
-                                <Badge
-                                  variant="destructive"
-                                  className="w-full justify-center py-2"
-                                >
-                                  <Clock className="w-4 h-4 mr-2" />
-                                  Agotado
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
                 <Card className="border-0 shadow-lg">
                   <CardHeader className="bg-gradient-to-r from-muted/50 to-transparent">
                     <CardTitle className="flex items-center gap-3 text-xl">
@@ -662,11 +535,6 @@ export default function EventDetailView({
                           <Clock className="h-5 w-5 mr-2" />
                           Evento finalizado
                         </Button>
-                      ) : isSoldOut ? (
-                        <Button disabled className="w-full" size="lg">
-                          <Ticket className="h-5 w-5 mr-2" />
-                          Entradas agotadas
-                        </Button>
                       ) : user ? (
                         event.hasSeatingPlan ? (
                           <div className="space-y-3">
@@ -768,38 +636,6 @@ export default function EventDetailView({
                         >
                           {event.category.name}
                         </Badge>
-                      </div>
-
-                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
-                        <span className="text-muted-foreground">
-                          Capacidad total
-                        </span>
-                        <span className="font-semibold">
-                          {totalCapacity.toLocaleString()} personas
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
-                        <span className="text-muted-foreground">
-                          Entradas vendidas
-                        </span>
-                        <div className="text-right">
-                          <span className="font-semibold">
-                            {event._count.tickets.toLocaleString()}
-                          </span>
-                          <div className="text-xs text-muted-foreground">
-                            {salesPercentage}% del total
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center py-2 border-b border-muted/50">
-                        <span className="text-muted-foreground">
-                          Órdenes realizadas
-                        </span>
-                        <span className="font-semibold">
-                          {event._count.orders.toLocaleString()}
-                        </span>
                       </div>
 
                       <div className="flex justify-between items-center py-2">
@@ -947,7 +783,7 @@ export default function EventDetailView({
               <TicketPurchaseForm
                 event={{
                   ...event,
-                  capacity: totalCapacity,
+                  capacity: 0,
                   price: event.ticketTypes.length > 0 ? Math.min(...event.ticketTypes.map(t => t.price)) : 0,
                   currency: event.ticketTypes.length > 0 ? event.ticketTypes[0].currency : "CLP",
                   isFree: event.ticketTypes.every(t => t.price === 0),
@@ -984,7 +820,6 @@ export default function EventDetailView({
                   currency: t.currency,
                   eventId: event.id,
                   ticketsGenerated: 1,
-                  _count: t._count,
                 }))}
               />
             </div>
@@ -992,7 +827,7 @@ export default function EventDetailView({
         </div>
       )}
 
-      {/* New Purchase Flow with Seat Selection */}
+      {}
       {showPurchaseFlow && event.sections && (
         <PurchaseFlow
           event={{
@@ -1002,15 +837,10 @@ export default function EventDetailView({
             location: event.location,
             hasSeatingPlan: event.hasSeatingPlan || false
           }}
+          eventId={event.id}
           sections={event.sections}
           isOpen={showPurchaseFlow}
           onClose={() => setShowPurchaseFlow(false)}
-          onPurchaseComplete={() => {
-            setShowPurchaseFlow(false)
-            toast.success('¡Compra realizada exitosamente!')
-            // Aquí podrías redirigir a una página de confirmación
-            // router.push(`/orders/${orderId}`)
-          }}
         />
       )}
     </div>

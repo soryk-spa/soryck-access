@@ -6,6 +6,9 @@ import { Loader2 } from "lucide-react";
 import type { Category } from "@/types";
 
 
+export const dynamic = 'force-dynamic'
+
+
 function LoadingSkeleton() {
   return (
     <div className="flex items-center justify-center min-h-[400px]">

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { canAccessEvent } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { CacheInvalidation } from '@/lib/cache-invalidation'
 
 export async function PATCH(
   request: NextRequest,
@@ -80,6 +81,9 @@ export async function PATCH(
         }
       }
     })
+
+    
+    await CacheInvalidation.invalidateEventsCache();
 
     return NextResponse.json({
       message: isPublished ? 'Evento publicado exitosamente' : 'Evento despublicado exitosamente',

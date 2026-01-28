@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+.jest-cache/
 
 # next.js
 /.next/
@@ -44,3 +45,20 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# experimental/development files (exclude from main)
+/src/experimental/
+
+# output files (sample PDFs, etc)
+/output/
+/src/playground/
+/src/sandbox/
+*.experimental.*
+*.draft.*
+*.temp.*
+*-backup.*
+*-old.*
+
+# Local backups created by scripts
+backups/
+build.log

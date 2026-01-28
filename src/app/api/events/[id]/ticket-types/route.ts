@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireOrganizer } from "@/lib/auth";
+
+
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 
 export async function GET(

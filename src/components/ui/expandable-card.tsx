@@ -186,7 +186,7 @@ export const CloseIcon = () => {
           duration: 0.05,
         },
       }}
-      xmlns="http:
+      xmlns="http://www.w3.org/2000/svg"
       width="24"
       height="24"
       viewBox="0 0 24 24"
@@ -208,9 +208,9 @@ const cards = [
   {
     description: "Lana Del Rey",
     title: "Summertime Sadness",
-    src: "https:
+    src: "https://example.com/lana-del-rey.jpg",
     ctaText: "Play",
-    ctaLink: "https:
+    ctaLink: "https://example.com/play-lana",
     content: () => {
       return (
         <p>
@@ -231,9 +231,9 @@ const cards = [
   {
     description: "Babbu Maan",
     title: "Mitran Di Chhatri",
-    src: "https:
+    src: "https://example.com/babbu-maan.jpg",
     ctaText: "Play",
-    ctaLink: "https:
+    ctaLink: "https://example.com/play-babbu",
     content: () => {
       return (
         <p>
@@ -254,9 +254,9 @@ const cards = [
   {
     description: "Metallica",
     title: "For Whom The Bell Tolls",
-    src: "https:
+    src: "https://example.com/metallica.jpg",
     ctaText: "Play",
-    ctaLink: "https:
+    ctaLink: "https://example.com/play-metallica",
     content: () => {
       return (
         <p>
@@ -276,9 +276,9 @@ const cards = [
   {
     description: "Led Zeppelin",
     title: "Stairway To Heaven",
-    src: "https:
+    src: "https://example.com/led-zeppelin.jpg",
     ctaText: "Play",
-    ctaLink: "https:
+    ctaLink: "https://example.com/play-led-zeppelin",
     content: () => {
       return (
         <p>
@@ -297,9 +297,9 @@ const cards = [
   {
     description: "Mustafa Zahid",
     title: "Toh Phir Aao",
-    src: "https:
+    src: "https://example.com/mustafa-zahid.jpg",
     ctaText: "Play",
-    ctaLink: "https:
+    ctaLink: "https://example.com/play-mustafa",
     content: () => {
       return (
         <p>

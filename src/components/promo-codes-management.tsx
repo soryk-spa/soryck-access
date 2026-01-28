@@ -241,7 +241,7 @@ export default function PromoCodesManagement({ initialPromoCodes }: PromoCodesMa
         gradient: "from-[#0053CC] to-[#01CBFE]"
       }}
     >
-      {/* Estadísticas */}
+      {}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard
           title="Total Códigos"
@@ -277,7 +277,7 @@ export default function PromoCodesManagement({ initialPromoCodes }: PromoCodesMa
         />
       </div>
 
-      {/* Filtros y búsqueda */}
+      {}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -325,7 +325,7 @@ export default function PromoCodesManagement({ initialPromoCodes }: PromoCodesMa
         </CardContent>
       </Card>
 
-      {/* Tabla de códigos promocionales */}
+      {}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

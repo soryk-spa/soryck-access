@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
+
+
+export const dynamic = 'force-dynamic'
 import { CacheService } from '@/lib/redis'
 import { auth } from '@clerk/nextjs/server'
 

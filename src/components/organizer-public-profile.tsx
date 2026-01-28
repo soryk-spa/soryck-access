@@ -172,14 +172,6 @@ export default function OrganizerPublicProfile({
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-primary">
-              {events.reduce((sum, event) => sum + event._count.orders, 0)}
-            </div>
-            <div className="text-sm text-muted-foreground">Órdenes totales</div>
-          </CardContent>
-        </Card>
       </div>
 
       {}

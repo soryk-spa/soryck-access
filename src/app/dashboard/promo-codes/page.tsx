@@ -2,6 +2,9 @@ import { requireOrganizer } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import PromoCodesManagement from "@/components/promo-codes-management";
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function PromoCodesPage() {
   const user = await requireOrganizer();
 

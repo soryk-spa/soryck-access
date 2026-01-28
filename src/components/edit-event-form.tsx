@@ -30,14 +30,14 @@ import {
   Clock,
   DollarSign,
   CheckCircle2,
-  Activity,
   ArrowLeft,
   Gift,
 } from "lucide-react";
 
 
-import type { Category, Event, User } from "@/types";
+import type { Category, Event, User, PriceTier } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import PriceTierManager from "@/components/price-tier-manager";
 import {
   useEventForm,
   useTicketTypes,
@@ -114,11 +114,17 @@ export default function EditEventForm({
     endDate: event.endDate || "",
     categoryId: event.category.id,
     imageUrl: event.imageUrl || "",
+    allowCourtesy: event.allowCourtesy || false,
+    courtesyLimit: event.courtesyLimit || null,
+    courtesyValidUntil: event.courtesyValidUntil || null,
+    courtesyPriceAfter: event.courtesyPriceAfter || null,
     ticketTypes: event.ticketTypes.map(ticket => ({
+      id: ticket.id,
       name: ticket.name,
       price: ticket.price,
       capacity: ticket.capacity,
       ticketsGenerated: ticket.ticketsGenerated || 1,
+      priceTiers: ticket.priceTiers || [],
     })),
   };
 
@@ -154,7 +160,7 @@ export default function EditEventForm({
   
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {}
       <div className="flex items-center justify-between">
         <Button
@@ -194,13 +200,6 @@ export default function EditEventForm({
           value={formatCurrency(stats.averagePrice)}
           description="Por entrada"
           color="purple"
-        />
-        <StatCard
-          icon={<Activity />}
-          title="Vendidos"
-          value={event._count?.tickets || 0}
-          description="Entradas vendidas"
-          color="orange"
         />
       </div>
 
@@ -391,7 +390,7 @@ export default function EditEventForm({
                           type="number"
                           min="0"
                           value={ticket.price}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "price", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "price", Number(e.target.value))}
                           placeholder="0"
                           className="mt-1"
                         />
@@ -403,7 +402,7 @@ export default function EditEventForm({
                           type="number"
                           min="1"
                           value={ticket.capacity}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "capacity", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "capacity", Number(e.target.value))}
                           placeholder="50"
                           className="mt-1"
                         />
@@ -415,11 +414,27 @@ export default function EditEventForm({
                           type="number"
                           min="1"
                           value={ticket.ticketsGenerated || 1}
-                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "ticketsGenerated", e.target.value)}
+                          onChange={(e) => ticketTypesHook.handleTicketTypeChange(index, "ticketsGenerated", Number(e.target.value))}
                           placeholder="1"
                           className="mt-1"
                         />
                       </div>
+                    </div>
+
+                    {}
+                    <div className="mt-4 border-t pt-4">
+                      <Label className="text-sm font-medium flex items-center gap-2 mb-3">
+                        <Clock className="h-4 w-4" />
+                        Precios Dinámicos (Opcional)
+                      </Label>
+                      <PriceTierManager
+                        ticketTypeName={ticket.name || `Tipo ${index + 1}`}
+                        priceTiers={ticket.priceTiers}
+                        onPriceTiersChange={(priceTiers: PriceTier[]) => ticketTypesHook.handlePriceTiersChange(index, priceTiers)}
+                        eventStartDate={eventForm.formData.startDate ? new Date(eventForm.formData.startDate) : new Date()}
+                        basePrice={ticket.price}
+                        currency="CLP"
+                      />
                     </div>
 
                     <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
@@ -634,12 +649,6 @@ export default function EditEventForm({
                     <span className="font-semibold text-green-600">{formatCurrency(stats.totalCapacity * stats.averagePrice)}</span>
                   </div>
 
-                  {event._count?.tickets > 0 && (
-                    <div className="flex justify-between items-center text-sm pt-2 border-t">
-                      <span className="text-gray-600">Vendidas:</span>
-                      <Badge variant="default">{event._count.tickets}</Badge>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>

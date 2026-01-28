@@ -71,9 +71,9 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                     textAlign: "center",
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  {}
                   <img
-                    src="https:
+                    src="https://example.com/sorykpass-logo.png"
                     alt="SorykPass"
                     width="150"
                     height="40"
@@ -365,7 +365,7 @@ export const ScannerInviteEmail: React.FC<Readonly<ScannerInviteEmailProps>> = (
                   >
                     Este email fue enviado por{" "}
                     <a
-                      href="https:
+                      href="https://example.com"
                       style={{
                         color: "#2563eb",
                         textDecoration: "underline",

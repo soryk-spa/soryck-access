@@ -42,15 +42,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    // Return venue layout with sections and elements
+    
     return NextResponse.json({
       venueId: venue.id,
       name: venue.name,
       description: venue.description,
       address: venue.address,
       capacity: venue.capacity,
-      sections: venue.layoutSections || [], // Return the sections
-      elements: venue.layoutElements || [], // Return the visual elements
+      sections: venue.layoutSections || [], 
+      elements: venue.layoutElements || [], 
     });
   } catch (error) {
     console.error("Error fetching venue layout:", error);
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
     
-    // Handle potential empty body
+    
     let body;
     try {
       const text = await request.text();
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     console.log(`💾 Guardando venue ${id}: ${sections.length} secciones, ${elements.length} elementos`);
 
-    // Verify venue ownership
+    
     const venue = await prisma.venue.findFirst({
       where: {
         id,
@@ -116,18 +116,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Venue no encontrado" }, { status: 404 });
     }
 
-    // Calculate total capacity from sections
+    
     const totalCapacity = sections.reduce((total: number, section: { seats?: unknown[] }) => {
       return total + (section.seats?.length || 0);
     }, 0);
 
-    // Update venue with both sections and elements
+    
     await prisma.venue.update({
       where: { id },
       data: {
         capacity: totalCapacity || venue.capacity,
-        layoutSections: sections, // Store the sections
-        layoutElements: elements, // Store the visual elements
+        layoutSections: sections, 
+        layoutElements: elements, 
       },
     });
 

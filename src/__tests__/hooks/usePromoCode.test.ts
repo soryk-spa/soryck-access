@@ -8,22 +8,22 @@ import {
 } from '@/hooks/usePromoCode';
 import type { PromoCode } from '@/types';
 
-// Mock toast
+
 jest.mock('sonner');
 const mockToast = toast as jest.Mocked<typeof toast>;
 
-// Mock fetch globally
+
 global.fetch = jest.fn();
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
-// Mock navigator clipboard
+
 Object.assign(navigator, {
   clipboard: {
     writeText: jest.fn().mockImplementation(() => Promise.resolve()),
   },
 });
 
-// Mock PromoCode data
+
 const mockPromoCodes: PromoCode[] = [
   {
     id: '1',
@@ -110,7 +110,7 @@ describe('usePromoCodeManagement', () => {
       'Código promocional activado exitosamente'
     );
 
-    // Verificar que el estado local se actualizó
+    
     const updatedPromoCode = result.current.promoCodes.find(p => p.id === '2');
     expect(updatedPromoCode?.status).toBe('ACTIVE');
   });
@@ -247,7 +247,7 @@ describe('usePromoCodeStats', () => {
 describe('usePromoCodeSharing', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock navigator.share
+    
     Object.assign(navigator, {
       share: jest.fn().mockImplementation(() => Promise.resolve()),
     });
@@ -269,7 +269,7 @@ describe('usePromoCodeSharing', () => {
   });
 
   it('copia al portapapeles cuando no hay Web Share API', async () => {
-    // Simular que no hay Web Share API
+    
     Object.assign(navigator, { share: undefined });
 
     const { result } = renderHook(() => usePromoCodeSharing());
@@ -291,16 +291,23 @@ describe('usePromoCodeSharing', () => {
   it('exporta códigos promocionales a CSV', () => {
     const { result } = renderHook(() => usePromoCodeSharing());
 
-    // Mock para crear y hacer click en link de descarga
+    
     const mockLink = {
       setAttribute: jest.fn(),
       click: jest.fn(),
       style: { visibility: '' },
+      href: '',
+      download: '',
     };
+    
+    
+    global.URL = global.URL || {};
+    global.URL.createObjectURL = global.URL.createObjectURL || jest.fn(() => 'blob:mock-url');
+    global.URL.revokeObjectURL = global.URL.revokeObjectURL || jest.fn();
+    
     const mockCreateElement = jest.spyOn(document, 'createElement').mockReturnValue(mockLink as unknown as HTMLAnchorElement);
     const mockAppendChild = jest.spyOn(document.body, 'appendChild').mockImplementation();
     const mockRemoveChild = jest.spyOn(document.body, 'removeChild').mockImplementation();
-    const mockCreateObjectURL = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url');
 
     act(() => {
       result.current.exportPromoCodes(mockPromoCodes);
@@ -311,10 +318,9 @@ describe('usePromoCodeSharing', () => {
       'Códigos promocionales exportados exitosamente'
     );
 
-    // Limpiar mocks
+    
     mockCreateElement.mockRestore();
     mockAppendChild.mockRestore();
     mockRemoveChild.mockRestore();
-    mockCreateObjectURL.mockRestore();
   });
 });

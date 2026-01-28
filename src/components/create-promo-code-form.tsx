@@ -45,6 +45,7 @@ const createPromoCodeSchema = z
     usageLimitPerUser: z.number().min(1).optional(),
     validFrom: z.string().min(1, "Fecha de inicio requerida"),
     validUntil: z.string().optional(),
+    priceAfter: z.number().min(0).optional(),
     eventId: z.string().optional(),
     ticketTypeId: z.string().optional(),
     codeOption: z.enum(["generate", "custom"]),
@@ -93,6 +94,19 @@ const createPromoCodeSchema = z
     {
       message: "El porcentaje no puede ser mayor a 100%",
       path: ["value"],
+    }
+  )
+  .refine(
+    (data) => {
+      
+      if (data.priceAfter && data.priceAfter > 0 && !data.validUntil) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Fecha de vencimiento requerida para precios dinámicos",
+      path: ["validUntil"],
     }
   );
 
@@ -198,6 +212,8 @@ export default function CreatePromoCodeForm({
         headers: {
           "Content-Type": "application/json",
         },
+        
+        credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
 
@@ -267,7 +283,7 @@ export default function CreatePromoCodeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {}
         <div className="lg:col-span-2 space-y-6">
@@ -628,6 +644,48 @@ export default function CreatePromoCodeForm({
                     {...register("validUntil")}
                     className="mt-1"
                   />
+                  {errors.validUntil && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {errors.validUntil.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {}
+              <Separator />
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium">Precios Dinámicos (Opcional)</h3>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      <p className="font-medium mb-1">Sistema de precios dinámicos</p>
+                      <p>El código aplicará el descuento configurado hasta la fecha de vencimiento. Después de esa fecha, se cobrará un precio fijo por ticket.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="priceAfter">Precio después del vencimiento (CLP)</Label>
+                  <Input
+                    id="priceAfter"
+                    type="number"
+                    {...register("priceAfter", {
+                      setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                    })}
+                    placeholder="Opcional - Precio fijo después del vencimiento"
+                    min="0"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Si se establece, requiere fecha de vencimiento. Ejemplo: Gratis hasta el 31/12, luego $5.000
+                  </p>
                 </div>
               </div>
             </CardContent>

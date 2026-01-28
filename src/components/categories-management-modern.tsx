@@ -33,7 +33,7 @@ interface Category {
   name: string;
   description: string | null;
   createdAt: string;
-  _count: {
+  _count?: {
     events: number;
   };
 }
@@ -101,11 +101,11 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
 
   
   const totalCategories = categories.length;
-  const totalEvents = categories.reduce((sum, cat) => sum + cat._count.events, 0);
+  const totalEvents = categories.reduce((sum, cat) => sum + (cat._count?.events || 0), 0);
   const avgEventsPerCategory = totalCategories > 0 ? Math.round(totalEvents / totalCategories) : 0;
   const mostUsedCategory = categories.reduce((max, cat) => 
-    cat._count.events > max._count.events ? cat : max, 
-    categories[0] || { _count: { events: 0 }, name: "N/A" }
+    (cat._count?.events || 0) > (max._count?.events || 0) ? cat : max, 
+    categories[0] || { _count: { events: 0 }, name: "N/A", id: "", description: null, createdAt: "" }
   );
 
   const resetForm = () => {
@@ -287,7 +287,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
             icon={TrendingUp}
             title="Más Popular"
             value={mostUsedCategory.name}
-            description={`${mostUsedCategory._count.events} eventos`}
+            description={`${mostUsedCategory._count?.events || 0} eventos`}
             color="orange"
           />
         </div>
@@ -384,7 +384,7 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
                     <div>
                       <CardTitle className="text-lg">{category.name}</CardTitle>
                       <Badge variant="secondary" className="mt-1">
-                        {category._count.events} eventos
+                        {category._count?.events || 0} eventos
                       </Badge>
                     </div>
                   </div>
@@ -463,11 +463,11 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
                           >
                             {loading ? (
                               <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Guardando...
+                                <Loader2 key="loading" className="h-4 w-4 mr-2 animate-spin" />
+                                <span key="text">Guardando...</span>
                               </>
                             ) : (
-                              "Guardar Cambios"
+                              <span key="save-text">Guardar Cambios</span>
                             )}
                           </Button>
                         </div>
@@ -478,17 +478,17 @@ export default function CategoriesManagement({ initialCategories }: CategoriesMa
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(category.id)}
-                    disabled={deletingId === category.id || category._count.events > 0}
+                    disabled={deletingId === category.id || (category._count?.events || 0) > 0}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     {deletingId === category.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <Loader2 key="loading" className="h-3 w-3 animate-spin" />
                     ) : (
-                      <Trash2 className="h-3 w-3" />
+                      <Trash2 key="trash" className="h-3 w-3" />
                     )}
                   </Button>
                 </div>
-                {category._count.events > 0 && (
+                {(category._count?.events || 0) > 0 && (
                   <p className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
                     No se puede eliminar: tiene eventos asociados
                   </p>

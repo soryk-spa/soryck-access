@@ -33,16 +33,21 @@ import {
   Lock,
   Save,
   Activity,
+  TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const editPromoCodeSchema = z.object({
+  code: z.string().min(3).max(100).optional(),
+  type: z.enum(["PERCENTAGE", "FIXED_AMOUNT", "FREE"]).optional(),
+  value: z.number().min(0).optional(),
   name: z.string().min(1, "Nombre requerido").max(100),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
   usageLimit: z.number().min(1).optional(),
   usageLimitPerUser: z.number().min(1).optional(),
   validUntil: z.string().optional(),
+  priceAfter: z.number().min(0).optional(),
   eventId: z.string().optional(),
 });
 
@@ -61,6 +66,7 @@ interface PromoCode {
   usedCount: number;
   validFrom: string;
   validUntil: string;
+  priceAfter?: number;
   eventId: string;
   event?: { id: string; title: string };
   _count: { usages: number };
@@ -89,6 +95,7 @@ export default function EditPromoCodeForm({
   } = useForm<EditFormData>({
     resolver: zodResolver(editPromoCodeSchema),
     defaultValues: {
+      code: promoCode.code,
       name: promoCode.name,
       description: promoCode.description || "",
       status:
@@ -98,7 +105,10 @@ export default function EditPromoCodeForm({
       usageLimit: promoCode.usageLimit,
       usageLimitPerUser: promoCode.usageLimitPerUser,
       validUntil: promoCode.validUntil || "",
+      priceAfter: promoCode.priceAfter,
       eventId: promoCode.eventId || "all",
+      type: promoCode.type,
+      value: promoCode.value,
     },
   });
 
@@ -120,6 +130,8 @@ export default function EditPromoCodeForm({
         headers: {
           "Content-Type": "application/json",
         },
+        
+        credentials: 'same-origin',
         body: JSON.stringify(payload),
       });
 
@@ -227,10 +239,10 @@ export default function EditPromoCodeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {}
-        <div className="lg:col-span-2 space-y-6">
+  <div className="lg:col-span-3 space-y-6">
           {}
           <Card className="border-0 shadow-lg">
             <CardHeader>
@@ -242,33 +254,71 @@ export default function EditPromoCodeForm({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-muted-foreground">
-                    Código
-                  </Label>
+                  <Label className="text-sm text-muted-foreground">Código</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    <code className="bg-muted px-3 py-2 rounded font-mono text-lg font-semibold">
-                      {promoCode.code}
-                    </code>
-                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    {canEdit ? (
+                      <Input
+                        id="code"
+                        {...register("code")}
+                        className="mt-0"
+                      />
+                    ) : (
+                      <>
+                        <code className="bg-muted px-3 py-2 rounded font-mono text-lg font-semibold">
+                          {promoCode.code}
+                        </code>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    El código no se puede modificar
+                    {canEdit
+                      ? "Puedes modificar el código porque no ha sido usado."
+                      : "El código no se puede modificar después del primer uso."}
                   </p>
                 </div>
 
                 <div>
-                  <Label className="text-sm text-muted-foreground">
-                    Tipo de descuento
-                  </Label>
+                  <Label className="text-sm text-muted-foreground">Tipo de descuento</Label>
                   <div className="flex items-center gap-2 mt-1">
-                    {getTypeIcon(promoCode.type)}
-                    <span className="font-semibold">
-                      {formatDiscount(promoCode.type, promoCode.value)}
-                    </span>
-                    <Lock className="h-4 w-4 text-muted-foreground" />
+                    {canEdit ? (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={watch("type")}
+                          onValueChange={(val) => setValue("type", val as "PERCENTAGE" | "FIXED_AMOUNT" | "FREE")}
+                        >
+                          <SelectTrigger className="mt-0 w-44">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PERCENTAGE">Porcentaje</SelectItem>
+                            <SelectItem value="FIXED_AMOUNT">Monto fijo</SelectItem>
+                            <SelectItem value="FREE">Gratis</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {watch("type") !== "FREE" && (
+                          <Input
+                            id="value"
+                            type="number"
+                            {...register("value", { valueAsNumber: true })}
+                            className="w-32"
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        {getTypeIcon(promoCode.type)}
+                        <span className="font-semibold">
+                          {formatDiscount(promoCode.type, promoCode.value)}
+                        </span>
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      </>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    El tipo y valor no se pueden modificar
+                    {canEdit
+                      ? "Puedes modificar tipo y valor porque no ha sido usado."
+                      : "El tipo y valor no se pueden modificar después del primer uso."}
                   </p>
                 </div>
               </div>
@@ -501,6 +551,44 @@ export default function EditPromoCodeForm({
                 <p className="text-xs text-muted-foreground mt-1">
                   Deja vacío para que no expire automáticamente
                 </p>
+              </div>
+
+              {}
+              <Separator />
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-medium">Precios Dinámicos (Opcional)</h3>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm text-blue-800 dark:text-blue-200">
+                      <p className="font-medium mb-1">Sistema de precios dinámicos</p>
+                      <p>El código aplicará el descuento configurado hasta la fecha de vencimiento. Después de esa fecha, se cobrará un precio fijo por ticket.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="priceAfter">Precio después del vencimiento (CLP)</Label>
+                  <Input
+                    id="priceAfter"
+                    type="number"
+                    {...register("priceAfter", {
+                      setValueAs: (v) => (v === "" || v === null ? undefined : Number(v)),
+                    })}
+                    placeholder="Opcional - Precio fijo después del vencimiento"
+                    min="0"
+                    className="mt-1"
+                    disabled={!canEdit}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Si se establece, requiere fecha de vencimiento. Ejemplo: Gratis hasta el 31/12, luego $5.000
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -54,6 +54,8 @@ interface Event {
   startDate: string;
   endDate?: string;
   isPublished: boolean;
+  price: number;
+  isFree: boolean;
   category: {
     id: string;
     name: string;
@@ -145,14 +147,28 @@ const EventCardAceternity = ({
   };
 
   const getPriceDisplay = () => {
-    if (!event.ticketTypes?.length) return "Gratis";
     
-    const prices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+    if (event.isFree) return "Gratis";
     
-    if (prices.length === 0) return "Gratis";
     
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
+    const allPrices: number[] = [];
+    
+    
+    if (event.price && event.price > 0) {
+      allPrices.push(event.price);
+    }
+    
+    
+    if (event.ticketTypes?.length) {
+      const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
+      allPrices.push(...ticketPrices);
+    }
+    
+    
+    if (allPrices.length === 0) return "Gratis";
+    
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
     
     
     if (minPrice === maxPrice) {

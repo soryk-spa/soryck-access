@@ -1,6 +1,9 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { requireAuth } from "@/lib/auth";
 
+
+export const dynamic = 'force-dynamic'
+
 const f = createUploadthing();
 
 export const ourFileRouter = {

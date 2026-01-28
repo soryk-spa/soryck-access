@@ -1,14 +1,17 @@
 import { requireAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { UserDashboardClient } from "@/components/user-dashboard-client";
+import { EnhancedDashboard } from "@/components/enhanced-dashboard";
 import { RoleRequestForm } from "@/components/role-request-form";
 import { ROLE_LABELS, canOrganizeEvents } from "@/lib/roles";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  // Obtener estadísticas completas del usuario
+  
   const [
     events, 
     totalTicketsSold, 
@@ -86,7 +89,7 @@ export default async function DashboardPage() {
   const draftEvents = totalEvents - publishedEvents;
   const revenue = totalRevenue._sum.totalAmount || 0;
   
-  // Calcular métricas adicionales
+  
   const averageTicketsPerEvent = totalEvents > 0 ? Math.round(totalTicketsSold / totalEvents) : 0;
   const conversionRate = totalEvents > 0 ? Math.round((publishedEvents / totalEvents) * 100) : 0;
   
@@ -96,7 +99,7 @@ export default async function DashboardPage() {
     organizer: `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email,
     date: new Date(event.startDate).toLocaleDateString("es-CL"),
     status: event.isPublished ? "published" as const : "draft" as const,
-    revenue: event._count.orders * 15000, // Esto se calculará con datos reales en el futuro
+    revenue: event._count.orders * 15000, 
     tickets: event._count.tickets,
     courtesyInvitations: event._count.courtesyInvitations || 0,
     category: event.category?.name || "Sin categoría",
@@ -119,7 +122,7 @@ export default async function DashboardPage() {
     category: event.category?.name || "Sin categoría",
   }));
 
-  // Si el usuario no puede organizar eventos, mostrar formulario de solicitud
+  
   if (!canOrganizeEvents(user.role)) {
     return (
       <div className="space-y-6">
@@ -143,7 +146,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <UserDashboardClient
+    <EnhancedDashboard
       totalEvents={totalEvents}
       publishedEvents={publishedEvents}
       draftEvents={draftEvents}

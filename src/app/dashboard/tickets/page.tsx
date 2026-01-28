@@ -1,4 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
+
+
+export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -115,63 +118,78 @@ export default async function MyTicketsPage() {
   const activeTickets = tickets.filter(ticket => ticket.status === "ACTIVE").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mis Tickets</h1>
-          <p className="text-muted-foreground">
-            Gestiona y accede a todos tus tickets de eventos
-          </p>
+    <div className="space-y-8">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">
+              🎫 Mis Tickets
+            </h1>
+            <p className="text-blue-100 mt-2">
+              Gestiona y accede a todos tus tickets de eventos
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-lg px-4 py-2">
+              {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
+            </Badge>
+          </div>
         </div>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          {tickets.length} {tickets.length === 1 ? "ticket" : "tickets"}
-        </Badge>
       </div>
 
-      {}
+      {/* Estadísticas */}
       {tickets.length > 0 && (
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-blue-100 hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Tickets</p>
-                  <p className="text-2xl font-bold">{tickets.length}</p>
+                  <p className="text-3xl font-bold text-blue-600">{tickets.length}</p>
                 </div>
-                <Ticket className="h-8 w-8 text-blue-600" />
+                <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                  <Ticket className="h-6 w-6 text-blue-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-green-100 hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Próximos</p>
-                  <p className="text-2xl font-bold">{upcomingTickets}</p>
+                  <p className="text-3xl font-bold text-green-600">{upcomingTickets}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-green-600" />
+                <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <Calendar className="h-6 w-6 text-green-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-purple-100 hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Activos</p>
-                  <p className="text-2xl font-bold">{activeTickets}</p>
+                  <p className="text-3xl font-bold text-purple-600">{activeTickets}</p>
                 </div>
-                <QrCode className="h-8 w-8 text-purple-600" />
+                <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                  <QrCode className="h-6 w-6 text-purple-600" />
+                </div>
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4">
+          <Card className="border-orange-100 hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Finalizados</p>
-                  <p className="text-2xl font-bold">{pastTickets}</p>
+                  <p className="text-3xl font-bold text-orange-600">{pastTickets}</p>
                 </div>
-                <Clock className="h-8 w-8 text-orange-600" />
+                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-orange-600" />
+                </div>
               </div>
             </CardContent>
           </Card>

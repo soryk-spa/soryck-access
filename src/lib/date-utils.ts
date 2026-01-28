@@ -8,9 +8,20 @@ export function parseChileDatetime(datetimeLocal: string): Date {
   }
 
   
+  const tzLessPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+  if (tzLessPattern.test(datetimeLocal)) {
+    
+    
+    const withTimezone = `${datetimeLocal}:00-03:00`;
+    const date = new Date(withTimezone);
+    
+    if (isNaN(date.getTime())) {
+      throw new Error('Fecha inválida');
+    }
+    return date;
+  }
+
   const date = new Date(datetimeLocal);
-  
-  
   if (isNaN(date.getTime())) {
     throw new Error('Fecha inválida');
   }
@@ -110,7 +121,9 @@ export function fromTimestamp(timestamp: number): Date {
 
 
 export const formatFullDateTime = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  
+  const dateObj = typeof date === 'string' ? parseChileDatetime(date) : date;
   
   return dateObj.toLocaleString("es-CL", {
     weekday: "long",
