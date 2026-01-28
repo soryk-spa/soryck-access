@@ -4,14 +4,12 @@ import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
-interface Event {
-  id: string;
-  name: string;
-  coverImageUrl: string | null;
-}
-
 interface HeroSectionProps {
-  events: Event[];
+  events: Array<{
+    id: string;
+    title: string;
+    imageUrl: string | null;
+  }>;
 }
 
 export function HeroSection({ events }: HeroSectionProps) {
@@ -20,10 +18,10 @@ export function HeroSection({ events }: HeroSectionProps) {
   // Preparar items para el carousel
   const carouselItems = hasEvents
     ? events
-        .filter((event) => event.coverImageUrl)
+        .filter((event) => event.imageUrl)
         .map((event) => ({
-          image: event.coverImageUrl!,
-          title: event.name,
+          image: event.imageUrl!,
+          title: event.title,
         }))
     : [];
 
