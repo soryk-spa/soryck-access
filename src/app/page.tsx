@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { HeroSection } from "@/components/hero-section";
 import {
   Select,
   SelectContent,
@@ -299,44 +300,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {}
-      <div className="relative w-full h-[600px] overflow-hidden">
-        <Image
-          src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&h=600&fit=crop&crop=center"
-          alt="Banner de eventos"
-          fill
-          className="object-cover"
-          priority
-        />
-        
-        {}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60"></div>
-        
-        {}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white max-w-7xl mx-auto px-4">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
-              Vive la Experiencia
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 opacity-90 drop-shadow-md">
-              Los mejores eventos te están esperando
-            </p>
-            <Button 
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
-              onClick={() => {
-                document.getElementById('events-section')?.scrollIntoView({ 
-                  behavior: 'smooth' 
-                });
-              }}
-            >
-              Explorar Eventos
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Hero Section con carousel de eventos */}
+      <HeroSection events={events} />
 
-      {}
+      {/* Sección de eventos */}
       <div id="events-section" className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-8">
