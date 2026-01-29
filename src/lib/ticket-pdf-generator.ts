@@ -77,14 +77,12 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // Título del header
       doc
         .fontSize(14)
-        .font('Helvetica-Bold')
         .fillColor('#FFFFFF')
         .text('TU ENTRADA', 130, 25, { width: 250 })
 
       // Nombre del evento
       doc
         .fontSize(11)
-        .font('Helvetica')
         .fillColor('#E0E0E0')
         .text(ticketData.eventName, 130, 48, { width: 250, ellipsis: true })
 
@@ -94,13 +92,11 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // Nombre del asistente
       doc
         .fontSize(10)
-        .font('Helvetica-Bold')
         .fillColor('#333333')
         .text('ASISTENTE:', 30, yPosition)
 
       doc
         .fontSize(12)
-        .font('Helvetica')
         .fillColor('#000000')
         .text(ticketData.userName, 30, yPosition + 15, { width: 340 })
 
@@ -109,13 +105,11 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // Fecha
       doc
         .fontSize(10)
-        .font('Helvetica-Bold')
         .fillColor('#333333')
         .text('FECHA Y HORA:', 30, yPosition)
 
       doc
         .fontSize(11)
-        .font('Helvetica')
         .fillColor('#000000')
         .text(ticketData.eventDate, 30, yPosition + 15, { width: 340 })
 
@@ -124,13 +118,11 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // Ubicación
       doc
         .fontSize(10)
-        .font('Helvetica-Bold')
         .fillColor('#333333')
         .text('UBICACIÓN:', 30, yPosition)
 
       doc
         .fontSize(11)
-        .font('Helvetica')
         .fillColor('#000000')
         .text(ticketData.eventLocation, 30, yPosition + 15, { width: 340 })
 
@@ -140,14 +132,12 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       if (ticketData.seatInfo) {
         doc
           .fontSize(10)
-          .font('Helvetica-Bold')
           .fillColor('#333333')
           .text('ASIENTO:', 30, yPosition)
 
         const seatText = `${ticketData.seatInfo.sectionName} • Fila ${ticketData.seatInfo.row} • Asiento ${ticketData.seatInfo.number}`
         doc
           .fontSize(12)
-          .font('Helvetica-Bold')
           .fillColor('#0053CC')
           .text(seatText, 30, yPosition + 15, { width: 340 })
 
@@ -155,13 +145,11 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       } else if (ticketData.ticketTypeName) {
         doc
           .fontSize(10)
-          .font('Helvetica-Bold')
           .fillColor('#333333')
           .text('TIPO:', 30, yPosition)
 
         doc
           .fontSize(11)
-          .font('Helvetica')
           .fillColor('#000000')
           .text(ticketData.ticketTypeName, 30, yPosition + 15, { width: 340 })
 
@@ -181,7 +169,6 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // === CÓDIGO QR ===
       doc
         .fontSize(10)
-        .font('Helvetica-Bold')
         .fillColor('#333333')
         .text('CÓDIGO QR DE ENTRADA:', 30, yPosition, { align: 'center', width: 340 })
 
@@ -200,7 +187,6 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       // Número de orden (pequeño, debajo del QR)
       doc
         .fontSize(8)
-        .font('Helvetica')
         .fillColor('#999999')
         .text(`Orden: ${ticketData.orderNumber}`, 30, yPosition, { align: 'center', width: 340 })
 
@@ -213,7 +199,6 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
       yPosition += 35
       doc
         .fontSize(8)
-        .font('Helvetica')
         .fillColor('#666666')
         .text(
           '⚠️ Presenta este código QR en la entrada del evento.\nNo compartas este código con nadie.',
