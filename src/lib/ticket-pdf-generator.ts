@@ -35,7 +35,7 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
         margin: 1,
       })
 
-      // Crear documento PDF
+      // Crear documento PDF sin fuentes del sistema
       const doc = new PDFDocument({
         size: [400, 600], // Tamaño tipo ticket (ancho x alto en puntos)
         margins: {
@@ -44,6 +44,10 @@ export async function generateTicketPDF(ticketData: TicketData): Promise<Buffer>
           left: 30,
           right: 30,
         },
+        autoFirstPage: true,
+        bufferPages: true,
+        // Especificar que no use fuentes estándar del sistema
+        font: 'Courier', // Courier es una fuente que viene incluida con PDFKit
       })
 
       const chunks: Buffer[] = []

@@ -28,7 +28,15 @@ async function loadDateUtils() {
   return { formatFullDateTime };
 }
 
-if (!process.env.RESEND_API_KEY) {
+// Modo de desarrollo: permite testing sin enviar emails reales
+const isDevelopmentMode = process.env.EMAIL_DEBUG === 'true' || 
+  (process.env.NODE_ENV === 'development' && !process.env.RESEND_API_KEY);
+
+if (isDevelopmentMode) {
+  logger.info("📧 Modo de desarrollo de emails activado - Los emails se loguearán en consola");
+}
+
+if (!process.env.RESEND_API_KEY && !isDevelopmentMode) {
   logger.warn("RESEND_API_KEY no está definida. El envío de correos está deshabilitado.");
 }
 
@@ -81,13 +89,13 @@ export async function sendTicketEmail({
     
     const TicketEmail = await loadTicketEmailComponent();
     const { formatFullDateTime } = await loadDateUtils();
-    const { generateMultipleTicketPDFs } = await import('./ticket-pdf-generator');
+    const { generateMultipleSimpleTicketPDFs } = await import('./ticket-pdf-simple');
     
     const formattedDate = formatFullDateTime(new Date(eventDate));
 
-    // Generar PDFs para cada ticket
-    const ticketPDFs = await generateMultipleTicketPDFs(
-      tickets.map(ticket => ({
+    // Generar PDFs para cada ticket usando pdf-lib (funciona en serverless)
+    const ticketPDFs = await generateMultipleSimpleTicketPDFs(
+      tickets.map((ticket, index) => ({
         qrCode: ticket.qrCode,
         seatInfo: ticket.seatInfo,
         eventName: eventTitle,
@@ -95,14 +103,8 @@ export async function sendTicketEmail({
         eventLocation,
         orderNumber,
         userName,
-      })),
-      {
-        eventName: eventTitle,
-        eventDate: formattedDate,
-        eventLocation,
-        orderNumber,
-        userName,
-      }
+        ticketNumber: index + 1,
+      }))
     );
 
     // Renderizar email HTML (sin QR, solo información)
@@ -133,7 +135,32 @@ export async function sendTicketEmail({
       attachments,
     };
 
-    await resend.emails.send(emailData);
+    // Modo de desarrollo: loguear en consola en lugar de enviar
+    if (isDevelopmentMode) {
+      logger.info("📧 [DEV MODE] Email de ticket generado:", {
+        to: userEmail,
+        subject: emailData.subject,
+        attachments: attachments.length,
+        htmlLength: emailHtml.length,
+        eventTitle,
+        orderNumber,
+        ticketCount: tickets.length,
+      });
+      console.log("\n=== EMAIL PREVIEW ===");
+      console.log("Para:", userEmail);
+      console.log("Asunto:", emailData.subject);
+      console.log("Adjuntos:", attachments.map(a => a.filename).join(", "));
+      console.log("===================\n");
+      return;
+    }
+
+    if (!resend) {
+      throw new Error("Resend no está configurado pero se intentó enviar un email");
+    }
+
+    const result = await resend.emails.send(emailData);
+    
+    console.log('📧 Respuesta de Resend:', result);
 
     logger.email.sent("ticket", userEmail, emailData.subject, {
       eventTitle,
