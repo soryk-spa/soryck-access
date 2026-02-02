@@ -206,21 +206,16 @@ export async function sendCourtesyEmail({
     const userName = user.firstName || user.email.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
-    
+    // Función corregida para formatear fecha en zona horaria de Chile
     const formatDateAsChileLocal = (date: Date) => {
-      const year = date.getUTCFullYear();
-      const month = date.getUTCMonth();
-      const day = date.getUTCDate();
-      const hour = date.getUTCHours();
-      const minute = date.getUTCMinutes();
-      const chileLocalDate = new Date(year, month, day, hour, minute);
-      return chileLocalDate.toLocaleString('es-CL', { 
+      return date.toLocaleString('es-CL', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric', 
         hour: '2-digit', 
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Santiago'
       });
     };
     
@@ -336,21 +331,16 @@ export async function sendCourtesyInvitationEmail({
     const userName = invitation.invitedName || invitation.invitedEmail.split("@")[0];
     const eventDate = formatFullDateTime(event.startDate);
     
-    
+    // Función corregida para formatear fecha en zona horaria de Chile
     const formatDateAsChileLocal = (date: Date) => {
-      const year = date.getUTCFullYear();
-      const month = date.getUTCMonth();
-      const day = date.getUTCDate();
-      const hour = date.getUTCHours();
-      const minute = date.getUTCMinutes();
-      const chileLocalDate = new Date(year, month, day, hour, minute);
-      return chileLocalDate.toLocaleString('es-CL', { 
+      return date.toLocaleString('es-CL', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric', 
         hour: '2-digit', 
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Santiago'
       });
     };
     

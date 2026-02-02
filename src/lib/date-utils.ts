@@ -37,16 +37,25 @@ export function formatToChileDatetimeLocal(date: Date | string): string {
     return '';
   }
 
+  // Usar Intl.DateTimeFormat para obtener los componentes en zona horaria de Chile
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
   
-  const chileDate = new Date(dateObj.toLocaleString("en-US", { timeZone: "America/Santiago" }));
-  
-  const year = chileDate.getFullYear();
-  const month = String(chileDate.getMonth() + 1).padStart(2, '0');
-  const day = String(chileDate.getDate()).padStart(2, '0');
-  const hours = String(chileDate.getHours()).padStart(2, '0');
-  const minutes = String(chileDate.getMinutes()).padStart(2, '0');
+  const parts = formatter.formatToParts(dateObj);
+  const year = parts.find(part => part.type === 'year')?.value;
+  const month = parts.find(part => part.type === 'month')?.value;
+  const day = parts.find(part => part.type === 'day')?.value;
+  const hour = parts.find(part => part.type === 'hour')?.value;
+  const minute = parts.find(part => part.type === 'minute')?.value;
 
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  return `${year}-${month}-${day}T${hour}:${minute}`;
 }
 
 
@@ -106,7 +115,8 @@ export function formatDisplayTime(date: Date | string): string {
 
 
 export function getCurrentChileDate(): Date {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Santiago" }));
+  // Retornar la fecha actual - las funciones de formateo manejan la zona horaria
+  return new Date();
 }
 
 

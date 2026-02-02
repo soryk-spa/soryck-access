@@ -49,11 +49,13 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
       date: new Date(e.startDate).toLocaleDateString('es-ES', {
         weekday: 'short',
         day: 'numeric',
-        month: 'short'
+        month: 'short',
+        timeZone: 'America/Santiago'
       }),
       time: new Date(e.startDate).toLocaleTimeString('es-ES', {
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timeZone: 'America/Santiago'
       }),
       src: e.imageUrl ?? "/sorykpass_1.jpg",
       ctaText: e.isFree ? "Gratis" : `$${e.price.toLocaleString()}`,
@@ -76,7 +78,8 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
+                    timeZone: 'America/Santiago'
                   })}
                 </span>
               </div>
@@ -85,7 +88,8 @@ export function EventsExpandableCards({ events }: { events?: Event[] }) {
                 <span className="text-neutral-600 dark:text-neutral-400">
                   {new Date(e.startDate).toLocaleTimeString('es-ES', {
                     hour: '2-digit',
-                    minute: '2-digit'
+                    minute: '2-digit',
+                    timeZone: 'America/Santiago'
                   })}
                 </span>
               </div>
