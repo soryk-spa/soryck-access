@@ -106,8 +106,8 @@ const EventCard = ({ event }: { event: Event }) => {
     const date = new Date(dateString);
     return {
       day: date.getDate(),
-      month: date.toLocaleDateString('es-ES', { month: 'short' }),
-      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+      month: date.toLocaleDateString('es-ES', { month: 'short', timeZone: 'America/Santiago' }),
+      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })
     };
   };
 

@@ -156,7 +156,8 @@ export default function UserManagementTable({
     return new Date(dateString).toLocaleDateString("es-ES", {
       year: "numeric",
       month: "short",
-      day: "numeric"
+      day: "numeric",
+      timeZone: "America/Santiago"
     });
   };
 

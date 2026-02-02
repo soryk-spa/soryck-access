@@ -137,11 +137,12 @@ const EventCardAceternity = ({
     const date = new Date(dateString);
     return {
       day: date.getDate().toString().padStart(2, "0"),
-      month: date.toLocaleDateString("es-ES", { month: "short" }).toUpperCase(),
+      month: date.toLocaleDateString("es-ES", { month: "short", timeZone: "America/Santiago" }).toUpperCase(),
       year: date.getFullYear(),
       time: date.toLocaleTimeString("es-ES", {
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "America/Santiago",
       }),
     };
   };

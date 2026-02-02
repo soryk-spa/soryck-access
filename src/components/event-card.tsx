@@ -92,6 +92,7 @@ export default function EventCard({
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      timeZone: "America/Santiago",
     };
     return startDate.toLocaleDateString("es-ES", options);
   };
