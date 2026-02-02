@@ -259,10 +259,12 @@ export default async function TicketsPage() {
           day: "numeric",
           month: "long",
           year: "numeric",
+          timeZone: "America/Santiago",
         }),
         formattedTime: startDate.toLocaleTimeString("es-ES", {
           hour: "2-digit",
           minute: "2-digit",
+          timeZone: "America/Santiago",
         }),
       },
       order: {

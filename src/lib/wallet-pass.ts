@@ -40,6 +40,7 @@ export function generateAppleWalletPass(passData: WalletPassData) {
             weekday: "short",
             month: "short",
             day: "numeric",
+            timeZone: "America/Santiago",
           }),
         },
         {
@@ -48,6 +49,7 @@ export function generateAppleWalletPass(passData: WalletPassData) {
           value: new Date(passData.eventDate).toLocaleTimeString("es-ES", {
             hour: "2-digit",
             minute: "2-digit",
+            timeZone: "America/Santiago",
           }),
         },
       ],

@@ -206,11 +206,13 @@ export default function EventTicketsSeatingPage() {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
+    timeZone: 'America/Santiago'
   })
   const formattedTime = startDate.toLocaleTimeString('es-ES', {
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    timeZone: 'America/Santiago'
   })
 
   return (

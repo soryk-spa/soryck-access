@@ -19,10 +19,16 @@ export function HeroSection({ events }: HeroSectionProps) {
     ? events
         .filter((event) => event.imageUrl)
         .map((event) => ({
+          id: event.id,
           image: event.imageUrl!,
           title: event.title,
         }))
     : [];
+
+  // Si hay solo 1 evento, duplicarlo para que el carousel funcione
+  const duplicatedItems = carouselItems.length === 1 
+    ? [...carouselItems, ...carouselItems, ...carouselItems] 
+    : carouselItems;
 
   return (
     <div className="relative w-full h-[600px] overflow-hidden">
@@ -30,8 +36,8 @@ export function HeroSection({ events }: HeroSectionProps) {
         // Carousel con eventos reales
         <div className="absolute inset-0">
           <InfiniteMovingCards
-            items={carouselItems}
-            direction="right"
+            items={duplicatedItems}
+            direction="left"
             speed="slow"
             pauseOnHover={true}
             className="h-full"
