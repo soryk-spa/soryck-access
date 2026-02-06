@@ -62,25 +62,82 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   
-  
-  // TEMPORAL: CSP muy permisiva para debugging del CAPTCHA
+  // Content Security Policy - Restrictiva pero permite servicios necesarios
   if (process.env.NODE_ENV === "production") {
-    // Temporarily very permissive CSP to allow all CAPTCHA providers
     response.headers.set(
       "Content-Security-Policy",
-      "default-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
-      "style-src 'self' 'unsafe-inline' https: data:; " +
-      "img-src 'self' data: https: blob:; " +
-      "font-src 'self' https: data:; " +
-      "connect-src 'self' https: wss: ws:; " +
-      "frame-src 'self' https:; " +
-      "worker-src 'self' blob: https:; " +
+      // Scripts: Solo self y dominios de Clerk, CAPTCHA y servicios esenciales
+      "script-src 'self' 'unsafe-inline' " +
+        "https://*.clerk.accounts.dev " +
+        "https://*.clerk.com " +
+        "https://challenges.cloudflare.com " +
+        "https://www.google.com/recaptcha/ " +
+        "https://www.gstatic.com/recaptcha/ " +
+        "https://hcaptcha.com " +
+        "https://*.hcaptcha.com " +
+        "https://uploadthing.com " +
+        "https://utfs.io; " +
+      // Estilos: Self y inline para Tailwind/componentes
+      "style-src 'self' 'unsafe-inline' " +
+        "https://*.clerk.accounts.dev " +
+        "https://*.clerk.com " +
+        "https://hcaptcha.com " +
+        "https://*.hcaptcha.com; " +
+      // Imágenes: Self, data URIs, y dominios de CDN necesarios
+      "img-src 'self' data: blob: " +
+        "https://*.clerk.com " +
+        "https://img.clerk.com " +
+        "https://images.clerk.dev " +
+        "https://images.unsplash.com " +
+        "https://unsplash.com " +
+        "https://source.unsplash.com " +
+        "https://uploadthing.com " +
+        "https://utfs.io " +
+        "https://*.postimg.cc " +
+        "https://via.placeholder.com " +
+        "https://picsum.photos " +
+        "https://loremflickr.com " +
+        "https://assets.aceternity.com; " +
+      // Fuentes: Self y data URIs
+      "font-src 'self' data: " +
+        "https://*.clerk.com " +
+        "https://fonts.gstatic.com; " +
+      // Conexiones: API endpoints y WebSockets necesarios
+      "connect-src 'self' " +
+        "https://*.clerk.accounts.dev " +
+        "https://*.clerk.com " +
+        "wss://*.clerk.com " +
+        "https://api.clerk.com " +
+        "https://uploadthing.com " +
+        "https://utfs.io " +
+        "https://api.transbank.cl " +
+        "https://*.transbank.cl " +
+        "https://api.resend.com; " +
+      // Frames: Solo CAPTCHA y Clerk
+      "frame-src 'self' " +
+        "https://*.clerk.accounts.dev " +
+        "https://*.clerk.com " +
+        "https://challenges.cloudflare.com " +
+        "https://www.google.com/recaptcha/ " +
+        "https://hcaptcha.com " +
+        "https://*.hcaptcha.com; " +
+      // Workers: Para service workers y blob URLs
+      "worker-src 'self' blob:; " +
+      // Media: Self y blob para archivos multimedia
+      "media-src 'self' blob: data:; " +
+      // Objetos: Ninguno permitido
       "object-src 'none'; " +
-      "base-uri 'self';"
+      // Base URI: Solo self
+      "base-uri 'self'; " +
+      // Form action: Solo self
+      "form-action 'self'; " +
+      // Frame ancestors: Ninguno (equivalente a X-Frame-Options: DENY)
+      "frame-ancestors 'none'; " +
+      // Upgrade insecure requests en producción
+      "upgrade-insecure-requests;"
     );
   } else if (process.env.NODE_ENV === "development") {
-    // Very permissive CSP for development debugging
+    // CSP permisiva para desarrollo (permite eval para HMR y debugging)
     response.headers.set(
       "Content-Security-Policy",
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' https: data: blob:; " +
