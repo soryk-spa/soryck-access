@@ -70,6 +70,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       "script-src 'self' 'unsafe-inline' " +
         "https://*.clerk.accounts.dev " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "https://challenges.cloudflare.com " +
         "https://www.google.com/recaptcha/ " +
         "https://www.gstatic.com/recaptcha/ " +
@@ -81,11 +82,13 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       "style-src 'self' 'unsafe-inline' " +
         "https://*.clerk.accounts.dev " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "https://hcaptcha.com " +
         "https://*.hcaptcha.com; " +
       // Imágenes: Self, data URIs, y dominios de CDN necesarios
       "img-src 'self' data: blob: " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "https://img.clerk.com " +
         "https://images.clerk.dev " +
         "https://images.unsplash.com " +
@@ -101,11 +104,13 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       // Fuentes: Self y data URIs
       "font-src 'self' data: " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "https://fonts.gstatic.com; " +
       // Conexiones: API endpoints y WebSockets necesarios
       "connect-src 'self' " +
         "https://*.clerk.accounts.dev " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "wss://*.clerk.com " +
         "https://api.clerk.com " +
         "https://uploadthing.com " +
@@ -117,6 +122,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       "frame-src 'self' " +
         "https://*.clerk.accounts.dev " +
         "https://*.clerk.com " +
+        "https://clerk.sorykpass.com " +
         "https://challenges.cloudflare.com " +
         "https://www.google.com/recaptcha/ " +
         "https://hcaptcha.com " +
