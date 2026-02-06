@@ -1,6 +1,7 @@
 "use client"
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { 
@@ -98,6 +99,7 @@ const SorykPassLogo = ({
 export default function MobileNav({ user, userId }: MobileNavProps) {
   
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
 
   const handleLinkClick = () => {
     setIsOpen(false)
@@ -231,7 +233,10 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
           </div>
           {!userId && (
             <div className="pt-6 border-t border-border space-y-3">
-              <SignInButton>
+              <SignInButton 
+                mode="redirect"
+                forceRedirectUrl={`/sign-in?redirectTo=${encodeURIComponent(pathname)}`}
+              >
                 <div 
                   className="w-full cursor-pointer"
                   onClick={handleLinkClick}
@@ -245,7 +250,10 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
                 </div>
               </SignInButton>
               
-              <SignUpButton>
+              <SignUpButton
+                mode="redirect"
+                forceRedirectUrl={`/sign-up?redirectTo=${encodeURIComponent(pathname)}`}
+              >
                 <div 
                   className="w-full cursor-pointer"
                   onClick={handleLinkClick}

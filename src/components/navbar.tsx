@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export default function Navbar() {
   const [dbUser, setDbUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const { isAtTop } = useScrollBehavior();
+  const pathname = usePathname();
 
   useEffect(() => {
     async function fetchUserData() {
@@ -210,7 +212,10 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <SignInButton>
+                <SignInButton 
+                  mode="redirect"
+                  forceRedirectUrl={`/sign-in?redirectTo=${encodeURIComponent(pathname)}`}
+                >
                   <Button
                     variant="ghost"
                     size="sm"
@@ -219,7 +224,10 @@ export default function Navbar() {
                     Iniciar Sesión
                   </Button>
                 </SignInButton>
-                <SignUpButton>
+                <SignUpButton
+                  mode="redirect"
+                  forceRedirectUrl={`/sign-up?redirectTo=${encodeURIComponent(pathname)}`}
+                >
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white shadow-lg"
