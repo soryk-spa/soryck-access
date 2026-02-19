@@ -2,24 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { UserRole, Prisma } from "@prisma/client";
+import { withErrorHandler, UnauthorizedError, ForbiddenError } from "@/lib/error-handler";
 
-export async function GET(request: NextRequest) {
-  try {
-    const { userId: clerkId } = await auth();
-    
-    if (!clerkId) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
+export const GET = withErrorHandler(async (request: NextRequest) => {
+  const { userId: clerkId } = await auth();
+  
+  if (!clerkId) {
+    throw new UnauthorizedError();
+  }
 
-    
-    const user = await prisma.user.findUnique({
-      where: { clerkId },
-      select: { role: true }
-    });
+  const user = await prisma.user.findUnique({
+    where: { clerkId },
+    select: { role: true }
+  });
 
-    if (!user || user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Acceso denegado" }, { status: 403 });
-    }
+  if (!user || user.role !== "ADMIN") {
+    throw new ForbiddenError();
+  }
 
     
     const url = new URL(request.url);
@@ -94,11 +93,4 @@ export async function GET(request: NextRequest) {
         hasPreviousPage: page > 1
       }
     });
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Error interno del servidor" },
-      { status: 500 }
-    );
-  }
-}
+});

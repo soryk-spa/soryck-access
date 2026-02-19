@@ -236,7 +236,7 @@ describe('Validación de Formularios de Eventos', () => {
   const validEventData: CreateEventData = {
     title: 'Evento de Prueba',
     description: 'Esta es una descripción válida con más de 20 caracteres',
-    startDate: '2025-12-31T20:00:00Z',
+    startDate: '2027-12-31T20:00:00Z', // Fecha futura
     location: 'Santiago, Chile',
     categoryId: 'music',
     ticketTypes: [
