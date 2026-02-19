@@ -1,16 +1,6 @@
 import { SignUp } from '@clerk/nextjs'
 
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ redirectTo?: string }>
-}) {
-  const params = await searchParams;
-  const redirectUrl = params.redirectTo || '/dashboard';
-
-  console.log('[signup-page] Sign-up page accessed at:', new Date().toISOString());
-  console.log('[signup-page] Redirect URL:', redirectUrl);
-  
+export default function Page() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md">
@@ -31,8 +21,8 @@ export default async function Page({
               footerActionLink: "text-primary hover:text-primary/90"
             }
           }}
-          afterSignUpUrl={redirectUrl}
-          redirectUrl={redirectUrl}
+          fallbackRedirectUrl="/dashboard"
+          signUpFallbackRedirectUrl="/dashboard"
         />
       </div>
     </div>

@@ -213,8 +213,7 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-3">
                 <SignInButton 
-                  mode="redirect"
-                  forceRedirectUrl={`/sign-in?redirectTo=${encodeURIComponent(pathname)}`}
+                  signInFallbackRedirectUrl={pathname}
                 >
                   <Button
                     variant="ghost"
@@ -225,8 +224,7 @@ export default function Navbar() {
                   </Button>
                 </SignInButton>
                 <SignUpButton
-                  mode="redirect"
-                  forceRedirectUrl={`/sign-up?redirectTo=${encodeURIComponent(pathname)}`}
+                  signUpFallbackRedirectUrl={pathname}
                 >
                   <Button
                     size="sm"
