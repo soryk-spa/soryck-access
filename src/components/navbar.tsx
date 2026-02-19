@@ -213,7 +213,7 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-3">
                 <SignInButton 
-                  signInFallbackRedirectUrl={pathname}
+                  fallbackRedirectUrl={pathname}
                 >
                   <Button
                     variant="ghost"
@@ -224,7 +224,7 @@ export default function Navbar() {
                   </Button>
                 </SignInButton>
                 <SignUpButton
-                  signUpFallbackRedirectUrl={pathname}
+                  fallbackRedirectUrl={pathname}
                 >
                   <Button
                     size="sm"
