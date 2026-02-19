@@ -233,9 +233,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
           </div>
           {!userId && (
             <div className="pt-6 border-t border-border space-y-3">
-              <SignInButton 
-                fallbackRedirectUrl={pathname}
-              >
+              <SignInButton>
                 <div 
                   className="w-full cursor-pointer"
                   onClick={handleLinkClick}
@@ -249,9 +247,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
                 </div>
               </SignInButton>
               
-              <SignUpButton
-                fallbackRedirectUrl={pathname}
-              >
+              <SignUpButton>
                 <div 
                   className="w-full cursor-pointer"
                   onClick={handleLinkClick}
