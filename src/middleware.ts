@@ -135,8 +135,8 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
       "object-src 'none'; " +
       // Base URI: Solo self
       "base-uri 'self'; " +
-      // Form action: Solo self
-      "form-action 'self'; " +
+      // Form action: Self y Transbank para pagos
+      "form-action 'self' https://webpay3g.transbank.cl https://webpay3gint.transbank.cl; " +
       // Frame ancestors: Ninguno (equivalente a X-Frame-Options: DENY)
       "frame-ancestors 'none'; " +
       // Upgrade insecure requests en producción
