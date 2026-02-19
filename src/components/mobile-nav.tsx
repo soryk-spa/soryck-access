@@ -234,8 +234,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
           {!userId && (
             <div className="pt-6 border-t border-border space-y-3">
               <SignInButton 
-                mode="redirect"
-                forceRedirectUrl={`/sign-in?redirectTo=${encodeURIComponent(pathname)}`}
+                signInFallbackRedirectUrl={pathname}
               >
                 <div 
                   className="w-full cursor-pointer"
@@ -251,8 +250,7 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
               </SignInButton>
               
               <SignUpButton
-                mode="redirect"
-                forceRedirectUrl={`/sign-up?redirectTo=${encodeURIComponent(pathname)}`}
+                signUpFallbackRedirectUrl={pathname}
               >
                 <div 
                   className="w-full cursor-pointer"
