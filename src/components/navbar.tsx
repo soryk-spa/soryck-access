@@ -212,9 +212,7 @@ export default function Navbar() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <SignInButton 
-                  fallbackRedirectUrl={pathname}
-                >
+                <SignInButton>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -223,9 +221,7 @@ export default function Navbar() {
                     Iniciar Sesión
                   </Button>
                 </SignInButton>
-                <SignUpButton
-                  fallbackRedirectUrl={pathname}
-                >
+                <SignUpButton>
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white shadow-lg"
