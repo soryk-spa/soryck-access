@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireOrganizer } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { OrderStatus } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
         organizerId: user.id,
       },
       order: {
-        status: 'COMPLETED',
+        status: OrderStatus.COMPLETED,
       },
     }
 
