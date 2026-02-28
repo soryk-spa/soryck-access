@@ -11,6 +11,7 @@ import {
   Shield,
   TrendingUp,
   Users,
+  UserCheck,
   Zap,
   Star,
   ArrowRight,
@@ -180,6 +181,37 @@ export default function OrganizerPage() {
                 <Link href="/organizer/settings">
                   <Settings className="h-4 w-4 mr-2" />
                   Configuración
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 group overflow-hidden">
+            <CardHeader className="relative z-10 pb-3">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-gradient-to-r from-[#0053CC] to-[#CC66CC] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <UserCheck className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-gradient-to-r from-[#0053CC]/10 to-[#CC66CC]/10 text-[#0053CC] border-[#0053CC]/20">
+                  Ventas
+                </Badge>
+              </div>
+              <CardTitle className="text-xl">
+                Compradores
+              </CardTitle>
+              <CardDescription>
+                Usuarios que compraron tickets para tus eventos
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="relative z-10 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Consulta quién ha comprado tickets y qué tipo de entrada adquirió en cada evento
+              </p>
+              <Button asChild className="w-full bg-gradient-to-r from-[#0053CC] to-[#CC66CC] hover:from-[#0053CC]/90 hover:to-[#CC66CC]/90 text-white border-0">
+                <Link href="/organizer/buyers">
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Ver Compradores
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Link>
               </Button>
