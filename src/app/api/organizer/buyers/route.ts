@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         organizerId: user.id,
       },
       order: {
-        status: OrderStatus.COMPLETED,
+        status: OrderStatus.PAID,
       },
     }
 
