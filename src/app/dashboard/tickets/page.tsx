@@ -1,5 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
-
+import TicketQRActions from "@/components/ticket-qr-actions";
 
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
@@ -274,14 +274,13 @@ export default async function MyTicketsPage() {
                       {formatCurrency(ticket.ticketType?.price || 0)}
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <QrCode className="h-4 w-4 mr-2" />
-                        Código QR
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Descargar
-                      </Button>
+                      <TicketQRActions
+                        ticketId={ticket.id}
+                        qrCode={ticket.qrCode}
+                        eventTitle={ticket.event.title}
+                        eventDate={formatDate(ticket.event.startDate)}
+                        eventLocation={ticket.event.location}
+                      />
                     </div>
                   </div>
                 </div>
