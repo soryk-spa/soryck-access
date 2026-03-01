@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
   Heart,
   Calendar,
   Plus,
+  QrCode,
 } from "lucide-react";
 
 interface Region {
@@ -220,6 +222,7 @@ const EventCard = ({ event }: { event: Event }) => {
 };
 
 export default function HomePage() {
+  const { isSignedIn } = useUser();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -313,6 +316,16 @@ export default function HomePage() {
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
               Encuentra y compra entradas para los mejores eventos en tu ciudad
             </p>
+            {isSignedIn && (
+              <div className="mt-4">
+                <Link href="/mis-qrs">
+                  <Button className="bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] hover:from-[#CC66CC]/90 hover:to-[#FE4F00]/90 text-white border-0 shadow-md">
+                    <QrCode className="h-4 w-4 mr-2" />
+                    Mis QRs
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {}

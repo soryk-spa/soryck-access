@@ -25,7 +25,8 @@ import {
   UserPlus,
   Home,
   Ticket,
-  Building2
+  Building2,
+  QrCode
 } from 'lucide-react'
 import { UserRole } from '@prisma/client'
 import Image from 'next/image'
@@ -133,6 +134,13 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
       icon: Ticket,
       show: !!userId,
       gradient: 'from-[#01CBFE] to-[#CC66CC]'
+    },
+    {
+      href: '/mis-qrs',
+      label: 'Mis QRs',
+      icon: QrCode,
+      show: !!userId,
+      gradient: 'from-[#CC66CC] to-[#FE4F00]'
     },
     {
       href: '/organizer',

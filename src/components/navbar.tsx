@@ -148,6 +148,14 @@ export default function Navbar() {
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] transition-all group-hover:w-full"></span>
                 </Link>
 
+                <Link
+                  href="/mis-qrs"
+                  className="text-foreground hover:text-[#CC66CC] transition-colors font-medium relative group"
+                >
+                  Mis QRs
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#CC66CC] to-[#FE4F00] transition-all group-hover:w-full"></span>
+                </Link>
+
                 {dbUser && canOrganizeEvents(dbUser.role) && (
                   <>
                     <Link
