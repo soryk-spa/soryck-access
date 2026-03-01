@@ -21,6 +21,7 @@ import {
   Tag,
   Ticket,
   User,
+  UserCheck,
   Users,
   BarChart3,
   Shield,
@@ -90,6 +91,12 @@ export function DashboardSidebar({ className, onClose }: SidebarProps) {
       href: "/dashboard/organizer/venues",
       icon: Layout,
       description: "Editor visual de venues y distribución de asientos",
+    },
+    {
+      title: "Compradores",
+      href: "/organizer/buyers",
+      icon: UserCheck,
+      description: "Usuarios que compraron tickets",
     },
     {
       title: "Códigos Promocionales",
