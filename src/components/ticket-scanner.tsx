@@ -115,10 +115,24 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
     }
   }, [fetchStats]);
 
-  const scanTicket = async (qrCode: string) => {
-    if (!qrCode.trim()) {
+  const scanTicket = async (rawInput: string) => {
+    if (!rawInput.trim()) {
       toast.error('Código QR requerido');
       return;
+    }
+
+    // Extraer el código raw si el lector entregó la URL completa
+    // (ej: Android escanea el QR y pega "https://app.com/verify/ABCD1234-...")
+    let qrCode = rawInput.trim();
+    try {
+      const url = new URL(qrCode);
+      const parts = url.pathname.split('/');
+      const verifyIdx = parts.indexOf('verify');
+      if (verifyIdx !== -1 && parts[verifyIdx + 1]) {
+        qrCode = parts[verifyIdx + 1];
+      }
+    } catch {
+      // No es una URL válida, usar el valor tal cual
     }
 
     setIsScanning(true);
@@ -126,7 +140,7 @@ export default function TicketScanner({ eventId, eventTitle, onScanResult }: Tic
       const response = await fetch(`/api/events/${eventId}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrCode: qrCode.trim() }),
+        body: JSON.stringify({ qrCode }),
       });
 
       const result = await response.json();

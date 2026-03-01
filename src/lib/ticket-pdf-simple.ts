@@ -156,8 +156,10 @@ export async function generateSimpleTicketPDF(ticketData: SimpleTicketData): Pro
     // === CÓDIGO QR ===
     yPos -= 50
     
-    // Generar QR code como PNG buffer
-    const qrBuffer = await QRCode.toBuffer(ticketData.qrCode, {
+    // Generar QR code como PNG buffer — codificamos la URL completa para que
+    // los lectores nativos de Android/iOS abran directamente el navegador
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${ticketData.qrCode}`
+    const qrBuffer = await QRCode.toBuffer(verificationUrl, {
       errorCorrectionLevel: 'H',
       type: 'png',
       width: 200,
