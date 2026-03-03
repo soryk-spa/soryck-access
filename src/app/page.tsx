@@ -115,10 +115,10 @@ export default function HomePage() {
                   className="flex items-center gap-3 bg-black hover:bg-gray-900 transition-colors rounded-xl px-5 py-3 border border-white/10 group"
                 >
                   <svg viewBox="0 0 24 24" className="w-7 h-7 flex-shrink-0">
-                    <path fill="#EA4335" d="m12 .5-8.5 15h3.25L12 7l5.25 8.5H20.5z" />
-                    <path fill="#FBBC05" d="M3.5 15.5h17l-2.5-4.25H6z" />
-                    <path fill="#34A853" d="m9 10.75-5.5 4.75h3.25L12 7z" />
-                    <path fill="#4285F4" d="m15 10.75 5.5 4.75h-3.25L12 7z" />
+                    <path fill="#4285F4" d="M3.18 23.77A2.06 2.06 0 0 1 2 21.9V2.1A2.06 2.06 0 0 1 3.18.23L14.44 12z"/>
+                    <path fill="#34A853" d="M5.13 0 16.08 6.32l-3.03 3.03z"/>
+                    <path fill="#EA4335" d="M3.18 23.77A2.06 2.06 0 0 0 5.13 24l10.95-6.32-3.03-3.03z"/>
+                    <path fill="#FBBC05" d="M20.46 10.32a2.07 2.07 0 0 1 0 3.36l-3.16 1.82-3.37-3.37 3.37-3.37z"/>
                   </svg>
                   <div className="text-left">
                     <div className="text-xs text-white/70 leading-none">Disponible en</div>
