@@ -20,6 +20,7 @@ model User {
   websiteUrl               String?
   twitterUrl               String?
   instagramUrl             String?
+  mpCustomerId             String?           // Mercado Pago Customer ID
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
   organizedEvents          Event[]               @relation("EventOrganizer")
@@ -377,6 +378,7 @@ model Payment {
   authorizationCode String?
   responseCode      Int?
   transactionDate   DateTime?
+  paymentGateway    String    @default("TRANSBANK") // "TRANSBANK" | "MERCADOPAGO"
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

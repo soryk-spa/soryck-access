@@ -1,0 +1,354 @@
+/**
+ * POST /api/mercadopago/payments/create
+ *
+ * Creates a Mercado Pago card payment for the authenticated user.
+ *
+ * The mobile app flow:
+ *  1. App lists saved cards → GET /api/mercadopago/customers/cards
+ *  2. User picks a card and enters CVV
+ *  3. App creates a one-time token with MP's mobile SDK:
+ *       MP.createCardToken({ cardId, securityCode }) → cardToken
+ *  4. App sends this payload to this endpoint:
+ *
+ * Body (JSON):
+ *   {
+ *     ticketTypeId:   string
+ *     quantity:       number (1-10)
+ *     cardToken:      string   ← one-time token from MP SDK
+ *     paymentMethodId: string  ← e.g. "visa", "master" (returned with card list)
+ *     installments:   number   (default 1)
+ *     promoCode?:     string
+ *   }
+ *
+ * Response (success):
+ *   { success: true, orderId, mpPaymentId, status, ticketsGenerated }
+ *
+ * Response (pending – rare for cards):
+ *   { success: false, pending: true, orderId, mpPaymentId, status, statusDetail }
+ *
+ * Response (failed):
+ *   { error: string, mpPaymentId?, status?, statusDetail? }
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { requireAuth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { createMPPayment } from '@/lib/mercadopago';
+import { generateUniqueQRCode } from '@/lib/qr';
+import {
+  calculatePriceBreakdown,
+  calculatePriceBreakdownWithDiscount,
+} from '@/lib/commission';
+import { DiscountCodeService } from '@/lib/discount-codes';
+import { sendTicketEmail } from '@/lib/email';
+import { z } from 'zod';
+import { Order, Event, User, TicketType } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
+
+const bodySchema = z.object({
+  ticketTypeId: z.string().min(1, 'Se requiere el tipo de ticket'),
+  quantity: z
+    .number()
+    .min(1, 'La cantidad debe ser al menos 1')
+    .max(10, 'No puedes comprar más de 10 tickets a la vez'),
+  cardToken: z.string().min(1, 'Se requiere el token de tarjeta'),
+  paymentMethodId: z.string().min(1, 'Se requiere el método de pago'),
+  installments: z.number().min(1).max(12).default(1),
+  promoCode: z.string().optional(),
+});
+
+// ── Helper: generate order number ─────────────────────────────────────────────
+
+function generateOrderNumber(): string {
+  const now = new Date();
+  const yy = now.getFullYear().toString().slice(-2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const rnd = Math.random().toString(36).substring(2, 4).toUpperCase();
+  return `MP${yy}${mm}${dd}${hh}${min}${ss}${rnd}`.substring(0, 26);
+}
+
+// ── Helper: create tickets after successful payment ───────────────────────────
+
+async function generateTickets(
+  order: Order,
+  event: Event,
+  user: User,
+  ticketType: TicketType,
+) {
+  const timestamp = Date.now();
+  const totalTickets = order.quantity * ticketType.ticketsGenerated;
+  const ticketsData = Array.from({ length: totalTickets }, (_, i) => ({
+    qrCode: generateUniqueQRCode(event.id, user.id, timestamp, i),
+    eventId: event.id,
+    userId: user.id,
+    orderId: order.id,
+    ticketTypeId: ticketType.id,
+  }));
+
+  const [, updatedOrder] = await prisma.$transaction([
+    prisma.ticket.createMany({ data: ticketsData }),
+    prisma.order.update({
+      where: { id: order.id },
+      data: { status: 'PAID' },
+      include: { tickets: true },
+    }),
+  ]);
+
+  // Fire-and-forget email
+  sendTicketEmail({
+    userEmail: user.email,
+    userName: user.firstName ?? user.email.split('@')[0],
+    eventTitle: event.title,
+    eventDate: event.startDate.toISOString(),
+    eventLocation: event.location,
+    orderNumber: updatedOrder.id,
+    tickets: updatedOrder.tickets.map((t) => ({
+      qrCode: t.qrCode!,
+      qrCodeImage: `data:image/png;base64,${t.qrCode}`,
+    })),
+  }).catch((err) =>
+    console.error('[MP payments] Error sending ticket email:', err),
+  );
+
+  return { updatedOrder, totalTickets };
+}
+
+// ── Route handler ─────────────────────────────────────────────────────────────
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await requireAuth();
+    const body = await request.json();
+    const validation = bodySchema.safeParse(body);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: validation.error.issues },
+        { status: 400 },
+      );
+    }
+
+    const { ticketTypeId, quantity, cardToken, paymentMethodId, installments, promoCode } =
+      validation.data;
+
+    // ── Validate ticket type & capacity ───────────────────────────────────────
+
+    const ticketType = await prisma.ticketType.findUnique({
+      where: { id: ticketTypeId },
+      include: { event: true },
+    });
+
+    if (!ticketType || !ticketType.event.isPublished) {
+      return NextResponse.json(
+        { error: 'Tipo de entrada no encontrado o el evento no está publicado' },
+        { status: 404 },
+      );
+    }
+
+    const event = ticketType.event;
+
+    const soldCount = await prisma.ticket.count({ where: { ticketTypeId } });
+    const capacityInTickets = ticketType.capacity * ticketType.ticketsGenerated;
+    const available = capacityInTickets - soldCount;
+
+    if (quantity * ticketType.ticketsGenerated > available) {
+      return NextResponse.json(
+        {
+          error: `No hay suficientes tickets disponibles. Solo quedan ${Math.floor(
+            available / ticketType.ticketsGenerated,
+          )}.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    // ── Price calculation ─────────────────────────────────────────────────────
+
+    const baseTotal = ticketType.price * quantity;
+    let priceBreakdown;
+    let discountValidation = null;
+
+    if (promoCode?.trim()) {
+      discountValidation = await DiscountCodeService.validateDiscountCode(
+        promoCode.trim(),
+        user.id,
+        ticketTypeId,
+        quantity,
+      );
+
+      if (!discountValidation.isValid) {
+        return NextResponse.json(
+          { error: discountValidation.error },
+          { status: 400 },
+        );
+      }
+
+      priceBreakdown = calculatePriceBreakdownWithDiscount(
+        baseTotal,
+        discountValidation.discountAmount ?? 0,
+        event.currency,
+      );
+      priceBreakdown.promoCode = discountValidation.code;
+    } else {
+      priceBreakdown = calculatePriceBreakdown(baseTotal, event.currency);
+      priceBreakdown.originalAmount = baseTotal;
+      priceBreakdown.discountAmount = 0;
+    }
+
+    const finalAmount = priceBreakdown.totalPrice;
+
+    // ── Create Order in DB ────────────────────────────────────────────────────
+
+    const orderNumber = generateOrderNumber();
+    const order = await prisma.order.create({
+      data: {
+        orderNumber,
+        totalAmount: finalAmount,
+        baseAmount: priceBreakdown.basePrice,
+        commissionAmount: priceBreakdown.commission,
+        originalAmount: priceBreakdown.originalAmount,
+        discountAmount: priceBreakdown.discountAmount,
+        currency: event.currency,
+        quantity,
+        status: 'PENDING',
+        userId: user.id,
+        eventId: event.id,
+      },
+    });
+
+    // ── Handle free tickets (100% discount) ──────────────────────────────────
+
+    if (finalAmount === 0) {
+      if (discountValidation?.isValid) {
+        await DiscountCodeService.applyCodeUsage(
+          discountValidation,
+          user.id,
+          order.id,
+          priceBreakdown.originalAmount ?? 0,
+          0,
+        );
+      }
+      const { totalTickets } = await generateTickets(order, event, user, ticketType);
+      return NextResponse.json({
+        success: true,
+        orderId: order.id,
+        isFree: true,
+        ticketsGenerated: totalTickets,
+      });
+    }
+
+    // ── Create MP payment ─────────────────────────────────────────────────────
+
+    if (!user.mpCustomerId) {
+      return NextResponse.json(
+        {
+          error:
+            'No tienes un perfil de pagos configurado. Guarda una tarjeta primero.',
+        },
+        { status: 400 },
+      );
+    }
+
+    const mpPayment = await createMPPayment({
+      amount: finalAmount,
+      currency: event.currency,
+      cardToken,
+      installments,
+      paymentMethodId,
+      mpCustomerId: user.mpCustomerId,
+      email: user.email,
+      description: event.title,
+      externalReference: orderNumber,
+    });
+
+    // ── Persist Payment record ────────────────────────────────────────────────
+
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        transactionId: String(mpPayment.id), // MP payment id
+        amount: finalAmount,
+        currency: event.currency,
+        status: mpPayment.status ?? 'PENDING',
+        paymentMethod: paymentMethodId,
+        authorizationCode: mpPayment.authorization_code ?? null,
+        paymentGateway: 'MERCADOPAGO',
+        transactionDate: mpPayment.date_approved
+          ? new Date(mpPayment.date_approved)
+          : null,
+      },
+    });
+
+    // ── Handle payment status ─────────────────────────────────────────────────
+
+    if (mpPayment.status === 'approved') {
+      // Apply promo code usage
+      if (discountValidation?.isValid) {
+        await DiscountCodeService.applyCodeUsage(
+          discountValidation,
+          user.id,
+          order.id,
+          priceBreakdown.originalAmount ?? 0,
+          finalAmount,
+        );
+      }
+
+      const { totalTickets } = await generateTickets(order, event, user, ticketType);
+
+      return NextResponse.json({
+        success: true,
+        orderId: order.id,
+        mpPaymentId: mpPayment.id,
+        status: mpPayment.status,
+        statusDetail: mpPayment.status_detail,
+        ticketsGenerated: totalTickets,
+      });
+    }
+
+    if (mpPayment.status === 'in_process' || mpPayment.status === 'pending') {
+      // Webhook will confirm later
+      return NextResponse.json(
+        {
+          success: false,
+          pending: true,
+          orderId: order.id,
+          mpPaymentId: mpPayment.id,
+          status: mpPayment.status,
+          statusDetail: mpPayment.status_detail,
+          message: 'El pago está siendo procesado. Recibirás una notificación cuando sea confirmado.',
+        },
+        { status: 202 },
+      );
+    }
+
+    // Payment was rejected
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: 'CANCELLED' },
+    });
+
+    return NextResponse.json(
+      {
+        error: 'El pago fue rechazado',
+        mpPaymentId: mpPayment.id,
+        status: mpPayment.status,
+        statusDetail: mpPayment.status_detail,
+      },
+      { status: 402 },
+    );
+  } catch (error) {
+    console.error('[POST /api/mercadopago/payments/create]', error);
+    return NextResponse.json(
+      {
+        error: 'Error interno del servidor',
+        details: error instanceof Error ? error.message : 'Error desconocido',
+      },
+      { status: 500 },
+    );
+  }
+}

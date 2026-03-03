@@ -22,6 +22,7 @@ export default function Page() {
             }
           }}
           fallbackRedirectUrl="/dashboard"
+          afterSignUpUrl="/dashboard"
         />
       </div>
     </div>
