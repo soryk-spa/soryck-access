@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { canOrganizeEvents, canAccessAdmin, ROLE_LABELS } from '@/lib/roles'
 import { 
   Menu, 
+  Calendar, 
   LayoutDashboard, 
   Plus, 
   Settings, 
@@ -23,7 +24,9 @@ import {
   LogIn,
   UserPlus,
   Home,
+  Ticket,
   Building2,
+  QrCode
 } from 'lucide-react'
 import { UserRole } from '@prisma/client'
 import Image from 'next/image'
@@ -112,11 +115,32 @@ export default function MobileNav({ user, userId }: MobileNavProps) {
       gradient: 'from-[#01CBFE] to-[#0053CC]'
     },
     {
+      href: '/events',
+      label: 'Eventos',
+      icon: Calendar,
+      show: true,
+      gradient: 'from-[#0053CC] to-[#01CBFE]'
+    },
+    {
       href: '/dashboard',
       label: 'Dashboard',
       icon: LayoutDashboard,
       show: !!userId,
       gradient: 'from-[#0053CC] to-[#CC66CC]'
+    },
+    {
+      href: '/dashboard/tickets',
+      label: 'Mis Tickets',
+      icon: Ticket,
+      show: !!userId,
+      gradient: 'from-[#01CBFE] to-[#CC66CC]'
+    },
+    {
+      href: '/mis-qrs',
+      label: 'Mis QRs',
+      icon: QrCode,
+      show: !!userId,
+      gradient: 'from-[#CC66CC] to-[#FE4F00]'
     },
     {
       href: '/organizer',

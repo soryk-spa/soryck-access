@@ -69,10 +69,10 @@ export default function HomePage() {
     <div className="min-h-screen bg-background">
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC] via-[#0053CC] to-[#01CBFE] text-white">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0D1B3E] via-[#0053CC] to-[#01CBFE] text-white">
         {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#01CBFE]/20 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-[#0053CC]/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#01CBFE]/15 rounded-full blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-36">
           <div className="grid md:grid-cols-2 gap-16 items-center">
@@ -101,7 +101,7 @@ export default function HomePage() {
                   href="#"
                   className="flex items-center gap-3 bg-black hover:bg-gray-900 transition-colors rounded-xl px-5 py-3 border border-white/10 group"
                 >
-                  <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white flex-shrink-0">
+                  <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white shrink-0">
                     <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                   </svg>
                   <div className="text-left">
@@ -129,34 +129,78 @@ export default function HomePage() {
             </div>
 
             {/* Right – phone mockup */}
-            <div className="flex justify-center md:justify-end">
-              <div className="relative">
-                <div className="w-56 h-[460px] bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center gap-6 p-6">
-                  <Image
-                    src="/sorykpass_vertical_white.png"
-                    alt="SoryckPass App"
-                    width={140}
-                    height={140}
-                    className="opacity-90"
-                  />
-                  <div className="text-center space-y-2">
-                    <p className="text-white font-semibold text-sm">SoryckPass</p>
-                    <p className="text-white/60 text-xs leading-relaxed">
-                      Tu pase digital para todos los eventos
-                    </p>
-                  </div>
-                  <div className="w-full space-y-2">
-                    {["Ticket QR · Concierto 2025", "Acceso · Festival Arte", "Entrada · Partido Copa"].map((t) => (
-                      <div key={t} className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
-                        <QrCode className="w-4 h-4 text-[#FDBD00] flex-shrink-0" />
-                        <span className="text-white/80 text-xs truncate">{t}</span>
+            <div className="mt-16 sm:mt-24 lg:mt-0 lg:shrink-0 lg:grow">
+              <svg role="img" viewBox="0 0 366 729" className="mx-auto w-91.5 max-w-full drop-shadow-xl">
+                <title>App screenshot</title>
+                <defs>
+                  <clipPath id="2ade4387-9c63-4fc4-b754-10e687a0d332">
+                    <rect rx={36} width={316} height={684} />
+                  </clipPath>
+                </defs>
+                <path
+                  d="M363.315 64.213C363.315 22.99 341.312 1 300.092 1H66.751C25.53 1 3.528 22.99 3.528 64.213v44.68l-.857.143A2 2 0 0 0 1 111.009v24.611a2 2 0 0 0 1.671 1.973l.95.158a2.26 2.26 0 0 1-.093.236v26.173c.212.1.398.296.541.643l-1.398.233A2 2 0 0 0 1 167.009v47.611a2 2 0 0 0 1.671 1.973l1.368.228c-.139.319-.314.533-.511.653v16.637c.221.104.414.313.56.689l-1.417.236A2 2 0 0 0 1 237.009v47.611a2 2 0 0 0 1.671 1.973l1.347.225c-.135.294-.302.493-.49.607v377.681c0 41.213 22 63.208 63.223 63.208h95.074c.947-.504 2.717-.843 4.745-.843l.141.001h.194l.086-.001 33.704.005c1.849.043 3.442.37 4.323.838h95.074c41.222 0 63.223-21.999 63.223-63.212v-394.63c-.259-.275-.48-.796-.63-1.47l-.011-.133 1.655-.276A2 2 0 0 0 366 266.62v-77.611a2 2 0 0 0-1.671-1.973l-1.712-.285c.148-.839.396-1.491.698-1.811V64.213Z"
+                  fill="#4B5563"
+                />
+                <path
+                  d="M16 59c0-23.748 19.252-43 43-43h246c23.748 0 43 19.252 43 43v615c0 23.196-18.804 42-42 42H58c-23.196 0-42-18.804-42-42V59Z"
+                  fill="#343E4E"
+                />
+                <foreignObject
+                  width={316}
+                  height={684}
+                  clipPath="url(#2ade4387-9c63-4fc4-b754-10e687a0d332)"
+                  transform="translate(24 24)"
+                >
+                  <div
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore – xmlns required for SVG foreignObject HTML content
+                    xmlns="http://www.w3.org/1999/xhtml"
+                    style={{
+                      width: "316px",
+                      height: "684px",
+                      background: "#140b0b",
+                      display: "flex",
+                      flexDirection: "column" as const,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "20px",
+                      padding: "32px 24px",
+                      boxSizing: "border-box" as const,
+                      fontFamily: "system-ui,sans-serif",
+                    }}
+                  >
+                    <Image
+                      src="/sorykpass_vertical_white.png"
+                      alt="SoryckPass"
+                      width={110}
+                      height={110}
+                      style={{ opacity: 0.95 }}
+                    />
+                    <div style={{ textAlign: "center" as const }}>
+                      <p style={{ color: "#fff", fontWeight: 700, fontSize: "16px", margin: "0 0 6px" }}>
+                        SoryckPass
+                      </p>
+                      <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "12px", margin: 0, lineHeight: "1.5" }}>
+                        Tu pase digital para todos los eventos
+                      </p>
+                    </div>
+                    <div style={{ width: "100%", display: "flex", flexDirection: "column" as const, gap: "8px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "10px 14px" }}>
+                        <QrCode style={{ width: "16px", height: "16px", color: "#FDBD00", flexShrink: 0 }} />
+                        <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px" }}>Ticket QR · Concierto 2025</span>
                       </div>
-                    ))}
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "10px 14px" }}>
+                        <QrCode style={{ width: "16px", height: "16px", color: "#FDBD00", flexShrink: 0 }} />
+                        <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px" }}>Acceso · Festival Arte</span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(255,255,255,0.12)", borderRadius: "12px", padding: "10px 14px" }}>
+                        <QrCode style={{ width: "16px", height: "16px", color: "#FDBD00", flexShrink: 0 }} />
+                        <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "12px" }}>Entrada · Partido Copa</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#FDBD00]/20 to-transparent rounded-[3rem] -z-10 blur-2xl scale-110" />
-              </div>
+                </foreignObject>
+              </svg>
             </div>
           </div>
         </div>
