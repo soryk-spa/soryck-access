@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -169,7 +168,8 @@ export default function HomePage() {
                       fontFamily: "system-ui,sans-serif",
                     }}
                   >
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src="/sorykpass_vertical_white.png"
                       alt="SoryckPass"
                       width={110}
