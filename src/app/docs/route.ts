@@ -22,11 +22,14 @@ const handler = ApiReference({
   },
 });
 
-export const GET =
-  process.env.NODE_ENV === "production"
-    ? () =>
-        new Response("API docs are not available in production.", {
-          status: 404,
-          headers: { "Content-Type": "text/plain" },
-        })
-    : handler;
+// Bloquear solo en producción real (main branch en Vercel)
+// VERCEL_ENV=production → main | VERCEL_ENV=preview → develop/preview | undefined → local
+const isProductionDeploy = process.env.VERCEL_ENV === "production";
+
+export const GET = isProductionDeploy
+  ? () =>
+      new Response("API docs are not available in production.", {
+        status: 404,
+        headers: { "Content-Type": "text/plain" },
+      })
+  : handler;
