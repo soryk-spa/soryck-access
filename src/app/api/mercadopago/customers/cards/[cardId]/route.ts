@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { deleteCustomerCard } from '@/lib/mercadopago';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,7 +40,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, cardId });
   } catch (error) {
-    console.error('[DELETE /api/mercadopago/customers/cards/[cardId]]', error);
+    logger.error('[DELETE /api/mercadopago/customers/cards/[cardId]]', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: 'Error al eliminar la tarjeta',

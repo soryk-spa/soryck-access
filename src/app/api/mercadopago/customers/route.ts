@@ -19,6 +19,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { findOrCreateCustomer, saveCardToCustomer } from '@/lib/mercadopago';
+import { RateLimitPresets } from '@/lib/rate-limiter';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -29,6 +31,18 @@ const bodySchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const ip =
+      request.headers.get('x-forwarded-for') ??
+      request.headers.get('x-real-ip') ??
+      'unknown';
+    const rateCheck = await RateLimitPresets.api.isAllowed(`card-save:${ip}`);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes. Intenta en un momento.' },
+        { status: 429 },
+      );
+    }
+
     const user = await requireAuth();
     const body = await request.json();
 
@@ -71,7 +85,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[POST /api/mercadopago/customers]', error);
+    logger.error('[POST /api/mercadopago/customers]', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: 'Error al guardar la tarjeta',
