@@ -122,14 +122,6 @@ export default function Navbar() {
           </div>
 
           <div className="hidden lg:flex items-center space-x-8">
-            <Link
-              href="/events"
-              className="text-foreground hover:text-[#0053CC] transition-colors font-medium relative group"
-            >
-              Eventos
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] transition-all group-hover:w-full"></span>
-            </Link>
-
             {clerkUser && (
               <>
                 <Link
@@ -138,14 +130,6 @@ export default function Navbar() {
                 >
                   Dashboard
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#0053CC] to-[#01CBFE] transition-all group-hover:w-full"></span>
-                </Link>
-
-                <Link
-                  href="/dashboard/tickets"
-                  className="text-foreground hover:text-[#01CBFE] transition-colors font-medium relative group"
-                >
-                  Mis Tickets
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#01CBFE] to-[#0053CC] transition-all group-hover:w-full"></span>
                 </Link>
 
                 {dbUser && canOrganizeEvents(dbUser.role) && (

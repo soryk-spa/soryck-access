@@ -1,464 +1,334 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { HeroSection } from "@/components/hero-section";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Search,
-  MapPin,
-  Clock,
-  Ticket,
-  Heart,
-  Calendar,
-  Plus,
+  ArrowRight,
+  Smartphone,
+  QrCode,
+  BarChart3,
+  Users,
+  ShieldCheck,
+  Zap,
+  Star,
+  Download,
+  LayoutDashboard,
 } from "lucide-react";
 
-interface Region {
-  id: string;
-  name: string;
-  code: string;
-  _count: {
-    comunas: number;
-    events: number;
-  };
-}
+const appFeatures = [
+  {
+    icon: QrCode,
+    title: "Tickets digitales",
+    description: "Compra y gestiona tus entradas 100% digitales desde tu teléfono.",
+    gradient: "from-[#0053CC] to-[#01CBFE]",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Acceso seguro",
+    description: "Validación instantánea con QR único e infalsificable en la puerta.",
+    gradient: "from-[#01CBFE] to-[#CC66CC]",
+  },
+  {
+    icon: Zap,
+    title: "Sin fricciones",
+    description: "Ingresa al evento en segundos. Sin papel, sin espera.",
+    gradient: "from-[#CC66CC] to-[#FE4F00]",
+  },
+  {
+    icon: Star,
+    title: "Tu historial de eventos",
+    description: "Revisa todos los eventos a los que has asistido en un solo lugar.",
+    gradient: "from-[#FE4F00] to-[#FDBD00]",
+  },
+];
 
-interface Comuna {
-  id: string;
-  name: string;
-  regionId: string;
-  region: {
-    id: string;
-    name: string;
-    code: string;
-  };
-  _count: {
-    events: number;
-  };
-}
-
-interface Event {
-  id: string;
-  title: string;
-  description: string | null;
-  location: string;
-  address: string | null;
-  comuna: string | null;
-  region: string | null;
-  regionId: string | null;
-  comunaId: string | null;
-  startDate: string;
-  endDate: string | null;
-  price: number;
-  capacity: number;
-  isFree: boolean;
-  imageUrl: string | null;
-  category: {
-    id: string;
-    name: string;
-  };
-  organizer: {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    email: string;
-  };
-  ticketTypes: {
-    id: string;
-    name: string;
-    price: number;
-    currency: string;
-  }[];
-  regionRef?: {
-    id: string;
-    name: string;
-    code: string;
-  };
-  comunaRef?: {
-    id: string;
-    name: string;
-    region: {
-      id: string;
-      name: string;
-      code: string;
-    };
-  };
-  _count: {
-    tickets: number;
-    orders: number;
-  };
-}
-
-const EventCard = ({ event }: { event: Event }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString('es-ES', { month: 'short', timeZone: 'America/Santiago' }),
-      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' })
-    };
-  };
-
-  const { day, month, time } = formatDate(event.startDate);
-  
-  const getPriceDisplay = () => {
-    
-    if (event.isFree) return { text: "Gratis", isGreen: true };
-    
-    
-    const allPrices: number[] = [];
-    
-    
-    if (event.price && event.price > 0) {
-      allPrices.push(event.price);
-    }
-    
-    
-    if (event.ticketTypes?.length) {
-      const ticketPrices = event.ticketTypes.map((t) => t.price).filter((p) => p > 0);
-      allPrices.push(...ticketPrices);
-    }
-    
-    
-    if (allPrices.length === 0) return { text: "Gratis", isGreen: true };
-    
-    const minPrice = Math.min(...allPrices);
-    const maxPrice = Math.max(...allPrices);
-    
-    
-    if (minPrice === maxPrice) {
-      return { text: `$${minPrice.toLocaleString()}`, isGreen: false };
-    }
-    
-    
-    return { text: `Desde $${minPrice.toLocaleString()}`, isGreen: false };
-  };
-
-  return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-0 bg-white dark:bg-gray-900 shadow-sm">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
-        <Image
-          src={event.imageUrl || "/sorykpass_1.jpg"}
-          alt={event.title}
-          fill
-          className="object-contain group-hover:scale-105 transition-transform duration-300"
-        />
-        
-        <div className="absolute top-3 left-3">
-          <Badge variant="secondary" className="bg-white/90 text-gray-900 hover:bg-white">
-            {event.category.name}
-          </Badge>
-        </div>
-        
-        <button className="absolute top-3 right-3 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-colors">
-          <Heart className="w-4 h-4 text-gray-600" />
-        </button>
-        
-        <div className="absolute bottom-3 left-3 bg-white/95 rounded-lg p-2 min-w-[60px] text-center">
-          <div className="text-xs text-gray-600 uppercase">{month}</div>
-          <div className="text-lg font-bold text-gray-900">{day}</div>
-        </div>
-      </div>
-
-      <CardContent className="p-4 space-y-3">
-        <h3 className="font-semibold text-lg leading-tight line-clamp-2 text-gray-900 dark:text-white">
-          {event.title}
-        </h3>
-        
-        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 flex-shrink-0" />
-            <span>{time}</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <div className="line-clamp-1 font-medium">{event.location}</div>
-              <div className="line-clamp-1 text-xs opacity-75">
-                {event.comunaRef?.name || event.comuna}
-                {(event.regionRef?.name || event.region) && 
-                  `, ${event.regionRef?.name || event.region}`
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800">
-          <div className="space-y-1">
-            <div className={`text-lg font-bold ${getPriceDisplay().isGreen ? 'text-green-600' : 'text-gray-900 dark:text-white'}`}>
-              {getPriceDisplay().text}
-            </div>
-            <div className="text-xs text-gray-500">por persona</div>
-          </div>
-          
-          <Button 
-            asChild
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6"
-          >
-            <Link href={`/events/${event.id}`}>
-              <Ticket className="w-4 h-4 mr-2" />
-              Comprar
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+const organizerFeatures = [
+  {
+    icon: LayoutDashboard,
+    title: "Panel de control",
+    description: "Gestiona tus eventos, ventas y asistentes desde un dashboard profesional.",
+  },
+  {
+    icon: BarChart3,
+    title: "Estadísticas en tiempo real",
+    description: "Monitorea ventas, ingresos y ocupación mientras ocurre el evento.",
+  },
+  {
+    icon: Users,
+    title: "Gestión de acceso",
+    description: "Administra equipos de scanners y controla los accesos al recinto.",
+  },
+  {
+    icon: Smartphone,
+    title: "App de scanner",
+    description: "Tus staff validan entradas con SoryckPass directamente desde su celular.",
+  },
+];
 
 export default function HomePage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedComuna, setSelectedComuna] = useState("all");
-  const [selectedRegion, setSelectedRegion] = useState("all");
-  const [categories, setCategories] = useState<string[]>([]);
-  const [comunas, setComunas] = useState<Comuna[]>([]);
-  const [regions, setRegions] = useState<Region[]>([]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        
-        const eventsResponse = await fetch('/api/events/public');
-        if (eventsResponse.ok) {
-          const eventsData = await eventsResponse.json();
-          const eventsArray = eventsData.events || [];
-          setEvents(eventsArray);
-          
-          
-          const uniqueCategories = Array.from(
-            new Set(eventsArray.map((event: Event) => event.category.name))
-          ) as string[];
-          setCategories(uniqueCategories);
-        }
-
-        
-        const regionsResponse = await fetch('/api/regions');
-        if (regionsResponse.ok) {
-          const regionsData = await regionsResponse.json();
-          setRegions(regionsData.regions || []);
-        }
-
-        
-        const comunasResponse = await fetch('/api/comunas');
-        if (comunasResponse.ok) {
-          const comunasData = await comunasResponse.json();
-          setComunas(comunasData.comunas || []);
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  
-  const filteredComunas = selectedRegion === "all" 
-    ? comunas 
-    : comunas.filter(comuna => comuna.regionId === selectedRegion);
-
-  const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.comuna?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.region?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.comunaRef?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         event.regionRef?.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = selectedCategory === "all" || event.category.name === selectedCategory;
-    
-    const matchesComuna = selectedComuna === "all" || 
-                         event.comunaId === selectedComuna ||
-                         event.comuna === selectedComuna;
-    
-    const matchesRegion = selectedRegion === "all" || 
-                         event.regionId === selectedRegion ||
-                         event.region === selectedRegion ||
-                         event.comunaRef?.region.id === selectedRegion;
-    
-    return matchesSearch && matchesCategory && matchesComuna && matchesRegion;
-  });
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section con carousel de eventos */}
-      <HeroSection events={events} />
+    <div className="min-h-screen bg-background">
 
-      {/* Sección de eventos */}
-      <div id="events-section" className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Descubre eventos increíbles
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Encuentra y compra entradas para los mejores eventos en tu ciudad
-            </p>
-          </div>
+      {/* ── HERO ─────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#0053CC] via-[#0053CC] to-[#01CBFE] text-white">
+        {/* Decorative blobs */}
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-[#01CBFE]/20 rounded-full blur-3xl" />
 
-          {}
-          <div className="max-w-6xl mx-auto space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="Buscar eventos por nombre, descripción, venue, comuna o región..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 text-lg"
-              />
-            </div>
-
-            {}
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Categoría</h3>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccionar categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Región</h3>
-                <Select 
-                  value={selectedRegion} 
-                  onValueChange={(value) => {
-                    setSelectedRegion(value);
-                    setSelectedComuna("all"); 
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las regiones</SelectItem>
-                    {regions.map((region) => (
-                      <SelectItem key={region.id} value={region.id}>
-                        {region.name.replace('Región de ', '').replace('Región ', '')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-36">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            {/* Left – text */}
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-sm font-medium">
+                <Smartphone className="w-4 h-4" />
+                Descarga la app gratuita
               </div>
 
-              {}
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Comuna</h3>
-                <Select value={selectedComuna} onValueChange={setSelectedComuna}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Seleccionar comuna" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las comunas</SelectItem>
-                    {filteredComunas.map((comuna) => (
-                      <SelectItem key={comuna.id} value={comuna.id}>
-                        {comuna.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+                La puerta de entrada
+                <span className="block bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] bg-clip-text text-transparent">
+                  al presente
+                </span>
+              </h1>
 
-      {}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-              <Calendar className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No se encontraron eventos
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Intenta ajustar tus filtros de búsqueda
-            </p>
-            <Button variant="outline" onClick={() => {
-              setSearchTerm("");
-              setSelectedCategory("all");
-              setSelectedComuna("all");
-              setSelectedRegion("all");
-            }}>
-              Limpiar filtros
-            </Button>
-          </div>
-        ) : (
-          <>
-            <div className="mb-6 flex items-center justify-between">
-              <p className="text-gray-600 dark:text-gray-300">
-                {filteredEvents.length} evento{filteredEvents.length !== 1 ? 's' : ''} encontrado{filteredEvents.length !== 1 ? 's' : ''}
+              <p className="text-lg text-white/80 max-w-lg leading-relaxed">
+                Con <strong className="text-white">SoryckPass</strong> compra tus tickets, accede a los eventos
+                y guarda tu historial, todo desde la app móvil. Sin papel, sin fila.
               </p>
+
+              {/* App store buttons */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <a
+                  href="#"
+                  className="flex items-center gap-3 bg-black hover:bg-gray-900 transition-colors rounded-xl px-5 py-3 border border-white/10 group"
+                >
+                  <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white flex-shrink-0">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-xs text-white/70 leading-none">Disponible en</div>
+                    <div className="text-sm font-semibold text-white leading-tight mt-0.5">App Store</div>
+                  </div>
+                </a>
+
+                <a
+                  href="#"
+                  className="flex items-center gap-3 bg-black hover:bg-gray-900 transition-colors rounded-xl px-5 py-3 border border-white/10 group"
+                >
+                  <svg viewBox="0 0 24 24" className="w-7 h-7 flex-shrink-0">
+                    <path fill="#EA4335" d="m12 .5-8.5 15h3.25L12 7l5.25 8.5H20.5z" />
+                    <path fill="#FBBC05" d="M3.5 15.5h17l-2.5-4.25H6z" />
+                    <path fill="#34A853" d="m9 10.75-5.5 4.75h3.25L12 7z" />
+                    <path fill="#4285F4" d="m15 10.75 5.5 4.75h-3.25L12 7z" />
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-xs text-white/70 leading-none">Disponible en</div>
+                    <div className="text-sm font-semibold text-white leading-tight mt-0.5">Google Play</div>
+                  </div>
+                </a>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
+            {/* Right – phone mockup */}
+            <div className="flex justify-center md:justify-end">
+              <div className="relative">
+                <div className="w-56 h-[460px] bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center gap-6 p-6">
+                  <Image
+                    src="/sorykpass_vertical_white.png"
+                    alt="SoryckPass App"
+                    width={140}
+                    height={140}
+                    className="opacity-90"
+                  />
+                  <div className="text-center space-y-2">
+                    <p className="text-white font-semibold text-sm">SoryckPass</p>
+                    <p className="text-white/60 text-xs leading-relaxed">
+                      Tu pase digital para todos los eventos
+                    </p>
+                  </div>
+                  <div className="w-full space-y-2">
+                    {["Ticket QR · Concierto 2025", "Acceso · Festival Arte", "Entrada · Partido Copa"].map((t) => (
+                      <div key={t} className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
+                        <QrCode className="w-4 h-4 text-[#FDBD00] flex-shrink-0" />
+                        <span className="text-white/80 text-xs truncate">{t}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Glow */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#FDBD00]/20 to-transparent rounded-[3rem] -z-10 blur-2xl scale-110" />
+              </div>
             </div>
-          </>
-        )}
-      </div>
-
-      {}
-      <div className="bg-blue-600 dark:bg-blue-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            ¿Organizas eventos?
-          </h2>
-          <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-            Crea y gestiona tus eventos de manera profesional con nuestra plataforma
-          </p>
-          <Button 
-            asChild
-            variant="secondary" 
-            size="lg"
-            className="bg-white text-blue-600 hover:bg-gray-100"
-          >
-            <Link href="/organizer">
-              <Plus className="w-4 h-4 mr-2" />
-              Crear evento
-            </Link>
-          </Button>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── CARACTERÍSTICAS APP ──────────────────────────── */}
+      <section className="py-20 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold text-[#0053CC] uppercase tracking-wider mb-3">
+              Para asistentes
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+              Todo lo que necesitas en tu bolsillo
+            </h2>
+            <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
+              Descarga SoryckPass y olvídate del papel. Tu ticket digital siempre disponible, incluso sin conexión.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {appFeatures.map((feature) => (
+              <div
+                key={feature.title}
+                className="bg-card border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow space-y-4"
+              >
+                <div className={`w-12 h-12 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center`}>
+                  <feature.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10 text-center">
+            <a href="#" className="inline-flex items-center gap-2 text-[#0053CC] font-medium hover:underline">
+              <Download className="w-4 h-4" />
+              Descargar SoryckPass gratis
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIVISOR ──────────────────────────────────────── */}
+      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+      {/* ── PLATAFORMA ORGANIZADORES ─────────────────────── */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Left – dashboard mockup */}
+            <div className="order-2 lg:order-1">
+              <div className="relative bg-card border border-border rounded-2xl shadow-xl overflow-hidden">
+                {/* Fake browser bar */}
+                <div className="bg-muted border-b border-border px-4 py-3 flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#FE4F00]/60" />
+                  <div className="w-3 h-3 rounded-full bg-[#FDBD00]/60" />
+                  <div className="w-3 h-3 rounded-full bg-green-500/60" />
+                  <div className="ml-4 flex-1 bg-background rounded-md h-5 text-xs text-muted-foreground flex items-center px-3">
+                    manage.sorykpass.com
+                  </div>
+                </div>
+                {/* Fake dashboard content */}
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Bienvenido</p>
+                      <p className="font-bold text-foreground">Panel de Organizador</p>
+                    </div>
+                    <div className="px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-[#FDBD00] to-[#FE4F00] text-white">
+                      ORGANIZER
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { label: "Eventos activos", val: "4" },
+                      { label: "Entradas vendidas", val: "1.240" },
+                      { label: "Ingresos", val: "$3.7M" },
+                    ].map((s) => (
+                      <div key={s.label} className="bg-muted rounded-xl p-3 text-center">
+                        <div className="font-bold text-foreground text-lg">{s.val}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    {["Festival de Rock · 12 Mar", "Obra de Teatro · 20 Mar", "Conferencia Tech · 5 Abr"].map((ev) => (
+                      <div key={ev} className="flex items-center justify-between bg-muted/50 rounded-xl px-3 py-2.5">
+                        <span className="text-sm text-foreground">{ev}</span>
+                        <span className="text-xs text-green-600 font-medium">Publicado</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right – text */}
+            <div className="order-1 lg:order-2 space-y-8">
+              <div>
+                <p className="text-sm font-semibold text-[#FE4F00] uppercase tracking-wider mb-3">
+                  Para organizadores y administradores
+                </p>
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                  Gestiona tus eventos
+                  <span className="block text-[#0053CC]">con total control</span>
+                </h2>
+                <p className="mt-4 text-muted-foreground leading-relaxed">
+                  Esta plataforma web está diseñada exclusivamente para organizadores y administradores.
+                  Crea eventos, vende entradas, gestiona accesos y analiza resultados en un solo lugar.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                {organizerFeatures.map((feature) => (
+                  <div key={feature.title} className="flex gap-3">
+                    <div className="w-9 h-9 bg-gradient-to-br from-[#0053CC] to-[#01CBFE] rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <feature.icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{feature.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-[#0053CC] to-[#01CBFE] hover:from-[#0053CC]/90 hover:to-[#01CBFE]/90 text-white border-0 shadow-lg"
+                >
+                  <Link href="/sign-in">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Acceder al panel
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link href="/sign-up">
+                    Solicitar acceso
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ────────────────────────────────────── */}
+      <section className="py-20 bg-gradient-to-r from-[#FDBD00] via-[#FE4F00] to-[#CC66CC]">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white space-y-6">
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            ¿Eres asistente a eventos?
+          </h2>
+          <p className="text-white/90 text-lg max-w-xl mx-auto">
+            Descarga la app móvil de SoryckPass. Allí encontrarás todos los eventos disponibles
+            y podrás comprar tus entradas de forma rápida y segura.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+            <a
+              href="#"
+              className="inline-flex items-center justify-center gap-2 bg-white text-[#0053CC] font-semibold rounded-xl px-8 py-3 hover:bg-white/90 transition-colors shadow-lg"
+            >
+              <Download className="w-5 h-5" />
+              Descargar App
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
