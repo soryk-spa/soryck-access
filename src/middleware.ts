@@ -1,7 +1,20 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { RateLimitPresets } from "@/lib/rate-limiter";
+
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+function rateLimit(ip: string, limit = 100, windowMs = 15 * 60 * 1000): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return true;
+  }
+  if (record.count >= limit) return false;
+  record.count++;
+  return true;
+}
 
 const isTestOrDebugRoute = createRouteMatcher([
   "/api/test/(.*)",
@@ -150,8 +163,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   if (isAPIRoute(req) && !isPublicAPIRoute(req) && !isClerkAPIRoute(req)) {
-    const rl = await RateLimitPresets.api.isAllowed(ip);
-    if (!rl.allowed) {
+    if (!rateLimit(ip, 100, 15 * 60 * 1000)) {
       console.warn(`rateLimit hit for ip=${ip} path=${req.nextUrl.pathname}`);
       return NextResponse.json(
         { error: "Too many requests" },
