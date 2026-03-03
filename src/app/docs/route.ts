@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 
 const docsHandler = ApiReference({
   url: "/api/docs",
+  // Servir el bundle desde public/ (copiado por postinstall) para evitar errores de CDN externo
+  cdn: "/scalar.js",
   title: "Soryck Access API",
   theme: "default",
   layout: "modern",
