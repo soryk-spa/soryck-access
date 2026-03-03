@@ -9,13 +9,14 @@
  *                    cardholderName }> }
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import type { CustomerCardResponse } from 'mercadopago/dist/clients/customerCard/commonTypes';
 import { requireAuth } from '@/lib/auth';
 import { listCustomerCards } from '@/lib/mercadopago';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const user = await requireAuth();
 
@@ -26,7 +27,7 @@ export async function GET(_request: NextRequest) {
 
     const rawCards = await listCustomerCards(user.mpCustomerId);
 
-    const cards = (Array.isArray(rawCards) ? rawCards : []).map((c: any) => ({
+    const cards = (Array.isArray(rawCards) ? rawCards : []).map((c: CustomerCardResponse) => ({
       id: c.id,
       lastFourDigits: c.last_four_digits,
       expirationMonth: c.expiration_month,

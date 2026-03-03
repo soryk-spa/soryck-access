@@ -10,6 +10,7 @@
  */
 
 import { MercadoPagoConfig, Customer, CustomerCard, Payment } from 'mercadopago';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { logger } from './logger';
 
 // ── Client ────────────────────────────────────────────────────────────────────
@@ -174,13 +175,11 @@ export function verifyMPWebhookSignature(
     // MP manifest string: id:<dataId>;request-id:<xRequestId>;ts:<ts>;
     const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
 
-    const crypto = require('crypto') as typeof import('crypto');
-    const expected = crypto
-      .createHmac('sha256', secret)
+    const expected = createHmac('sha256', secret)
       .update(manifest)
       .digest('hex');
 
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
   } catch (err) {
     logger.error('[MercadoPago] Signature verification error', err instanceof Error ? err : undefined);
     return false;
