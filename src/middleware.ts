@@ -1,28 +1,13 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { RateLimitPresets } from "@/lib/rate-limiter";
 
-
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-
-
-function rateLimit(ip: string, limit: number = 100, windowMs: number = 15 * 60 * 1000): boolean {
-  const now = Date.now();
-  const windowStart = now - windowMs;
-  
-  const record = rateLimitMap.get(ip);
-  if (!record || record.resetTime <= windowStart) {
-    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
-    return true;
-  }
-  
-  if (record.count >= limit) {
-    return false;
-  }
-  
-  record.count++;
-  return true;
-}
+const isTestOrDebugRoute = createRouteMatcher([
+  "/api/test/(.*)",
+  "/api/debug/(.*)",
+  "/api/debug-log",
+]);
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -159,9 +144,15 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   
+  // Block test/debug routes in production
+  if (process.env.NODE_ENV === "production" && isTestOrDebugRoute(req)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   if (isAPIRoute(req) && !isPublicAPIRoute(req) && !isClerkAPIRoute(req)) {
-    if (!rateLimit(ip, 100, 15 * 60 * 1000)) { 
-      console.warn(`rateLimit hit for ip=${ip} path=${req.nextUrl.pathname}`)
+    const rl = await RateLimitPresets.api.isAllowed(ip);
+    if (!rl.allowed) {
+      console.warn(`rateLimit hit for ip=${ip} path=${req.nextUrl.pathname}`);
       return NextResponse.json(
         { error: "Too many requests" },
         { status: 429, headers: response.headers }
