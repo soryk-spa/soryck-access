@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import type { CustomerCardResponse } from 'mercadopago/dist/clients/customerCard/commonTypes';
 import { requireAuth } from '@/lib/auth';
 import { listCustomerCards } from '@/lib/mercadopago';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export async function GET() {
 
     return NextResponse.json({ cards });
   } catch (error) {
-    console.error('[GET /api/mercadopago/customers/cards]', error);
+    logger.error('[GET /api/mercadopago/customers/cards]', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: 'Error al obtener las tarjetas guardadas',

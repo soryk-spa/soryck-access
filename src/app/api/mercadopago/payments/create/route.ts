@@ -41,6 +41,8 @@ import {
 } from '@/lib/commission';
 import { DiscountCodeService } from '@/lib/discount-codes';
 import { sendTicketEmail } from '@/lib/email';
+import { RateLimitPresets } from '@/lib/rate-limiter';
+import { logger } from '@/lib/logger';
 import { z } from 'zod';
 import { Order, Event, User, TicketType } from '@prisma/client';
 
@@ -112,7 +114,7 @@ async function generateTickets(
       qrCodeImage: `data:image/png;base64,${t.qrCode}`,
     })),
   }).catch((err) =>
-    console.error('[MP payments] Error sending ticket email:', err),
+    logger.error('[MP payments] Error sending ticket email', err instanceof Error ? err : undefined),
   );
 
   return { updatedOrder, totalTickets };
@@ -122,6 +124,18 @@ async function generateTickets(
 
 export async function POST(request: NextRequest) {
   try {
+    const ip =
+      request.headers.get('x-forwarded-for') ??
+      request.headers.get('x-real-ip') ??
+      'unknown';
+    const rateCheck = await RateLimitPresets.payment.isAllowed(ip);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: 'Demasiadas solicitudes de pago. Intenta en un momento.' },
+        { status: 429 },
+      );
+    }
+
     const user = await requireAuth();
     const body = await request.json();
     const validation = bodySchema.safeParse(body);
@@ -342,7 +356,7 @@ export async function POST(request: NextRequest) {
       { status: 402 },
     );
   } catch (error) {
-    console.error('[POST /api/mercadopago/payments/create]', error);
+    logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

@@ -40,7 +40,6 @@ const isPublicAPIRoute = createRouteMatcher([
   "/api/webhooks/(.*)",
   "/api/health",
   "/api/status",
-  "/api/debug/(.*)",
 ]);
 const isClerkAPIRoute = createRouteMatcher([
   "/api/clerk/(.*)",
