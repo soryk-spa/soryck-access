@@ -1,301 +1,204 @@
 /**
- * Mercado Pago client & helpers
+ * MercadoPago integration helpers
  *
- * Docs: https://github.com/mercadopago/sdk-nodejs
- *
- * Env vars required:
- *   MP_ACCESS_TOKEN  – server-side secret key
- *   MP_PUBLIC_KEY    – client-side key (sent to the mobile app)
- *   MP_WEBHOOK_SECRET – used to verify incoming webhook signatures
+ * Lessons learned:
+ *  - MP SDK v3 throws plain objects { status, message, cause[] }, not Error instances.
+ *  - NEVER send payer.id (mpCustomerId) on card payments — causes "customer server error"
+ *    (MP 500) with TEST tokens. The cardToken is self-contained.
+ *  - Customer API is only used for saving/listing cards, not for payments.
  */
 
 import { MercadoPagoConfig, Customer, CustomerCard, Payment, Preference } from 'mercadopago';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { logger } from './logger';
 
-// ── Client ────────────────────────────────────────────────────────────────────
-
-function getAccessToken(): string {
-  const token = process.env.MP_ACCESS_TOKEN;
-  if (!token) {
-    logger.error('[MercadoPago] MP_ACCESS_TOKEN is not set');
-    throw new Error('MP_ACCESS_TOKEN is not configured');
-  }
-  return token;
-}
+// ─── Client ───────────────────────────────────────────────────────────────────
 
 export function getMPClient(): MercadoPagoConfig {
-  return new MercadoPagoConfig({
-    accessToken: getAccessToken(),
-    options: { timeout: 5000 },
-  });
+  const token = process.env.MP_ACCESS_TOKEN;
+  if (!token) throw new Error('MP_ACCESS_TOKEN is not configured');
+  return new MercadoPagoConfig({ accessToken: token, options: { timeout: 10000 } });
 }
 
-// ── Customers ─────────────────────────────────────────────────────────────────
+// ─── MP error helper ──────────────────────────────────────────────────────────
+// MP SDK v3 throws plain objects, not Error instances.
 
-/**
- * Finds or creates a Mercado Pago Customer for the given email.
- * Returns the MP customer ID.
- * NOTE: prefers existing customer by email — use createFreshCustomer() when you
- * need a guaranteed-new customer (e.g. after clearing a stale mpCustomerId).
- */
-export async function findOrCreateCustomer(email: string): Promise<string> {
-  const client = getMPClient();
-  const customerApi = new Customer(client);
-
-  // Search for existing customer by email
-  const searchResult = await customerApi.search({ options: { email } });
-  const results = searchResult.results ?? [];
-
-  if (results.length > 0 && results[0].id) {
-    logger.info(`[MercadoPago] Found existing customer for ${email}: ${results[0].id}`);
-    return results[0].id;
-  }
-
-  // Create new customer
-  const newCustomer = await customerApi.create({ body: { email } });
-  if (!newCustomer.id) {
-    throw new Error('Failed to create Mercado Pago customer – no id returned');
-  }
-
-  logger.info(`[MercadoPago] Created new customer for ${email}: ${newCustomer.id}`);
-  return newCustomer.id;
+export interface MPErrorInfo {
+  status: number | null;
+  message: string | null;
+  causeCode: string | number | null;
+  causeDescription: string | null;
 }
 
-/**
- * Creates a Mercado Pago Customer, or if one already exists for that email,
- * deletes it first and creates a brand-new one. This ensures we never reuse
- * a corrupted/stale customer object.
- */
-export async function createFreshCustomer(email: string): Promise<string> {
-  const client = getMPClient();
-  const customerApi = new Customer(client);
+export function extractMPError(err: unknown): MPErrorInfo {
+  const e = err as Record<string, unknown>;
+  const cause = Array.isArray(e?.cause)
+    ? (e.cause as { code?: string | number; description?: string }[])
+    : [];
+  return {
+    status: typeof e?.status === 'number' ? e.status : null,
+    message: typeof e?.message === 'string' ? e.message : null,
+    causeCode: cause[0]?.code ?? null,
+    causeDescription: cause[0]?.description ?? null,
+  };
+}
 
+// ─── Customers ────────────────────────────────────────────────────────────────
+
+/**
+ * Returns the MP customer ID for the given email.
+ * Searches first; creates only if not found.
+ * Handles code 101 (already exists) with a retry-search fallback.
+ */
+export async function getOrCreateCustomer(email: string): Promise<string> {
+  const api = new Customer(getMPClient());
+
+  // Search first to avoid unnecessary creates
+  const search = await api.search({ options: { email } });
+  const existing = (search.results ?? [])[0];
+  if (existing?.id) {
+    logger.info(`[MP] Found customer for ${email}: ${existing.id}`);
+    return existing.id;
+  }
+
+  // Not found — create
   try {
-    const newCustomer = await customerApi.create({ body: { email } });
-    if (!newCustomer.id) {
-      throw new Error('Failed to create Mercado Pago customer – no id returned');
-    }
-    logger.info(`[MercadoPago] Created fresh customer for ${email}: ${newCustomer.id}`);
-    return newCustomer.id;
+    const created = await api.create({ body: { email } });
+    if (!created.id) throw new Error('MP customer create returned no id');
+    logger.info(`[MP] Created customer for ${email}: ${created.id}`);
+    return created.id;
   } catch (err) {
-    // code 101 = customer already exists in MP — delete it and recreate
-    const errObj = err as Record<string, unknown>;
-    const cause = Array.isArray(errObj?.cause) ? errObj.cause as { code?: string | number }[] : [];
-    const alreadyExists = cause.some((c) => c.code === 101 || c.code === '101');
-    if (alreadyExists) {
-      logger.warn(`[MercadoPago] Customer already exists for ${email}, deleting old and recreating`);
-      // Find the old customer
-      const searchResult = await customerApi.search({ options: { email } });
-      const existing = (searchResult.results ?? [])[0];
-      if (existing?.id) {
-        // Delete the old customer from MP
-        try {
-          await customerApi.remove({ customerId: existing.id });
-          logger.info(`[MercadoPago] Deleted old customer ${existing.id} for ${email}`);
-        } catch (delErr) {
-          logger.warn(`[MercadoPago] Could not delete old customer ${existing.id}: ${JSON.stringify(delErr)}`);
-        }
-        // Now create a truly fresh one
-        const freshCustomer = await customerApi.create({ body: { email } });
-        if (!freshCustomer.id) {
-          throw new Error('Failed to create fresh Mercado Pago customer after delete');
-        }
-        logger.info(`[MercadoPago] Created truly fresh customer for ${email}: ${freshCustomer.id}`);
-        return freshCustomer.id;
+    const { causeCode } = extractMPError(err);
+    // Code 101: created between our search and create (race) — search again
+    if (causeCode === 101 || causeCode === '101') {
+      const retry = await api.search({ options: { email } });
+      const found = (retry.results ?? [])[0];
+      if (found?.id) {
+        logger.info(`[MP] Customer found on retry for ${email}: ${found.id}`);
+        return found.id;
       }
     }
     throw err;
   }
 }
 
-// ── Cards ─────────────────────────────────────────────────────────────────────
+// ─── Cards ────────────────────────────────────────────────────────────────────
 
-/**
- * Saves a tokenised card to a MP customer.
- * The `cardToken` must be generated by the MP SDK on the client (mobile app)
- * using the user's raw card data – never sent to this server.
- */
-export async function saveCardToCustomer(mpCustomerId: string, cardToken: string) {
-  const client = getMPClient();
-  const cardApi = new CustomerCard(client);
-
-  const card = await cardApi.create({
-    customerId: mpCustomerId,
-    body: { token: cardToken },
-  });
-
-  logger.info(`[MercadoPago] Card saved for customer ${mpCustomerId}: ${card.id}`);
+export async function saveCardToCustomer(customerId: string, cardToken: string) {
+  const api = new CustomerCard(getMPClient());
+  const card = await api.create({ customerId, body: { token: cardToken } });
+  logger.info(`[MP] Card saved for customer ${customerId}: card ${card.id}`);
   return card;
 }
 
-/**
- * Lists all saved cards for a MP customer.
- */
-export async function listCustomerCards(mpCustomerId: string) {
-  const client = getMPClient();
-  const cardApi = new CustomerCard(client);
-
-  const result = await cardApi.list({ customerId: mpCustomerId });
-  return result ?? [];
+export async function listCustomerCards(customerId: string) {
+  const api = new CustomerCard(getMPClient());
+  return (await api.list({ customerId })) ?? [];
 }
 
-/**
- * Deletes a saved card from a MP customer.
- */
-export async function deleteCustomerCard(mpCustomerId: string, cardId: string) {
-  const client = getMPClient();
-  const cardApi = new CustomerCard(client);
-
-  await cardApi.remove({ customerId: mpCustomerId, cardId });
-  logger.info(`[MercadoPago] Card ${cardId} deleted for customer ${mpCustomerId}`);
+export async function deleteCustomerCard(customerId: string, cardId: string) {
+  const api = new CustomerCard(getMPClient());
+  await api.remove({ customerId, cardId });
+  logger.info(`[MP] Card ${cardId} deleted for customer ${customerId}`);
 }
 
-// ── Checkout Pro (web payments) ───────────────────────────────────────────────
+// ─── Checkout Pro (web payments) ──────────────────────────────────────────────
 
 export interface MPPreferenceInput {
-  orderId: string;         // Used as external_reference to find the order on return
-  description: string;     // e.g. "2x Entrada General – Lollapalooza 2026"
-  amount: number;          // Total in CLP (integer)
-  email: string;           // Payer email
-  appUrl: string;          // e.g. https://sorykpass.com (no trailing slash)
-  returnPath?: string;     // e.g. "/api/mercadopago/return" (default)
+  orderId: string;
+  description: string;
+  amount: number;
+  email: string;
+  appUrl: string;
+  returnPath?: string;
 }
 
-/**
- * Creates a MercadoPago Checkout Pro preference and returns the init_point URL.
- * The user is redirected to this URL to complete payment.
- * On return, MP sends GET to back_urls with: external_reference, payment_id, status.
- */
 export async function createPreference(input: MPPreferenceInput): Promise<string> {
-  const client = getMPClient();
-  const preferenceApi = new Preference(client);
+  const api = new Preference(getMPClient());
+  const returnUrl = `${input.appUrl}${input.returnPath ?? '/api/mercadopago/return'}`;
 
-  const returnPath = input.returnPath ?? '/api/mercadopago/return';
-  const returnUrl = `${input.appUrl}${returnPath}`;
-
-  const response = await preferenceApi.create({
+  const response = await api.create({
     body: {
-      items: [
-        {
-          id: input.orderId,
-          title: input.description,
-          quantity: 1,
-          unit_price: input.amount,
-          currency_id: 'CLP',
-        },
-      ],
+      items: [{ id: input.orderId, title: input.description, quantity: 1, unit_price: input.amount, currency_id: 'CLP' }],
       payer: { email: input.email },
       external_reference: input.orderId,
-      back_urls: {
-        success: returnUrl,
-        failure: returnUrl,
-        pending: returnUrl,
-      },
+      back_urls: { success: returnUrl, failure: returnUrl, pending: returnUrl },
       auto_return: 'approved',
     },
   });
 
-  if (!response.init_point) {
-    throw new Error('MercadoPago did not return an init_point URL');
-  }
-
-  logger.info(`[MercadoPago] Preference created: id=${response.id} for order ${input.orderId}`);
+  if (!response.init_point) throw new Error('MP did not return an init_point URL');
+  logger.info(`[MP] Preference created: ${response.id} for order ${input.orderId}`);
   return response.init_point;
 }
 
-// ── Payments ──────────────────────────────────────────────────────────────────
+// ─── Card payments ────────────────────────────────────────────────────────────
 
 export interface MPPaymentInput {
   amount: number;
-  currency: string;
-  cardToken: string;       // One-time token created by mobile app from saved card + CVV
+  cardToken: string;
   installments: number;
-  paymentMethodId: string; // e.g. "visa", "master"
-  /** MP customer ID — only pass when also sending a saved cardId, otherwise MP returns "customer server error" */
-  mpCustomerId?: string;
+  paymentMethodId: string;
   email: string;
   description: string;
-  externalReference: string; // our orderNumber
+  externalReference: string;
 }
 
 /**
- * Creates a card payment on Mercado Pago.
- * Returns the full MP payment object.
+ * Creates a card payment on MercadoPago.
+ *
+ * IMPORTANT: payer.id (mpCustomerId) is intentionally NOT sent.
+ * Sending it with TEST tokens causes "customer server error" (MP 500).
+ * The cardToken created from a saved card is self-contained and works without it.
  */
 export async function createMPPayment(input: MPPaymentInput) {
-  const client = getMPClient();
-  const paymentApi = new Payment(client);
+  const api = new Payment(getMPClient());
 
-  // CLP and other zero-decimal currencies must be integers
-  const transactionAmount = Math.round(input.amount);
-
-  const response = await paymentApi.create({
+  const response = await api.create({
     body: {
-      transaction_amount: transactionAmount,
+      transaction_amount: Math.round(input.amount), // CLP must be integer
       token: input.cardToken,
       installments: input.installments,
       payment_method_id: input.paymentMethodId,
       description: input.description,
       external_reference: input.externalReference,
       capture: true,
-      payer: {
-        email: input.email,
-      },
+      payer: { email: input.email },
     },
   });
 
-  logger.info(`[MercadoPago] Payment created: id=${response.id} status=${response.status}`);
+  logger.info(`[MP] Payment: id=${response.id} status=${response.status} method=${input.paymentMethodId}`);
   return response;
 }
 
-// ── Webhook verification ──────────────────────────────────────────────────────
+// ─── Webhook signature verification ──────────────────────────────────────────
 
-/**
- * Verifies the x-signature header sent by Mercado Pago on webhook calls.
- * MP sends: x-signature: ts=<timestamp>,v1=<hmac>
- *
- * Docs: https://www.mercadopago.com.ar/developers/es/docs/your-integrations/notifications/webhooks
- */
 export function verifyMPWebhookSignature(
   xSignature: string,
   xRequestId: string,
-  dataId: string, // query param ?data.id=xxx
+  dataId: string,
 ): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET;
   if (!secret) {
-    logger.warn('[MercadoPago] MP_WEBHOOK_SECRET not set – skipping signature verification');
-    return true; // fail-open in dev; set the secret in production
+    logger.warn('[MP] MP_WEBHOOK_SECRET not set – skipping signature verification');
+    return true;
   }
-
   try {
     const parts = Object.fromEntries(
-      xSignature.split(',').map((p) => p.split('=') as [string, string])
+      xSignature.split(',').map((p) => p.split('=') as [string, string]),
     );
-    const ts = parts['ts'];
-    const v1 = parts['v1'];
-
+    const { ts, v1 } = parts;
     if (!ts || !v1) return false;
-
-    // MP manifest string: id:<dataId>;request-id:<xRequestId>;ts:<ts>;
     const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
-
-    const expected = createHmac('sha256', secret)
-      .update(manifest)
-      .digest('hex');
-
+    const expected = createHmac('sha256', secret).update(manifest).digest('hex');
     return timingSafeEqual(Buffer.from(expected), Buffer.from(v1));
-  } catch (err) {
-    logger.error('[MercadoPago] Signature verification error', err instanceof Error ? err : undefined);
+  } catch {
     return false;
   }
 }
 
-/**
- * Fetches a single payment from MP by id (used in webhook handler).
- */
+// ─── Fetch payment by id (used in webhooks) ───────────────────────────────────
+
 export async function getMPPaymentById(mpPaymentId: string | number) {
-  const client = getMPClient();
-  const paymentApi = new Payment(client);
-  return paymentApi.get({ id: Number(mpPaymentId) });
+  return new Payment(getMPClient()).get({ id: Number(mpPaymentId) });
 }
