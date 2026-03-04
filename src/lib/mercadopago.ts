@@ -36,6 +36,8 @@ export function getMPClient(): MercadoPagoConfig {
 /**
  * Finds or creates a Mercado Pago Customer for the given email.
  * Returns the MP customer ID.
+ * NOTE: prefers existing customer by email — use createFreshCustomer() when you
+ * need a guaranteed-new customer (e.g. after clearing a stale mpCustomerId).
  */
 export async function findOrCreateCustomer(email: string): Promise<string> {
   const client = getMPClient();
@@ -57,6 +59,23 @@ export async function findOrCreateCustomer(email: string): Promise<string> {
   }
 
   logger.info(`[MercadoPago] Created new customer for ${email}: ${newCustomer.id}`);
+  return newCustomer.id;
+}
+
+/**
+ * Always creates a brand-new Mercado Pago Customer (skips email search).
+ * Use this when mpCustomerId is null/cleared to avoid reusing a stale MP customer.
+ */
+export async function createFreshCustomer(email: string): Promise<string> {
+  const client = getMPClient();
+  const customerApi = new Customer(client);
+
+  const newCustomer = await customerApi.create({ body: { email } });
+  if (!newCustomer.id) {
+    throw new Error('Failed to create Mercado Pago customer – no id returned');
+  }
+
+  logger.info(`[MercadoPago] Created fresh customer for ${email}: ${newCustomer.id}`);
   return newCustomer.id;
 }
 

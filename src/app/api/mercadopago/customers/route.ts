@@ -18,7 +18,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { findOrCreateCustomer, saveCardToCustomer } from '@/lib/mercadopago';
+import { createFreshCustomer, findOrCreateCustomer, saveCardToCustomer } from '@/lib/mercadopago';
 import { RateLimitPresets } from '@/lib/rate-limiter';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
     let mpCustomerId = user.mpCustomerId ?? null;
 
     if (!mpCustomerId) {
-      mpCustomerId = await findOrCreateCustomer(user.email);
+      // Always create a FRESH customer when DB has no mpCustomerId.
+      // Using findOrCreate would re-find the old (potentially broken) MP customer
+      // by email and cause "customer server error" on payment.
+      mpCustomerId = await createFreshCustomer(user.email);
       // Persist the customer ID so we don't create duplicates
       await prisma.user.update({
         where: { id: user.id },
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
 
       if (isNotFound) {
         logger.warn(`[customers] Stale mpCustomerId ${mpCustomerId}, creating fresh customer`);
-        mpCustomerId = await findOrCreateCustomer(user.email);
+        mpCustomerId = await createFreshCustomer(user.email);
         await prisma.user.update({ where: { id: user.id }, data: { mpCustomerId } });
         card = await saveCardToCustomer(mpCustomerId, cardToken);
       } else {
