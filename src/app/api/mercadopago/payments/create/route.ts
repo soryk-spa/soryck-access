@@ -329,7 +329,7 @@ export async function POST(request: NextRequest) {
       paymentMethodId,
       // Always pass mpCustomerId when present — the card is saved to the customer
       // before this point, so MP can always find the customer.
-      mpCustomerId: user.mpCustomerId ?? undefined,
+      mpCustomerId: cardId ? (user.mpCustomerId ?? undefined) : undefined,
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
