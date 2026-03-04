@@ -411,6 +411,17 @@ export async function POST(request: NextRequest) {
       { status: 402 },
     );
   } catch (error) {
+    // Auth errors thrown by requireAuth() → 401 (not 500)
+    if (
+      error instanceof Error &&
+      (error.message.includes('no autenticado') ||
+        error.message.includes('Acceso denegado') ||
+        error.message.includes('not authenticated') ||
+        error.message.includes('Unauthorized'))
+    ) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+
     // MercadoPago SDK throws objects with `cause` containing the API error details
     // SDK v2 format: error.cause = [{ code, description }]
     // SDK v3 format: error.cause = { code, description } or error.message with JSON
@@ -433,7 +444,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log full error for debugging
+    // Log full error for debugging — console.error always appears in Vercel Runtime Logs
+    console.error('[POST /api/mercadopago/payments/create] UNHANDLED ERROR:', {
+      name: error instanceof Error ? error.name : 'unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined,
+      raw: typeof error === 'object' ? JSON.stringify(error) : String(error),
+    });
     logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined, {
       errorRaw: typeof error === 'object' ? JSON.stringify(error) : String(error),
     });
