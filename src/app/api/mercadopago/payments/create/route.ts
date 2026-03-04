@@ -422,15 +422,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
-    // MercadoPago SDK throws objects with `cause` containing the API error details
-    // SDK v2 format: error.cause = [{ code, description }]
-    // SDK v3 format: error.cause = { code, description } or error.message with JSON
-    const mpCause = (error as { cause?: unknown })?.cause;
-    const causeArray = Array.isArray(mpCause) ? mpCause : mpCause ? [mpCause] : null;
+    // ── MercadoPago SDK error handling ───────────────────────────────────────
+    // The MP SDK v3 throws plain objects (not Error instances) with formats:
+    //   { status: 4xx, message: "...", cause: [{ code, description }] }  ← cause array (may be empty)
+    //   { status: 4xx, message: "..." }                                  ← no cause
+    //   { cause: [{ code, description }] }                               ← older SDK v2
+    const errObj = error as Record<string, unknown>;
+    const mpCause = errObj?.cause;
+    const causeArray = Array.isArray(mpCause) ? mpCause : mpCause ? [mpCause] : [];
 
-    if (causeArray && causeArray.length > 0) {
+    if (causeArray.length > 0) {
       const mpError = causeArray[0] as { code?: string | number; description?: string };
-      logger.error('[MP payments] MercadoPago API error', undefined, {
+      logger.error('[MP payments] MercadoPago API error (cause)', undefined, {
         code: mpError.code,
         description: mpError.description,
       });
@@ -444,20 +447,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // MP SDK plain object with status + message but empty/no cause
+    const mpStatus = typeof errObj?.status === 'number' ? errObj.status : null;
+    const mpMessage = typeof errObj?.message === 'string' ? errObj.message : null;
+    if (!(error instanceof Error) && (mpStatus || mpMessage)) {
+      const logPayload = JSON.stringify(error);
+      logger.error('[MP payments] MercadoPago plain object error', undefined, { raw: logPayload });
+      console.error('[POST /api/mercadopago/payments/create] MP plain error:', logPayload);
+      return NextResponse.json(
+        {
+          error: 'Error de MercadoPago',
+          code: mpStatus,
+          details: mpMessage ?? logPayload,
+        },
+        { status: mpStatus && mpStatus >= 400 && mpStatus < 500 ? 422 : 502 },
+      );
+    }
+
     // Log full error for debugging — console.error always appears in Vercel Runtime Logs
+    const errorStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
     console.error('[POST /api/mercadopago/payments/create] UNHANDLED ERROR:', {
       name: error instanceof Error ? error.name : 'unknown',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined,
-      raw: typeof error === 'object' ? JSON.stringify(error) : String(error),
+      message: error instanceof Error ? error.message : errorStr,
+      stack: error instanceof Error ? error.stack?.slice(0, 800) : undefined,
+      raw: errorStr,
     });
     logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined, {
-      errorRaw: typeof error === 'object' ? JSON.stringify(error) : String(error),
+      errorRaw: errorStr,
     });
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : String(error),
+        details: error instanceof Error ? error.message : errorStr,
       },
       { status: 500 },
     );
