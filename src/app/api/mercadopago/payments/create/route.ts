@@ -316,9 +316,9 @@ export async function POST(request: NextRequest) {
       cardToken,
       installments,
       paymentMethodId,
-      // Only send mpCustomerId when cardId is also present (saved-card flow).
-      // Fresh-token payments must NOT include payer.id or MP returns "customer server error".
-      mpCustomerId: cardId ? user.mpCustomerId ?? undefined : undefined,
+      // Always pass mpCustomerId when present — the card is saved to the customer
+      // before this point, so MP can always find the customer.
+      mpCustomerId: user.mpCustomerId ?? undefined,
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
@@ -439,6 +439,29 @@ export async function POST(request: NextRequest) {
         code: mpError.code,
         description: mpError.description,
       });
+
+      // code 2002 = customer not found in MP (stale mpCustomerId in DB).
+      // Clear it so the next request creates a fresh MP customer automatically.
+      if (mpError.code === 2002 || mpError.code === '2002') {
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { mpCustomerId: null },
+          });
+          logger.warn('[MP payments] Cleared stale mpCustomerId for user', undefined, { userId: user.id });
+        } catch (clearErr) {
+          logger.warn('[MP payments] Could not clear mpCustomerId', undefined, { userId: user.id });
+        }
+        return NextResponse.json(
+          {
+            error: 'Perfil de pagos no encontrado. Intenta nuevamente para auto-corregirlo.',
+            code: 2002,
+            retryable: true,
+          },
+          { status: 422 },
+        );
+      }
+
       return NextResponse.json(
         {
           error: 'Error de MercadoPago',
