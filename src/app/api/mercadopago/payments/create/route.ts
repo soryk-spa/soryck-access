@@ -288,30 +288,37 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Resolve paymentMethodId ────────────────────────────────────────────────
-    // If the mobile app didn't send it, look it up from the saved card
+    // When cardId is present we ALWAYS look up the method from MP directly.
+    // This ensures debit cards use "debvisa"/"debmaster" instead of "visa"/"master"
+    // (the mobile app incorrectly strips the "deb" prefix before sending).
     let paymentMethodId = rawPaymentMethodId;
-    if (!paymentMethodId) {
-      const resolvedCardId = cardId;
-      if (resolvedCardId) {
-        try {
-          const { listCustomerCards } = await import('@/lib/mercadopago');
-          const cards = await listCustomerCards(user.mpCustomerId);
-          const cardList = Array.isArray(cards) ? cards : [];
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const found = cardList.find((c: any) => c.id === resolvedCardId);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          paymentMethodId = (found as any)?.payment_method?.id ?? undefined;
-          logger.info(`[MP payments] Derived paymentMethodId from card ${resolvedCardId}: ${paymentMethodId}`);
-        } catch (err) {
-          logger.warn('[MP payments] Could not derive paymentMethodId from card', { cardId: resolvedCardId });
+    if (cardId) {
+      try {
+        const { listCustomerCards } = await import('@/lib/mercadopago');
+        const cards = await listCustomerCards(user.mpCustomerId);
+        const cardList = Array.isArray(cards) ? cards : [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const found = cardList.find((c: any) => c.id === cardId);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const derivedMethod = (found as any)?.payment_method?.id as string | undefined;
+        if (derivedMethod) {
+          if (derivedMethod !== paymentMethodId) {
+            logger.info(`[MP payments] Corrected paymentMethodId: app sent "${paymentMethodId}" → using "${derivedMethod}" from card ${cardId}`);
+          }
+          paymentMethodId = derivedMethod;
+        } else {
+          logger.warn(`[MP payments] Could not derive paymentMethodId from card ${cardId}, keeping app value: ${paymentMethodId}`);
         }
+      } catch (err) {
+        logger.warn(`[MP payments] Error looking up card ${cardId}, keeping app value: ${paymentMethodId}`);
       }
-      if (!paymentMethodId) {
-        return NextResponse.json(
-          { error: 'No se pudo determinar el método de pago. Envía paymentMethodId o cardId.' },
-          { status: 400 },
-        );
-      }
+    }
+
+    if (!paymentMethodId) {
+      return NextResponse.json(
+        { error: 'No se pudo determinar el método de pago. Envía paymentMethodId o cardId.' },
+        { status: 400 },
+      );
     }
 
     const mpPayment = await createMPPayment({
@@ -330,34 +337,57 @@ export async function POST(request: NextRequest) {
 
     // Guard: MP must return a payment ID
     if (!mpPayment.id) {
-      logger.error('[MP payments] MP returned a payment without id', undefined, {
-        status: mpPayment.status,
-        statusDetail: mpPayment.status_detail,
-      });
+      const fullResponse = JSON.stringify(mpPayment);
+      console.error('[MP payments] MP returned payment without id:', fullResponse);
+      logger.error(`[MP payments] MP returned payment without id. paymentMethodId=${paymentMethodId} full=${fullResponse}`);
       await prisma.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
       return NextResponse.json(
-        { error: 'MercadoPago no retornó un ID de pago válido', statusDetail: mpPayment.status_detail },
+        {
+          error: 'MercadoPago no retornó un ID de pago válido',
+          status: mpPayment.status,
+          statusDetail: mpPayment.status_detail,
+        },
         { status: 502 },
       );
     }
 
     // ── Persist Payment record ────────────────────────────────────────────────
 
-    await prisma.payment.create({
-      data: {
-        orderId: order.id,
-        transactionId: String(mpPayment.id),
-        amount: finalAmount,
-        currency: event.currency,
-        status: mpPayment.status ?? 'PENDING',
-        paymentMethod: paymentMethodId,
-        authorizationCode: mpPayment.authorization_code ?? null,
-        paymentGateway: 'MERCADOPAGO',
-        transactionDate: mpPayment.date_approved
-          ? new Date(mpPayment.date_approved)
-          : null,
-      },
-    });
+    try {
+      await prisma.payment.create({
+        data: {
+          orderId: order.id,
+          transactionId: String(mpPayment.id),
+          amount: finalAmount,
+          currency: event.currency,
+          status: mpPayment.status ?? 'PENDING',
+          paymentMethod: paymentMethodId,
+          authorizationCode: mpPayment.authorization_code ?? null,
+          paymentGateway: 'MERCADOPAGO',
+          transactionDate: mpPayment.date_approved
+            ? new Date(mpPayment.date_approved)
+            : null,
+        },
+      });
+    } catch (dbErr) {
+      // Most likely: unique constraint on transactionId (duplicate payment) or orderId (order already paid)
+      const dbMsg = dbErr instanceof Error ? dbErr.message : JSON.stringify(dbErr);
+      console.error('[MP payments] prisma.payment.create failed:', dbMsg, { mpPaymentId: mpPayment.id, orderId: order.id });
+      logger.error(`[MP payments] DB error persisting payment for order ${order.id}: ${dbMsg}`);
+      // The MP payment already went through — return success info so the app can proceed
+      // but flag that DB persistence failed so we can investigate
+      return NextResponse.json(
+        {
+          success: mpPayment.status === 'approved',
+          warning: 'El pago fue procesado pero hubo un error al registrarlo. Contacta a soporte con tu número de orden.',
+          orderId: order.id,
+          mpPaymentId: mpPayment.id,
+          status: mpPayment.status,
+          statusDetail: mpPayment.status_detail,
+        },
+        { status: 207 },
+      );
+    }
 
     // ── Handle payment status ─────────────────────────────────────────────────
 
