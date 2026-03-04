@@ -288,14 +288,13 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Resolve paymentMethodId ────────────────────────────────────────────────
-    // When cardId is present we ALWAYS look up the method from MP directly.
-    // This ensures debit cards use "debvisa"/"debmaster" instead of "visa"/"master"
-    // (the mobile app incorrectly strips the "deb" prefix before sending).
+    // When cardId is present we look up the method from MP to correct debit cards:
+    // the mobile app sends "visa"/"master" but debit cards need "debvisa"/"debmaster".
     let paymentMethodId = rawPaymentMethodId;
     if (cardId) {
       try {
         const { listCustomerCards } = await import('@/lib/mercadopago');
-        const cards = await listCustomerCards(user.mpCustomerId);
+        const cards = await listCustomerCards(user.mpCustomerId!);
         const cardList = Array.isArray(cards) ? cards : [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const found = cardList.find((c: any) => c.id === cardId);
@@ -309,8 +308,9 @@ export async function POST(request: NextRequest) {
         } else {
           logger.warn(`[MP payments] Could not derive paymentMethodId from card ${cardId}, keeping app value: ${paymentMethodId}`);
         }
-      } catch (err) {
-        logger.warn(`[MP payments] Error looking up card ${cardId}, keeping app value: ${paymentMethodId}`);
+      } catch {
+        // Non-fatal: use whatever the app sent
+        logger.warn(`[MP payments] listCustomerCards failed for card ${cardId}, keeping app paymentMethodId: ${paymentMethodId}`);
       }
     }
 
@@ -327,8 +327,9 @@ export async function POST(request: NextRequest) {
       cardToken,
       installments,
       paymentMethodId,
-      // Do NOT pass mpCustomerId — the card token is created without customer_id on the
-      // mobile side, so adding payer.id here causes MP to return "customer server error".
+      // Send mpCustomerId when cardId is present — MP requires payer.id to validate
+      // tokens created from saved cards (card_id). Without it MP returns 2002.
+      mpCustomerId: cardId ? (user.mpCustomerId ?? undefined) : undefined,
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
