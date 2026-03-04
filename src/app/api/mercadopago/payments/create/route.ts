@@ -316,7 +316,9 @@ export async function POST(request: NextRequest) {
       cardToken,
       installments,
       paymentMethodId,
-      mpCustomerId: user.mpCustomerId,
+      // Only send mpCustomerId when cardId is also present (saved-card flow).
+      // Fresh-token payments must NOT include payer.id or MP returns "customer server error".
+      mpCustomerId: cardId ? user.mpCustomerId ?? undefined : undefined,
       email: user.email,
       description: event.title,
       externalReference: orderNumber,

@@ -163,7 +163,8 @@ export interface MPPaymentInput {
   cardToken: string;       // One-time token created by mobile app from saved card + CVV
   installments: number;
   paymentMethodId: string; // e.g. "visa", "master"
-  mpCustomerId: string;
+  /** MP customer ID — only pass when also sending a saved cardId, otherwise MP returns "customer server error" */
+  mpCustomerId?: string;
   email: string;
   description: string;
   externalReference: string; // our orderNumber
@@ -191,7 +192,9 @@ export async function createMPPayment(input: MPPaymentInput) {
       capture: true,
       payer: {
         email: input.email,
-        id: input.mpCustomerId,
+        // Only include id when paying with a saved card (mpCustomerId + cardId).
+        // Omitting it for fresh-token payments avoids MP's "customer server error".
+        ...(input.mpCustomerId ? { id: input.mpCustomerId } : {}),
       },
     },
   });
