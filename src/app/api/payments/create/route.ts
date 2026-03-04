@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic'
 import { prisma } from "@/lib/prisma";
-import { webpayPlus } from "@/lib/transbank";
+import { createPreference } from "@/lib/mercadopago";
 import { generateUniqueQRCode } from "@/lib/qr";
 import { calculatePriceBreakdown, calculatePriceBreakdownWithDiscount } from "@/lib/commission";
 import { DiscountCodeService } from "@/lib/discount-codes";
@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       originalAmount: finalPriceBreakdown.originalAmount
     });
 
-    console.log(`[WEBPAY] Monto que será enviado a WebPay: $${finalTotalAmount} ${event.currency}`);
+    console.log(`[MP] Monto que será enviado a MercadoPago: $${finalTotalAmount} ${event.currency}`);
 
     const orderNumber = generateShortBuyOrder("SP");
     const order = await prisma.order.create({
@@ -184,39 +184,35 @@ export async function POST(request: NextRequest) {
     }
 
     
-    const sessionId = generateShortSessionId("sess");
-    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return`;
-
-    const transbankResponse = await webpayPlus.create(
-      order.orderNumber,
-      sessionId,
-      finalTotalAmount,
-      returnUrl
-    );
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const initPoint = await createPreference({
+      orderId: order.id,
+      description: `${quantity}x ${ticketType.name} – ${event.title}`,
+      amount: finalTotalAmount,
+      email: user.email,
+      appUrl,
+      returnPath: '/api/mercadopago/return',
+    });
 
     await prisma.payment.create({
       data: {
         orderId: order.id,
-        transactionId: sessionId,
-        token: transbankResponse.token,
+        transactionId: ticketType.id,   // Guardamos ticketTypeId para recuperarlo en el return
+        token: order.id,                // Guardamos orderId para buscarlo en el return
         amount: finalTotalAmount,
         currency: event.currency,
         status: "PENDING",
       },
     });
 
-    
     if (discountCodeValidation && discountCodeValidation.isValid) {
-      
-      
       console.log(`[DISCOUNT] Código ${promoCode} (${discountCodeValidation.type}) quedará pendiente para aplicar tras pago exitoso`);
     }
 
     return NextResponse.json({
       success: true,
       orderId: order.id,
-      paymentUrl: transbankResponse.url,
-      token: transbankResponse.token,
+      paymentUrl: initPoint,
       priceBreakdown: {
         originalAmount: finalPriceBreakdown.originalAmount,
         discountAmount: finalPriceBreakdown.discountAmount,

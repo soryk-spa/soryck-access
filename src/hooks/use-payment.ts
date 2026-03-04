@@ -75,27 +75,10 @@ export function usePayment() {
             `¡Registro exitoso! Se generó ${ticketsText}.`
           );
           router.push(`/payment/success?orderId=${data.orderId}`);
-        } else if (data.paymentUrl && data.token) {
-          toast.info("Redirigiendo a la pasarela de pago...");
-          
-          
-          const redirectUrl = new URL("/payment/redirect", window.location.origin);
-          redirectUrl.searchParams.set("token", data.token);
-          redirectUrl.searchParams.set("url", data.paymentUrl);
-          
-          
-          if (data.priceBreakdown) {
-            redirectUrl.searchParams.set("amount", data.priceBreakdown.totalAmount.toString());
-            if (data.priceBreakdown.discountAmount > 0) {
-              redirectUrl.searchParams.set("discount", data.priceBreakdown.discountAmount.toString());
-              if (data.priceBreakdown.promoCode) {
-                redirectUrl.searchParams.set("promoCode", data.priceBreakdown.promoCode);
-              }
-            }
-          }
-          
-          
-          router.push(redirectUrl.toString());
+        } else if (data.paymentUrl) {
+          toast.info("Redirigiendo a MercadoPago...");
+          // MP Checkout Pro uses a plain GET redirect
+          window.location.href = data.paymentUrl;
         }
       }
 

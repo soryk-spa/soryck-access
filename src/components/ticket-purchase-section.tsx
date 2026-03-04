@@ -101,11 +101,9 @@ export default function TicketPurchaseSection({
 
       if (result.isFree) {
         router.push(`/payment/success?orderId=${result.orderId}`);
-      } else {
-        const redirectUrl = `/payment/redirect?token=${encodeURIComponent(
-          result.token
-        )}&url=${encodeURIComponent(result.paymentUrl)}`;
-        router.push(redirectUrl);
+      } else if (result.paymentUrl) {
+        // MercadoPago Checkout Pro: plain GET redirect
+        window.location.href = result.paymentUrl;
       }
     } catch (error) {
       console.error("Error purchasing tickets:", error);
