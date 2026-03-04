@@ -448,9 +448,9 @@ export async function POST(request: NextRequest) {
             where: { id: user.id },
             data: { mpCustomerId: null },
           });
-          logger.warn('[MP payments] Cleared stale mpCustomerId for user', undefined, { userId: user.id });
+          logger.warn(`[MP payments] Cleared stale mpCustomerId for user ${user.id}`);
         } catch (clearErr) {
-          logger.warn('[MP payments] Could not clear mpCustomerId', undefined, { userId: user.id });
+          logger.warn(`[MP payments] Could not clear mpCustomerId for user ${user.id}`);
         }
         return NextResponse.json(
           {
