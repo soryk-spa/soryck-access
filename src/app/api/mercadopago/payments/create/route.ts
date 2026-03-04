@@ -327,9 +327,8 @@ export async function POST(request: NextRequest) {
       cardToken,
       installments,
       paymentMethodId,
-      // Always pass mpCustomerId when present — the card is saved to the customer
-      // before this point, so MP can always find the customer.
-      mpCustomerId: cardId ? (user.mpCustomerId ?? undefined) : undefined,
+      // Do NOT pass mpCustomerId — the card token is created without customer_id on the
+      // mobile side, so adding payer.id here causes MP to return "customer server error".
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
