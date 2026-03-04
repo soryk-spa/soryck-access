@@ -192,8 +192,7 @@ export async function createMPPayment(input: MPPaymentInput) {
       capture: true,
       payer: {
         email: input.email,
-        // Include customer id when available so MP can link the payment to the saved card.
-        ...(input.mpCustomerId ? { id: input.mpCustomerId } : {}),
+        // Never include payer.id — tokens lack customer_id context, mixing them causes "customer server error".
       },
     },
   });
