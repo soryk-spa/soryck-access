@@ -327,9 +327,8 @@ export async function POST(request: NextRequest) {
       cardToken,
       installments,
       paymentMethodId,
-      // Send mpCustomerId when cardId is present — MP requires payer.id to validate
-      // tokens created from saved cards (card_id). Without it MP returns 2002.
-      mpCustomerId: cardId ? (user.mpCustomerId ?? undefined) : undefined,
+      // Do NOT send mpCustomerId / payer.id — it causes "customer server error" (MP 500)
+      // with TEST tokens. The cardToken is self-contained and doesn't need it.
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
