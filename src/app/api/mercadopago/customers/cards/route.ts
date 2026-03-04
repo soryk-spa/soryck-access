@@ -32,6 +32,19 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+// Manejar preflight CORS explícitamente en el nivel de ruta
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 const bodySchema = z.object({
   cardToken: z.string().min(1, 'Se requiere el token de tarjeta'),
 });
