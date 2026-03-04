@@ -322,12 +322,25 @@ export async function POST(request: NextRequest) {
       externalReference: orderNumber,
     });
 
+    // Guard: MP must return a payment ID
+    if (!mpPayment.id) {
+      logger.error('[MP payments] MP returned a payment without id', undefined, {
+        status: mpPayment.status,
+        statusDetail: mpPayment.status_detail,
+      });
+      await prisma.order.update({ where: { id: order.id }, data: { status: 'CANCELLED' } });
+      return NextResponse.json(
+        { error: 'MercadoPago no retornó un ID de pago válido', statusDetail: mpPayment.status_detail },
+        { status: 502 },
+      );
+    }
+
     // ── Persist Payment record ────────────────────────────────────────────────
 
     await prisma.payment.create({
       data: {
         orderId: order.id,
-        transactionId: String(mpPayment.id), // MP payment id
+        transactionId: String(mpPayment.id),
         amount: finalAmount,
         currency: event.currency,
         status: mpPayment.status ?? 'PENDING',
@@ -399,9 +412,13 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     // MercadoPago SDK throws objects with `cause` containing the API error details
-    const mpCause = (error as { cause?: { code?: string | number; description?: string }[] })?.cause;
-    if (mpCause && Array.isArray(mpCause) && mpCause.length > 0) {
-      const mpError = mpCause[0];
+    // SDK v2 format: error.cause = [{ code, description }]
+    // SDK v3 format: error.cause = { code, description } or error.message with JSON
+    const mpCause = (error as { cause?: unknown })?.cause;
+    const causeArray = Array.isArray(mpCause) ? mpCause : mpCause ? [mpCause] : null;
+
+    if (causeArray && causeArray.length > 0) {
+      const mpError = causeArray[0] as { code?: string | number; description?: string };
       logger.error('[MP payments] MercadoPago API error', undefined, {
         code: mpError.code,
         description: mpError.description,
@@ -416,11 +433,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined);
+    // Log full error for debugging
+    logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined, {
+      errorRaw: typeof error === 'object' ? JSON.stringify(error) : String(error),
+    });
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido',
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 },
     );
