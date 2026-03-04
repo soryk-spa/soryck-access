@@ -138,6 +138,9 @@ async function generateTickets(
 // ── Route handler ─────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  // Captured outside try so the catch block can reference it for cleanup
+  let currentUserId: string | undefined;
+
   try {
     const ip =
       request.headers.get('x-forwarded-for') ??
@@ -152,6 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await requireAuth();
+    currentUserId = user.id;
     const body = await request.json();
     const validation = bodySchema.safeParse(body);
 
@@ -443,14 +447,16 @@ export async function POST(request: NextRequest) {
       // code 2002 = customer not found in MP (stale mpCustomerId in DB).
       // Clear it so the next request creates a fresh MP customer automatically.
       if (mpError.code === 2002 || mpError.code === '2002') {
-        try {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { mpCustomerId: null },
-          });
-          logger.warn(`[MP payments] Cleared stale mpCustomerId for user ${user.id}`);
-        } catch (clearErr) {
-          logger.warn(`[MP payments] Could not clear mpCustomerId for user ${user.id}`);
+        if (currentUserId) {
+          try {
+            await prisma.user.update({
+              where: { id: currentUserId },
+              data: { mpCustomerId: null },
+            });
+            logger.warn(`[MP payments] Cleared stale mpCustomerId for user ${currentUserId}`);
+          } catch (clearErr) {
+            logger.warn(`[MP payments] Could not clear mpCustomerId for user ${currentUserId}`);
+          }
         }
         return NextResponse.json(
           {
