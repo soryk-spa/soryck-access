@@ -354,18 +354,11 @@ export async function POST(request: NextRequest) {
     if (isMP) {
       const raw = JSON.stringify(error);
       console.error('[POST /api/mercadopago/payments/create] MP error:', raw);
-      logger.error('[MP payments] MP error', undefined, { raw });
+      logger.error('[MP payments] MP error', undefined, { raw, causeCode, causeDescription, mpStatus, mpMessage });
 
-      // code 2002 = customer not found — clear so next attempt recreates it
-      if (causeCode === 2002 || causeCode === '2002') {
-        if (currentUserId) {
-          try { await prisma.user.update({ where: { id: currentUserId }, data: { mpCustomerId: null } }); } catch { /* best effort */ }
-        }
-        return NextResponse.json(
-          { error: 'Perfil de pagos expirado. Elimina tus tarjetas y agrégalas de nuevo.', code: 2002 },
-          { status: 422 },
-        );
-      }
+      // NOTE: We intentionally do NOT clear mpCustomerId here.
+      // mpCustomerId is only used for listing/saving cards, not for payments.
+      // Clearing it would make saved cards disappear from the UI.
 
       return NextResponse.json(
         {
