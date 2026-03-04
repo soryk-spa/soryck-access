@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
         (typeof errObj?.message === 'string' && errObj.message.toLowerCase().includes('not found'));
 
       if (isNotFound) {
-        logger.warn('[customers] Stale mpCustomerId, creating fresh customer', undefined, { old: mpCustomerId });
+        logger.warn(`[customers] Stale mpCustomerId ${mpCustomerId}, creating fresh customer`);
         mpCustomerId = await findOrCreateCustomer(user.email);
         await prisma.user.update({ where: { id: user.id }, data: { mpCustomerId } });
         card = await saveCardToCustomer(mpCustomerId, cardToken);
