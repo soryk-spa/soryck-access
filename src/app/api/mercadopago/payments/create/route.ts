@@ -495,7 +495,7 @@ export async function POST(request: NextRequest) {
               data: { mpCustomerId: null },
             });
             logger.warn(`[MP payments] Cleared stale mpCustomerId for user ${currentUserId}`);
-          } catch (clearErr) {
+          } catch {
             logger.warn(`[MP payments] Could not clear mpCustomerId for user ${currentUserId}`);
           }
         }
