@@ -63,20 +63,37 @@ export async function findOrCreateCustomer(email: string): Promise<string> {
 }
 
 /**
- * Always creates a brand-new Mercado Pago Customer (skips email search).
- * Use this when mpCustomerId is null/cleared to avoid reusing a stale MP customer.
+ * Creates a Mercado Pago Customer, or returns the existing one if MP says
+ * "customer already exist" (code 101). Use instead of findOrCreateCustomer
+ * when mpCustomerId was cleared from DB to ensure we recover the correct ID.
  */
 export async function createFreshCustomer(email: string): Promise<string> {
   const client = getMPClient();
   const customerApi = new Customer(client);
 
-  const newCustomer = await customerApi.create({ body: { email } });
-  if (!newCustomer.id) {
-    throw new Error('Failed to create Mercado Pago customer – no id returned');
+  try {
+    const newCustomer = await customerApi.create({ body: { email } });
+    if (!newCustomer.id) {
+      throw new Error('Failed to create Mercado Pago customer – no id returned');
+    }
+    logger.info(`[MercadoPago] Created fresh customer for ${email}: ${newCustomer.id}`);
+    return newCustomer.id;
+  } catch (err) {
+    // code 101 = customer already exists in MP — search and return the existing ID
+    const errObj = err as Record<string, unknown>;
+    const cause = Array.isArray(errObj?.cause) ? errObj.cause as { code?: string | number }[] : [];
+    const alreadyExists = cause.some((c) => c.code === 101 || c.code === '101');
+    if (alreadyExists) {
+      logger.warn(`[MercadoPago] Customer already exists for ${email}, recovering existing ID`);
+      const searchResult = await customerApi.search({ options: { email } });
+      const existing = (searchResult.results ?? [])[0];
+      if (existing?.id) {
+        logger.info(`[MercadoPago] Recovered existing customer for ${email}: ${existing.id}`);
+        return existing.id;
+      }
+    }
+    throw err;
   }
-
-  logger.info(`[MercadoPago] Created fresh customer for ${email}: ${newCustomer.id}`);
-  return newCustomer.id;
 }
 
 // ── Cards ─────────────────────────────────────────────────────────────────────
