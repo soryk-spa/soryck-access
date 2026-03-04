@@ -241,9 +241,6 @@ export async function createMPPayment(input: MPPaymentInput) {
       capture: true,
       payer: {
         email: input.email,
-        // Include payer.id when provided — required by MP when token was created
-        // from a saved card (card_id). Must be the customer the card belongs to.
-        ...(input.mpCustomerId ? { id: input.mpCustomerId } : {}),
       },
     },
   });
