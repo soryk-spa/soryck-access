@@ -48,6 +48,18 @@ import { Order, Event, User, TicketType } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 const bodySchema = z.object({
   ticketTypeId: z.string().min(1, 'Se requiere el tipo de ticket'),
   quantity: z

@@ -14,6 +14,18 @@ import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ cardId: string }> },
