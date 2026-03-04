@@ -67,7 +67,10 @@ const bodySchema = z.object({
     .min(1, 'La cantidad debe ser al menos 1')
     .max(10, 'No puedes comprar más de 10 tickets a la vez'),
   cardToken: z.string().min(1, 'Se requiere el token de tarjeta'),
-  paymentMethodId: z.string().min(1, 'Se requiere el método de pago'),
+  // cardId is the saved MP card ID – used to look up paymentMethodId if not provided
+  cardId: z.string().optional(),
+  // paymentMethodId is optional: if omitted we derive it from the saved card
+  paymentMethodId: z.string().optional(),
   installments: z.number().min(1).max(12).default(1),
   promoCode: z.string().optional(),
 });
@@ -159,7 +162,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { ticketTypeId, quantity, cardToken, paymentMethodId, installments, promoCode } =
+    const { ticketTypeId, quantity, cardToken, cardId, paymentMethodId: rawPaymentMethodId, installments, promoCode } =
       validation.data;
 
     // ── Validate ticket type & capacity ───────────────────────────────────────
@@ -278,6 +281,33 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    // ── Resolve paymentMethodId ────────────────────────────────────────────────
+    // If the mobile app didn't send it, look it up from the saved card
+    let paymentMethodId = rawPaymentMethodId;
+    if (!paymentMethodId) {
+      const resolvedCardId = cardId;
+      if (resolvedCardId) {
+        try {
+          const { listCustomerCards } = await import('@/lib/mercadopago');
+          const cards = await listCustomerCards(user.mpCustomerId);
+          const cardList = Array.isArray(cards) ? cards : [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const found = cardList.find((c: any) => c.id === resolvedCardId);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          paymentMethodId = (found as any)?.payment_method?.id ?? undefined;
+          logger.info(`[MP payments] Derived paymentMethodId from card ${resolvedCardId}: ${paymentMethodId}`);
+        } catch (err) {
+          logger.warn('[MP payments] Could not derive paymentMethodId from card', { cardId: resolvedCardId });
+        }
+      }
+      if (!paymentMethodId) {
+        return NextResponse.json(
+          { error: 'No se pudo determinar el método de pago. Envía paymentMethodId o cardId.' },
+          { status: 400 },
+        );
+      }
     }
 
     const mpPayment = await createMPPayment({
