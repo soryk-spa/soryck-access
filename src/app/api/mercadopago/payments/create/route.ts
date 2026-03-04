@@ -356,9 +356,20 @@ export async function POST(request: NextRequest) {
       console.error('[POST /api/mercadopago/payments/create] MP error:', raw);
       logger.error('[MP payments] MP error', undefined, { raw, causeCode, causeDescription, mpStatus, mpMessage });
 
-      // NOTE: We intentionally do NOT clear mpCustomerId here.
-      // mpCustomerId is only used for listing/saving cards, not for payments.
-      // Clearing it would make saved cards disappear from the UI.
+      // code 2002 = "Customer not found" — card tokens generated from saved cards (cardId)
+      // are internally linked to the MP customer. If that customer is stale/expired in MP,
+      // the payment fails even without payer.id. The only recovery is to clear the
+      // customer so the user re-adds their card fresh.
+      if ((causeCode === 2002 || causeCode === '2002') && currentUserId) {
+        try {
+          await prisma.user.update({ where: { id: currentUserId }, data: { mpCustomerId: null } });
+          logger.warn(`[MP payments] Cleared stale mpCustomerId for user ${currentUserId} after 2002`);
+        } catch { /* best effort */ }
+        return NextResponse.json(
+          { error: 'Tu perfil de pago ha vencido. Por favor elimina tu tarjeta guardada y agrégala de nuevo.', code: 2002 },
+          { status: 422 },
+        );
+      }
 
       return NextResponse.json(
         {
