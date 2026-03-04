@@ -63,9 +63,9 @@ export async function findOrCreateCustomer(email: string): Promise<string> {
 }
 
 /**
- * Creates a Mercado Pago Customer, or returns the existing one if MP says
- * "customer already exist" (code 101). Use instead of findOrCreateCustomer
- * when mpCustomerId was cleared from DB to ensure we recover the correct ID.
+ * Creates a Mercado Pago Customer, or if one already exists for that email,
+ * deletes it first and creates a brand-new one. This ensures we never reuse
+ * a corrupted/stale customer object.
  */
 export async function createFreshCustomer(email: string): Promise<string> {
   const client = getMPClient();
@@ -79,17 +79,30 @@ export async function createFreshCustomer(email: string): Promise<string> {
     logger.info(`[MercadoPago] Created fresh customer for ${email}: ${newCustomer.id}`);
     return newCustomer.id;
   } catch (err) {
-    // code 101 = customer already exists in MP — search and return the existing ID
+    // code 101 = customer already exists in MP — delete it and recreate
     const errObj = err as Record<string, unknown>;
     const cause = Array.isArray(errObj?.cause) ? errObj.cause as { code?: string | number }[] : [];
     const alreadyExists = cause.some((c) => c.code === 101 || c.code === '101');
     if (alreadyExists) {
-      logger.warn(`[MercadoPago] Customer already exists for ${email}, recovering existing ID`);
+      logger.warn(`[MercadoPago] Customer already exists for ${email}, deleting old and recreating`);
+      // Find the old customer
       const searchResult = await customerApi.search({ options: { email } });
       const existing = (searchResult.results ?? [])[0];
       if (existing?.id) {
-        logger.info(`[MercadoPago] Recovered existing customer for ${email}: ${existing.id}`);
-        return existing.id;
+        // Delete the old customer from MP
+        try {
+          await customerApi.remove({ customerId: existing.id });
+          logger.info(`[MercadoPago] Deleted old customer ${existing.id} for ${email}`);
+        } catch (delErr) {
+          logger.warn(`[MercadoPago] Could not delete old customer ${existing.id}: ${JSON.stringify(delErr)}`);
+        }
+        // Now create a truly fresh one
+        const freshCustomer = await customerApi.create({ body: { email } });
+        if (!freshCustomer.id) {
+          throw new Error('Failed to create fresh Mercado Pago customer after delete');
+        }
+        logger.info(`[MercadoPago] Created truly fresh customer for ${email}: ${freshCustomer.id}`);
+        return freshCustomer.id;
       }
     }
     throw err;
