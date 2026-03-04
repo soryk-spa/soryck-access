@@ -50,8 +50,31 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   const ip = req.headers.get("x-forwarded-for") ?? 
              req.headers.get("x-real-ip") ?? 
              "unknown";
-  
-  
+
+  // ── CORS: manejar OPTIONS preflight ANTES de cualquier otra lógica ──────────
+  if (isAPIRoute(req)) {
+    const allowedOrigins = [
+      "https://sorykpass.com",
+      "https://www.sorykpass.com",
+    ];
+    const origin = req.headers.get("origin") ?? "";
+    const corsOrigin =
+      allowedOrigins.includes(origin) ? origin :
+      origin === "" || origin === "null" ? "*" :
+      process.env.NODE_ENV === "development" ? "*" :
+      "https://sorykpass.com";
+
+    const corsHeaders = new Headers();
+    corsHeaders.set("Access-Control-Allow-Origin", corsOrigin);
+    corsHeaders.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    corsHeaders.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    corsHeaders.set("Access-Control-Max-Age", "86400");
+
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+  }
+
   const response = NextResponse.next();
   
   
@@ -197,19 +220,21 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   
   if (isAPIRoute(req) && process.env.NODE_ENV === "development") {
     response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    response.headers.set(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
-    
-    
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 200, headers: response.headers });
-    }
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
+
+  // CORS headers para respuestas reales en producción (OPTIONS ya fue manejado arriba)
+  if (isAPIRoute(req) && process.env.NODE_ENV === "production") {
+    const allowedOrigins = ["https://sorykpass.com", "https://www.sorykpass.com"];
+    const origin = req.headers.get("origin") ?? "";
+    const corsOrigin =
+      allowedOrigins.includes(origin) ? origin :
+      origin === "" || origin === "null" ? "*" :
+      "https://sorykpass.com";
+    response.headers.set("Access-Control-Allow-Origin", corsOrigin);
+    response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
 
   return response;
