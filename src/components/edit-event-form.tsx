@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -32,7 +33,10 @@ import {
   CheckCircle2,
   ArrowLeft,
   Gift,
+  Globe,
+  EyeOff,
 } from "lucide-react";
+import { toast } from "sonner";
 
 
 import type { Category, Event, User, PriceTier } from "@/types";
@@ -137,11 +141,27 @@ export default function EditEventForm({
   const { imageUrl, handleImageChange } = useEventImage(initialData.imageUrl);
   const stats = useEventFormStats(ticketTypesHook.ticketTypes);
 
-  
-  
-  
+  const [isPublished, setIsPublished] = useState(event.isPublished);
+  const [loadingPublish, setLoadingPublish] = useState(false);
 
-  
+  const handleTogglePublish = async () => {
+    setLoadingPublish(true);
+    try {
+      const response = await fetch(`/api/events/${event.id}/publish`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublished: !isPublished }),
+      });
+      if (!response.ok) throw new Error("Error al cambiar el estado del evento");
+      setIsPublished(!isPublished);
+      toast.success(!isPublished ? "Evento publicado exitosamente" : "Evento guardado como borrador");
+    } catch {
+      toast.error("Error al cambiar el estado del evento");
+    } finally {
+      setLoadingPublish(false);
+    }
+  };
+
   const handleFormImageChange = (newImageUrl: string) => {
     console.log('🖼️ handleFormImageChange called with:', newImageUrl);
     console.log('🖼️ Form data before update:', eventForm.formData);
@@ -173,9 +193,28 @@ export default function EditEventForm({
           <span>Volver</span>
         </Button>
         
-        <Badge variant={event.isPublished ? "default" : "secondary"}>
-          {event.isPublished ? "Publicado" : "Borrador"}
-        </Badge>
+        <div className="flex items-center space-x-3">
+          <Badge variant={isPublished ? "default" : "secondary"}>
+            {isPublished ? "Publicado" : "Borrador"}
+          </Badge>
+          <Button
+            type="button"
+            size="sm"
+            variant={isPublished ? "outline" : "default"}
+            onClick={handleTogglePublish}
+            disabled={loadingPublish}
+            className={isPublished ? "border-amber-300 text-amber-700 hover:bg-amber-50" : "bg-green-600 hover:bg-green-700 text-white"}
+          >
+            {loadingPublish ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : isPublished ? (
+              <EyeOff className="h-4 w-4 mr-2" />
+            ) : (
+              <Globe className="h-4 w-4 mr-2" />
+            )}
+            {loadingPublish ? "Actualizando..." : isPublished ? "Despublicar" : "Publicar Evento"}
+          </Button>
+        </div>
       </div>
 
       {}
