@@ -192,8 +192,7 @@ export async function createMPPayment(input: MPPaymentInput) {
       capture: true,
       payer: {
         email: input.email,
-        // Only include id when paying with a saved card (mpCustomerId + cardId).
-        // Omitting it for fresh-token payments avoids MP's "customer server error".
+        // Include customer id when available so MP can link the payment to the saved card.
         ...(input.mpCustomerId ? { id: input.mpCustomerId } : {}),
       },
     },

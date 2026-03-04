@@ -81,7 +81,28 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Save the card to the MP customer
-    const card = await saveCardToCustomer(mpCustomerId, cardToken);
+    // If the stored mpCustomerId is stale (customer deleted / different env),
+    // MP returns a 404/not-found error — we catch it, create a fresh customer, and retry once.
+    let card;
+    try {
+      card = await saveCardToCustomer(mpCustomerId, cardToken);
+    } catch (cardErr) {
+      const errObj = cardErr as Record<string, unknown>;
+      const cause = Array.isArray(errObj?.cause) ? errObj.cause as { code?: number | string }[] : [];
+      const isNotFound =
+        errObj?.status === 404 ||
+        cause.some((c) => c.code === 2002 || c.code === '2002') ||
+        (typeof errObj?.message === 'string' && errObj.message.toLowerCase().includes('not found'));
+
+      if (isNotFound) {
+        logger.warn('[customers] Stale mpCustomerId, creating fresh customer', undefined, { old: mpCustomerId });
+        mpCustomerId = await findOrCreateCustomer(user.email);
+        await prisma.user.update({ where: { id: user.id }, data: { mpCustomerId } });
+        card = await saveCardToCustomer(mpCustomerId, cardToken);
+      } else {
+        throw cardErr;
+      }
+    }
 
     return NextResponse.json({
       mpCustomerId,
