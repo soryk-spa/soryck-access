@@ -340,8 +340,8 @@ export async function POST(request: NextRequest) {
       id: mpPayment.id,
       status: mpPayment.status,
       status_detail: mpPayment.status_detail,
-      payment_method_id: (mpPayment as Record<string, unknown>).payment_method_id,
-      keys: Object.keys(mpPayment as object),
+      payment_method_id: (mpPayment as unknown as Record<string, unknown>).payment_method_id,
+      keys: Object.keys(mpPayment as unknown as object),
     }));
 
     // Guard: MP must return a payment ID
