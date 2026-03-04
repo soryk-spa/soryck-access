@@ -398,6 +398,24 @@ export async function POST(request: NextRequest) {
       { status: 402 },
     );
   } catch (error) {
+    // MercadoPago SDK throws objects with `cause` containing the API error details
+    const mpCause = (error as { cause?: { code?: string | number; description?: string }[] })?.cause;
+    if (mpCause && Array.isArray(mpCause) && mpCause.length > 0) {
+      const mpError = mpCause[0];
+      logger.error('[MP payments] MercadoPago API error', undefined, {
+        code: mpError.code,
+        description: mpError.description,
+      });
+      return NextResponse.json(
+        {
+          error: 'Error de MercadoPago',
+          code: mpError.code,
+          details: mpError.description ?? 'Error al procesar el pago con MercadoPago',
+        },
+        { status: 422 },
+      );
+    }
+
     logger.error('[POST /api/mercadopago/payments/create]', error instanceof Error ? error : undefined);
     return NextResponse.json(
       {

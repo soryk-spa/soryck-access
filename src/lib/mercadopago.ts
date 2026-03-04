@@ -177,9 +177,12 @@ export async function createMPPayment(input: MPPaymentInput) {
   const client = getMPClient();
   const paymentApi = new Payment(client);
 
+  // CLP and other zero-decimal currencies must be integers
+  const transactionAmount = Math.round(input.amount);
+
   const response = await paymentApi.create({
     body: {
-      transaction_amount: input.amount,
+      transaction_amount: transactionAmount,
       token: input.cardToken,
       installments: input.installments,
       payment_method_id: input.paymentMethodId,
