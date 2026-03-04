@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { webpayPlus } from '@/lib/transbank'
+import { createPreference } from '@/lib/mercadopago'
 import { SeatReservationManager } from '@/lib/seat-reservation-manager'
 import { calculatePriceBreakdown } from '@/lib/commission'
 import { randomUUID } from 'crypto'
@@ -200,29 +200,26 @@ export async function POST(
       })
     }
 
-    // Crear transacción en Transbank
-    const transbankSessionId = generateShortSessionId("seat")
-    const returnUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/transbank/return-seating`
-
-    console.log(`[WEBPAY] Creando transacción - Monto: $${finalTotalAmount}`)
-    const transbankResponse = await webpayPlus.create(
-      order.orderNumber,
-      transbankSessionId,
-      finalTotalAmount,
-      returnUrl
-    )
-
-    console.log('[WEBPAY] Transacción creada:', {
-      token: transbankResponse.token,
-      url: transbankResponse.url
+    // Crear preference en MercadoPago
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    console.log(`[MP] Creando preference - Monto: $${finalTotalAmount}`)
+    const initPoint = await createPreference({
+      orderId: order.id,
+      description: `${selectedSeats.length}x Asiento – ${event.title}`,
+      amount: finalTotalAmount,
+      email: buyerInfo.email,
+      appUrl,
+      returnPath: '/api/mercadopago/return-seating',
     })
+
+    console.log('[MP] Preference creada:', { initPoint: initPoint.substring(0, 60) + '...' })
 
     // Crear registro de pago
     await prisma.payment.create({
       data: {
         orderId: order.id,
-        transactionId: transbankSessionId,
-        token: transbankResponse.token,
+        transactionId: `seating:${sessionId}:${seatIds.join(',')}`, // Metadata de asientos
+        token: order.id,   // Usamos orderId para buscarlo en el return
         amount: finalTotalAmount,
         currency: event.currency,
         status: 'PENDING',
@@ -231,8 +228,7 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      paymentUrl: transbankResponse.url,
-      transbankToken: transbankResponse.token,
+      paymentUrl: initPoint,
       orderId: order.id,
       orderNumber: order.orderNumber,
     })

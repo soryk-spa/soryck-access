@@ -1,29 +1,24 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 
 function RedirectComponent() {
   const searchParams = useSearchParams();
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const token = searchParams.get("token");
   const url = searchParams.get("url");
   const amount = searchParams.get("amount");
   const promoCode = searchParams.get("promoCode");
   const discount = searchParams.get("discount");
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (buttonRef.current) {
-        buttonRef.current.click();
-      }
-    }, 1500); 
+    // MercadoPago Checkout Pro uses a plain GET redirect
+    if (url) {
+      window.location.href = url;
+    }
+  }, [url]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!token || !url) {
+  if (!url) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-red-500">
@@ -42,7 +37,7 @@ function RedirectComponent() {
             Finalizando tu compra
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Serás redirigido a Webpay para completar el pago.
+            Serás redirigido a MercadoPago para completar el pago.
           </p>
           
           {}
@@ -69,19 +64,8 @@ function RedirectComponent() {
           </div>
         </div>
         
-        <form method="POST" action={url}>
-          <input type="hidden" name="token_ws" value={token} />
-          <button
-            ref={buttonRef}
-            type="submit"
-            className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-colors"
-          >
-            Continuar a Webpay
-          </button>
-        </form>
-        
         <p className="text-xs text-gray-400 mt-3 text-center">
-          Si no eres redirigido automáticamente, haz clic en el botón.
+          Si no eres redirigido automáticamente, recarga la página.
         </p>
       </div>
     </div>
@@ -97,7 +81,7 @@ function LoadingFallback() {
   );
 }
 
-export default function TransbankRedirectPage() {
+export default function MPRedirectPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
       <Suspense fallback={<LoadingFallback />}>

@@ -9,7 +9,7 @@
  *   MP_WEBHOOK_SECRET – used to verify incoming webhook signatures
  */
 
-import { MercadoPagoConfig, Customer, CustomerCard, Payment } from 'mercadopago';
+import { MercadoPagoConfig, Customer, CustomerCard, Payment, Preference } from 'mercadopago';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { logger } from './logger';
 
@@ -100,6 +100,59 @@ export async function deleteCustomerCard(mpCustomerId: string, cardId: string) {
 
   await cardApi.remove({ customerId: mpCustomerId, cardId });
   logger.info(`[MercadoPago] Card ${cardId} deleted for customer ${mpCustomerId}`);
+}
+
+// ── Checkout Pro (web payments) ───────────────────────────────────────────────
+
+export interface MPPreferenceInput {
+  orderId: string;         // Used as external_reference to find the order on return
+  description: string;     // e.g. "2x Entrada General – Lollapalooza 2026"
+  amount: number;          // Total in CLP (integer)
+  email: string;           // Payer email
+  appUrl: string;          // e.g. https://sorykpass.com (no trailing slash)
+  returnPath?: string;     // e.g. "/api/mercadopago/return" (default)
+}
+
+/**
+ * Creates a MercadoPago Checkout Pro preference and returns the init_point URL.
+ * The user is redirected to this URL to complete payment.
+ * On return, MP sends GET to back_urls with: external_reference, payment_id, status.
+ */
+export async function createPreference(input: MPPreferenceInput): Promise<string> {
+  const client = getMPClient();
+  const preferenceApi = new Preference(client);
+
+  const returnPath = input.returnPath ?? '/api/mercadopago/return';
+  const returnUrl = `${input.appUrl}${returnPath}`;
+
+  const response = await preferenceApi.create({
+    body: {
+      items: [
+        {
+          id: input.orderId,
+          title: input.description,
+          quantity: 1,
+          unit_price: input.amount,
+          currency_id: 'CLP',
+        },
+      ],
+      payer: { email: input.email },
+      external_reference: input.orderId,
+      back_urls: {
+        success: returnUrl,
+        failure: returnUrl,
+        pending: returnUrl,
+      },
+      auto_return: 'approved',
+    },
+  });
+
+  if (!response.init_point) {
+    throw new Error('MercadoPago did not return an init_point URL');
+  }
+
+  logger.info(`[MercadoPago] Preference created: id=${response.id} for order ${input.orderId}`);
+  return response.init_point;
 }
 
 // ── Payments ──────────────────────────────────────────────────────────────────
