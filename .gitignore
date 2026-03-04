@@ -62,3 +62,6 @@ next-env.d.ts
 # Local backups created by scripts
 backups/
 build.log
+
+# Scalar API reference bundle (auto-generado por postinstall)
+public/scalar.js
