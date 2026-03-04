@@ -121,11 +121,22 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    logger.error('[POST /api/mercadopago/customers]', error instanceof Error ? error : undefined);
+    // MP SDK throws plain objects { status, message, cause[] }, not Error instances
+    const errObj = error as Record<string, unknown>;
+    const mpStatus = typeof errObj?.status === 'number' ? errObj.status : null;
+    const mpMessage = typeof errObj?.message === 'string' ? errObj.message : null;
+    const mpCause = Array.isArray(errObj?.cause) ? errObj.cause : [];
+    const errorStr = typeof error === 'object' ? JSON.stringify(error) : String(error);
+
+    console.error('[POST /api/mercadopago/customers] error:', errorStr);
+    logger.error('[POST /api/mercadopago/customers]', error instanceof Error ? error : undefined, { raw: errorStr });
+
     return NextResponse.json(
       {
         error: 'Error al guardar la tarjeta',
-        details: error instanceof Error ? error.message : 'Error desconocido',
+        details: mpMessage ?? (error instanceof Error ? error.message : errorStr),
+        code: mpStatus,
+        cause: mpCause,
       },
       { status: 500 },
     );
