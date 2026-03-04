@@ -25,7 +25,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { CustomerCardResponse } from 'mercadopago/dist/clients/customerCard/commonTypes';
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { listCustomerCards, saveCardToCustomer, findOrCreateCustomer } from '@/lib/mercadopago';
+import { listCustomerCards, saveCardToCustomer, getOrCreateCustomer } from '@/lib/mercadopago';
 import { RateLimitPresets } from '@/lib/rate-limiter';
 import { logger } from '@/lib/logger';
 import { z } from 'zod';
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     let mpCustomerId = user.mpCustomerId ?? null;
 
     if (!mpCustomerId) {
-      mpCustomerId = await findOrCreateCustomer(user.email);
+      mpCustomerId = await getOrCreateCustomer(user.email);
       // Persist the customer ID so we don't create duplicates
       await prisma.user.update({
         where: { id: user.id },
