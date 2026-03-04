@@ -526,6 +526,30 @@ export async function POST(request: NextRequest) {
       const logPayload = JSON.stringify(error);
       logger.error('[MP payments] MercadoPago plain object error', undefined, { raw: logPayload });
       console.error('[POST /api/mercadopago/payments/create] MP plain error:', logPayload);
+
+      // "customer server error" (MP 500) = broken/stale MP customer.
+      // Clear mpCustomerId so the next card-add creates a fresh one.
+      const isCustomerError =
+        mpStatus === 500 &&
+        typeof mpMessage === 'string' &&
+        mpMessage.toLowerCase().includes('customer');
+      if (isCustomerError && currentUserId) {
+        try {
+          await prisma.user.update({ where: { id: currentUserId }, data: { mpCustomerId: null } });
+          logger.warn(`[MP payments] Cleared mpCustomerId after customer server error for user ${currentUserId}`);
+        } catch {
+          logger.warn(`[MP payments] Could not clear mpCustomerId for user ${currentUserId}`);
+        }
+        return NextResponse.json(
+          {
+            error: 'Perfil de pagos inválido. Elimina tus tarjetas guardadas y agrégalas de nuevo.',
+            code: 'customer_server_error',
+            retryable: false,
+          },
+          { status: 422 },
+        );
+      }
+
       return NextResponse.json(
         {
           error: 'Error de MercadoPago',
