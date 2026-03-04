@@ -335,6 +335,15 @@ export async function POST(request: NextRequest) {
       externalReference: orderNumber,
     });
 
+    // Log full MP response always (visible in Vercel Runtime Logs)
+    console.log('[MP payments] Raw createMPPayment response:', JSON.stringify({
+      id: mpPayment.id,
+      status: mpPayment.status,
+      status_detail: mpPayment.status_detail,
+      payment_method_id: (mpPayment as Record<string, unknown>).payment_method_id,
+      keys: Object.keys(mpPayment as object),
+    }));
+
     // Guard: MP must return a payment ID
     if (!mpPayment.id) {
       const fullResponse = JSON.stringify(mpPayment);
@@ -346,6 +355,8 @@ export async function POST(request: NextRequest) {
           error: 'MercadoPago no retornó un ID de pago válido',
           status: mpPayment.status,
           statusDetail: mpPayment.status_detail,
+          // Include full response for debugging from mobile logs
+          debug: fullResponse,
         },
         { status: 502 },
       );
