@@ -181,9 +181,12 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   
-  // Block test/debug routes in production
+  // Block test/debug routes in production (allow if secret param matches)
   if (process.env.NODE_ENV === "production" && isTestOrDebugRoute(req)) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const secret = req.nextUrl.searchParams.get("secret");
+    if (secret !== "soryck-debug-2026") {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
   }
 
   if (isAPIRoute(req) && !isPublicAPIRoute(req) && !isClerkAPIRoute(req)) {
