@@ -86,9 +86,17 @@ export async function getOrCreateCustomer(email: string): Promise<string> {
 
 export async function saveCardToCustomer(customerId: string, cardToken: string) {
   const api = new CustomerCard(getMPClient());
-  const card = await api.create({ customerId, body: { token: cardToken } });
-  logger.info(`[MP] Card saved for customer ${customerId}: card ${card.id}`);
-  return card;
+  const tokenPrefix = cardToken?.slice(0, 8) ?? 'undefined';
+  console.log(`[MP saveCard] customerId=${customerId} tokenPrefix=${tokenPrefix}`);
+  try {
+    const card = await api.create({ customerId, body: { token: cardToken } });
+    console.log(`[MP saveCard] success: cardId=${card.id} method=${card.payment_method?.id} last4=${card.last_four_digits}`);
+    logger.info(`[MP] Card saved for customer ${customerId}: card ${card.id}`);
+    return card;
+  } catch (err) {
+    console.error(`[MP saveCard] FAILED customerId=${customerId} tokenPrefix=${tokenPrefix}:`, JSON.stringify(err));
+    throw err;
+  }
 }
 
 export async function listCustomerCards(customerId: string) {
@@ -153,22 +161,27 @@ export interface MPPaymentInput {
  */
 export async function createMPPayment(input: MPPaymentInput) {
   const api = new Payment(getMPClient());
-
-  const response = await api.create({
-    body: {
-      transaction_amount: Math.round(input.amount), // CLP must be integer
-      token: input.cardToken,
-      installments: input.installments,
-      payment_method_id: input.paymentMethodId,
-      description: input.description,
-      external_reference: input.externalReference,
-      capture: true,
-      payer: { email: input.email },
-    },
-  });
-
-  logger.info(`[MP] Payment: id=${response.id} status=${response.status} method=${input.paymentMethodId}`);
-  return response;
+  const tokenPrefix = input.cardToken?.slice(0, 8) ?? 'undefined';
+  const body = {
+    transaction_amount: Math.round(input.amount),
+    token: input.cardToken,
+    installments: input.installments,
+    payment_method_id: input.paymentMethodId,
+    description: input.description,
+    external_reference: input.externalReference,
+    capture: true,
+    payer: { email: input.email },
+  };
+  console.log(`[MP createPayment] tokenPrefix=${tokenPrefix} amount=${body.transaction_amount} method=${input.paymentMethodId} email=${input.email} ref=${input.externalReference}`);
+  try {
+    const response = await api.create({ body });
+    console.log(`[MP createPayment] id=${response.id} status=${response.status} detail=${response.status_detail}`);
+    logger.info(`[MP] Payment: id=${response.id} status=${response.status} method=${input.paymentMethodId}`);
+    return response;
+  } catch (err) {
+    console.error(`[MP createPayment] FAILED tokenPrefix=${tokenPrefix} method=${input.paymentMethodId}:`, JSON.stringify(err));
+    throw err;
+  }
 }
 
 // ─── Webhook signature verification ──────────────────────────────────────────
