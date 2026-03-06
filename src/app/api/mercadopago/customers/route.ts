@@ -66,7 +66,9 @@ export async function POST(request: NextRequest) {
       const { status, causeCode, message } = extractMPError(err);
       const isStale =
         status === 404 ||
+        status === 401 ||  // credentials mismatch (e.g. after switching TEST → LIVE)
         causeCode === 2002 || causeCode === '2002' ||
+        causeCode === 300 || causeCode === '300' || // env mismatch: customer from different credentials set (TEST vs LIVE)
         (typeof message === 'string' && message.toLowerCase().includes('not found'));
 
       if (isStale) {
