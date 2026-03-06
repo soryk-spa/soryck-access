@@ -150,6 +150,7 @@ export interface MPPaymentInput {
   email: string;
   description: string;
   externalReference: string;
+  mpCustomerId?: string | null; // Required in LIVE to resolve saved-card tokens
 }
 
 /**
@@ -170,7 +171,12 @@ export async function createMPPayment(input: MPPaymentInput) {
     description: input.description,
     external_reference: input.externalReference,
     capture: true,
-    payer: { email: input.email },
+    // payer.id is required in LIVE so MP can resolve the customer that owns the saved card token.
+    // In TEST it was causing "customer server error" because sandbox customers expired,
+    // but in LIVE customers are stable and MP needs this to validate the token.
+    payer: input.mpCustomerId
+      ? { email: input.email, id: input.mpCustomerId }
+      : { email: input.email },
   };
   console.log(`[MP createPayment] tokenPrefix=${tokenPrefix} amount=${body.transaction_amount} method=${input.paymentMethodId} email=${input.email} ref=${input.externalReference}`);
   try {

@@ -243,6 +243,7 @@ export async function POST(request: NextRequest) {
       email: user.email,
       description: event.title,
       externalReference: orderNumber,
+      mpCustomerId: user.mpCustomerId ?? undefined,
     });
 
     // Always log MP response for debugging in Vercel Runtime Logs
